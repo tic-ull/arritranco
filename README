@@ -1,0 +1,18 @@
+Home
+
+Arritranco aims to be an inventory IT tool.
+
+It should integrate with monitoring systems such as nagios and cacti, and offer an easy to use API.
+
+This application will be written in python using Django framework.
+
+Some interesting things:
+
+    * http://github.com/thauber/django-schedule
+    * http://bitbucket.org/jespern/django-piston/wiki/Home
+    * http://trac.mcs.anl.gov/projects/bcfg2
+    * http://www.cacti.net/downloads/docs/html/scripts.html
+    * http://code.google.com/p/django-photologue/
+    * https://wiki.op5.org/merlin:start
+    * http://www.op5.org/community/projects/ninja
+    * http://github.com/etnalubma/django-osm (note most times this software will be internal therefore can’t use free google maps api)
