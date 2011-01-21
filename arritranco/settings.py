@@ -80,6 +80,8 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'django_extensions',
     'south',
+    'location',
+    'hardware',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
