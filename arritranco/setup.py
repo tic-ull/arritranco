@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name = "Arritranco",
     version = "0.1",
-    packages = ["location",],
+    packages = ["location", "hardware", "things",],
     author = "STIC-ULL",
     author_mail = "sistemas@ull.es",
     description = "This is an inventory tool for IT resource",
