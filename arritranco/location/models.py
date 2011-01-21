@@ -35,7 +35,7 @@ class Room(models.Model):
     slug = models.SlugField()
     floor = models.ForeignKey(Floor)
     location = models.TextField(blank=True, null=True,
-        help_text=u'Text to describe the way to the room')
+        help_text=_(u'Text to describe the way to the room'))
     #TODO: We may need to include a photologue gallery here
 
     def __unicode__(self):
@@ -46,4 +46,4 @@ class Place(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     description = models.TextField(blank = True, null = True,
-        help_text = u"A description of the place inside the room")
+        help_text = _(u"A description of the place inside the room"))

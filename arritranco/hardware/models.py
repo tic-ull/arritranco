@@ -1,20 +1,12 @@
 from django.db import models
 from location.models import Place
 from django.utils.translation import gettext_lazy as _
+from things.models import Thing, Manufacturer
 
-
-class Manufacturer(models.Model):
-    """This class is for inventory of manufacturer we have"""
-    name = models.CharField(max_length=255)
-    wikiName = models.CharField(max_length=255)
-
-    def __unicode__(self):
-        return unicode(self.name)
-
-    class Meta:
-        ordering = ['name', ]
-    
 class HwType(models.Model):
+    """This tool is intended to be used to store differents classes of hardware such as
+    switches, servers, racks, workstations, displays, etc. Therefore we need a way to
+    filter them"""
     name = models.CharField(max_length=255)
 
     def __unicode__(self):
@@ -23,8 +15,7 @@ class HwType(models.Model):
     class Meta:
         ordering = ['name', ]
         
-class HwModel(models.Model):
-    manufacturer = models.ForeignKey(Manufacturer)
+class HwModel(Thing):
     type = models.ForeignKey(HwType)
 
 class HwBase(models.Model):
