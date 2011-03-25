@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
 # Create your models here.
@@ -11,7 +11,7 @@ class Building(models.Model):
     slug = models.SlugField()
     map_location = models.ImageField(upload_to=_("buildings_map"), blank=True)
     area = models.IntegerField(choices = settings.AREA_CHOICES)
-    campo = models.CharField(max_length=200)
+    campus = models.CharField(max_length=200)
 
 
     def __unicode__(self):

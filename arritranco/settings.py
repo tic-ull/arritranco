@@ -61,6 +61,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
 ROOT_URLCONF = 'arritranco.urls'
@@ -82,8 +83,11 @@ INSTALLED_APPS = (
     'south',
     'location',
     'hardware',
+    'debug_toolbar'
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
                 [2, 'Santa Cruz'],
                ]
+
+INTERNAL_IPS = ('127.0.0.1',)
