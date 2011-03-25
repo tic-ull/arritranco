@@ -2,6 +2,13 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
+class Campus(models.Model):
+    name = models.CharField(max_length = 255)
+    slug = models.SlugField()
+    
+    def __unicode__(self):
+        return self.name
+
 # Create your models here.
 class Building(models.Model):
     """
@@ -11,12 +18,10 @@ class Building(models.Model):
     slug = models.SlugField()
     map_location = models.ImageField(upload_to=_("buildings_map"), blank=True)
     area = models.IntegerField(choices = settings.AREA_CHOICES)
-    campus = models.CharField(max_length=200)
-
+    campus = models.ForeignKey(Campus)
 
     def __unicode__(self):
-        return u'%s' % (self.name, )
-
+        return self.name
 
 class Floor(models.Model):
     """
