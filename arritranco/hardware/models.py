@@ -70,8 +70,11 @@ class Rackable(HwBase, RackPlace):
     warranty_expires = models.DateField(blank=True, null=True)
     buy_date = models.DateField(blank=True, null=True)
     
-class PhysicalServer(Rackable):
+class Server(Rackable):
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
+    processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
+    processor_clock = models.DecimalField(_(u"Ghz"), max_digits=15, decimal_places=3, blank=True, null=True)
+    processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Multi CPU servers has the same CPU type'))
     
 class Chasis(Rackable):
     name = models.CharField(max_length = 255)
@@ -79,7 +82,7 @@ class Chasis(Rackable):
     units = models.IntegerField()
     slots = models.IntegerField()
     
-class BladeServer(PhysicalServer):
+class BladeServer(Server):
     slots_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots used by this server'))
     chasis = models.ForeignKey(Chasis)
     
@@ -87,7 +90,7 @@ class HardDisk(models.Model):
     """
         Disco duro
     """
-    server = models.ForeignKey(PhysicalServer)
+    server = models.ForeignKey(Server)
     size = models.DecimalField(_(u"GB"), max_digits=15, decimal_places=3, blank=True, null=True)
     conn = models.IntegerField(_(u"Tipo"), choices=HD_CONN, blank=True, null=True)
 
@@ -107,17 +110,6 @@ class ProcessorType(models.Model):
     class Meta:
         ordering = ['manufacturer', 'model']
         
-class Processor(models.Model):
-    """
-        This model hold the relation between the CPUs and the physical servers
-    """
-    server = models.ForeignKey(PhysicalServer)
-    model = models.ForeignKey(ProcessorType, blank=True, null=True)
-    clock = models.DecimalField(_(u"Ghz"), max_digits=15, decimal_places=3, blank=True, null=True)
-    number = models.IntegerField(_(u'Number of processors'), help_text=_('Multi CPU servers has the same CPU type'))
-
-    def __unicode__(self):
-        return u'%s %d' % (self.model, self.clock)
 
 class Switch(Rackable):
     name = models.CharField(max_length=255)
