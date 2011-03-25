@@ -83,7 +83,8 @@ INSTALLED_APPS = (
     'south',
     'location',
     'hardware',
-    'debug_toolbar'
+    'debug_toolbar',
+    'scheduler',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
