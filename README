@@ -1,4 +1,5 @@
-Home
+Arritranco:
+===========
 
 Arritranco aims to be an inventory IT tool.
 
@@ -16,3 +17,15 @@ Some interesting things:
     * https://wiki.op5.org/merlin:start
     * http://www.op5.org/community/projects/ninja
     * http://github.com/etnalubma/django-osm (note most times this software will be internal therefore can’t use free google maps api)
+
+
+How to build your development environment:
+------------------------------------------
+
+   - git clone https://github.com/stic-ull/arritranco.git
+   - virtualenv virtualenv
+   - . ./virtualenv/bin/activate
+   - pip install -r requirements.txt
+   - cd arritranco
+   - ./manage.py syncdb --migrate
+
