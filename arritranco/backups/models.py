@@ -4,6 +4,7 @@ from scheduler.models import Task
 from inventory.models import Machine
 
 #class RevisionBackup(models.Model):
+# This file
 #    maquina = models.ForeignKey(Maquina)
 #    # core = True
 #    fecha = models.DateField(blank=True, null=True, help_text='Fecha creaci0n')
@@ -25,7 +26,7 @@ class FileBackupTask(Task):
     SYSTEM_BACKUP = 3
 
     BACKUP_TYPE_CHOICES = (
-        (FILE_BCKP, _(u'File')),
+        (FILE_BACKUP, _(u'File')),
         (DATA_BASE_BACKUP, _(u'Data base')),
         (SYSTEM_BACKUP, _(u'System')),
     )
@@ -105,12 +106,12 @@ class FileNamePattern(models.Model):
 #        return self.planificacion.maquina
 
     class Meta:
-        ordering = ['file_pattern',]
+        ordering = ['pattern',]
         verbose_name_plural = _(u'File backup products')
         verbose_name = _(u'File backup product')
 
 class FileBackupProduct(models.Model):
-    file_backup_task = models.ForeignKey(FileBackupTask)
+    file_backup_task = models.ForeignKey(FileBackupTask, related_name = 'file_backup')
     file_pattern = models.ForeignKey(FileNamePattern)
     start_seq = models.IntegerField(blank=True, null=True,
         help_text=_(u'If there is more than one file_pattern, the initial value of the sequence'))
