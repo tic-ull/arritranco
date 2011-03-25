@@ -85,6 +85,7 @@ INSTALLED_APPS = (
     'hardware',
     'debug_toolbar',
     'scheduler',
+    'backups',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
