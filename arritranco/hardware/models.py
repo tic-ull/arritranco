@@ -2,11 +2,12 @@ from django.db import models
 from location.models import Place, Building
 from django.utils.translation import ugettext_lazy as _
 
-SWITCH_LEVEL = ((10, _(u'Access')),
-               (20, _(u'CPD')),
-               (30, _(u'Distribution')),
-               (40, _(u'Core')),
-               )
+SWITCH_LEVEL = (
+    (10, _(u'Access')),
+    (20, _(u'CPD')),
+    (30, _(u'Distribution')),
+    (40, _(u'Core')),
+)
 
 HD_CONN = (
     (0, 'SCSI'),
@@ -95,9 +96,6 @@ class UserDevice(Unrackable):
 class Phone(UserDevice):
     extension = models.CharField(max_length = 4)
     
-    
-    
-    
 class Server(Rackable):
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
     processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
@@ -154,4 +152,4 @@ class MACsHistory(models.Model):
     port = models.ManyToManyField(NetworkPort)
     captured = models.DateTimeField()
     mac = models.CharField(max_length=12) 
-    
+

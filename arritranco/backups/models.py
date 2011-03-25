@@ -22,12 +22,12 @@ class FileBackupTask(Task):
         File backup task
     """
     FILE_BACKUP = 1
-    DATA_BASE_BACKUP = 2
+    DATABASE_BACKUP = 2
     SYSTEM_BACKUP = 3
 
     BACKUP_TYPE_CHOICES = (
         (FILE_BACKUP, _(u'File')),
-        (DATA_BASE_BACKUP, _(u'Data base')),
+        (DATABASE_BACKUP, _(u'Database')),
         (SYSTEM_BACKUP, _(u'System')),
     )
 
@@ -119,9 +119,7 @@ class FileBackupProduct(models.Model):
         help_text=_(u'If there is more than one file_pattern, the last value of the sequence'))
     task = models.ForeignKey(FileBackupTask, verbose_name=_(u"Task"))
     variable_percentage = models.DecimalField(default=20, max_digits=2, decimal_places=0, null=True, blank=True,
-        help_text=_(u"% size that you spect to change between two backups"))
-
-
+        help_text=_(u"% size that you expect to change between two backups"))
 
 class BackupFile(models.Model):
     file_backup_product = models.ForeignKey(FileBackupProduct)
