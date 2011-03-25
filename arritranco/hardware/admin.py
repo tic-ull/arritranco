@@ -4,23 +4,18 @@ Created on 23/12/2010
 @author: esauro
 '''
 from django.contrib import admin
-from models import PhysicalServer, Switch, Rack, Manufacturer, HwModel, HwType, RackPlace, Chasis, BladeServer
-from hardware.models import HardDisk, Processor
+from models import Server, Switch, Rack, Manufacturer, HwModel, HwType, RackPlace, Chasis, BladeServer
+from hardware.models import HardDisk
 
 class HardDiskInline(admin.TabularInline):
     model = HardDisk
     extra = 2
     
-class ProcessorInline(admin.TabularInline):
-    model = Processor
-    max_num = 1
-    
-class PhysicalServerAdmin(admin.ModelAdmin):
+class ServerAdmin(admin.ModelAdmin):
     inlines = [HardDiskInline,
-               ProcessorInline,
                ]
 
-admin.site.register(PhysicalServer, PhysicalServerAdmin)
+admin.site.register(Server, ServerAdmin)
 admin.site.register(Switch)
 admin.site.register(Rack)
 admin.site.register(Manufacturer)
