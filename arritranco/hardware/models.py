@@ -1,10 +1,11 @@
 from django.db import models
-from location.models import Place
+from location.models import Place, Building
 from django.utils.translation import ugettext_lazy as _
 
-SWITCH_TYPE = ((10, _(u'Access')),
+SWITCH_LEVEL = ((10, _(u'Access')),
                (20, _(u'CPD')),
                (30, _(u'Distribution')),
+               (40, _(u'Core')),
                )
 
 HD_CONN = (
@@ -46,6 +47,17 @@ class HwModel(models.Model):
     
     def __unicode__(self):
         return u"%s -- %s (%s)" % (self.manufacturer, self.name, self.type)
+    
+class RackableModel(models.Model):
+    units = models.IntegerField()
+
+class NetworkBaseModel(RackableModel):
+    recommended_version = models.CharField(max_length = 255)
+    ports = models.PositiveIntegerField(_(u'Default port number'))
+    template = models.TextField()
+    oid = models.CharField(max_length = 255,
+            help_text = _(u'The string returned by this kind of hw when snmp queried about model')
+            )
 
 class HwBase(models.Model):
     """This class is the base for all other hardware classes. It includes
@@ -64,11 +76,27 @@ class Rack(HwBase):
 class RackPlace(models.Model):
     """This is for place in rack""" 
     rack = models.ForeignKey(Rack)
-    units = models.CommaSeparatedIntegerField(max_length=50, help_text = _(u'Units used by this item'))
+    base_unit = models.IntegerField()
     
 class Rackable(HwBase, RackPlace):
     warranty_expires = models.DateField(blank=True, null=True)
     buy_date = models.DateField(blank=True, null=True)
+    
+class Unrackable(HwBase):
+    building = models.ForeignKey(Building)
+
+class UserDevice(Unrackable):
+    name = models.CharField(max_length = 255)
+    wall_socket = models.CharField(max_length = 255)
+    port = models.ForeignKey("NetworkPort")
+    place_in_building = models.TextField()
+    comments = models.TextField()
+    
+class Phone(UserDevice):
+    extension = models.CharField(max_length = 4)
+    
+    
+    
     
 class Server(Rackable):
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
@@ -110,9 +138,20 @@ class ProcessorType(models.Model):
     class Meta:
         ordering = ['manufacturer', 'model']
         
-
 class Switch(Rackable):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
-    ports = models.IntegerField()
-    type = models.IntegerField(choices = SWITCH_TYPE)
+    ports = models.PositiveIntegerField()
+    level = models.IntegerField(choices = SWITCH_LEVEL)
+    model = models.ForeignKey(NetworkBaseModel)
+    
+class NetworkPort(models.Model):
+    hw = models.ForeignKey(HwBase)
+    name = models.CharField(max_length = 255)
+    uplink = models.BooleanField(default = False)
+    
+class MACsHistory(models.Model):
+    port = models.ManyToManyField(NetworkPort)
+    captured = models.DateTimeField()
+    mac = models.CharField(max_length=12) 
+    
