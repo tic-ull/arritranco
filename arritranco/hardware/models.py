@@ -48,7 +48,7 @@ class HwModel(models.Model):
     def __unicode__(self):
         return u"%s -- %s (%s)" % (self.manufacturer, self.name, self.type)
     
-class RackableModel(models.Model):
+class RackableModel(HwModel):
     units = models.IntegerField()
 
 class NetworkBaseModel(RackableModel):

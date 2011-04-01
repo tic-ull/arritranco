@@ -5,7 +5,7 @@ Created on 23/12/2010
 '''
 from django.contrib import admin
 from models import Server, Switch, Rack, Manufacturer, HwModel, HwType, RackPlace, Chasis, BladeServer, NetworkPort,MACsHistory
-from hardware.models import HardDisk
+from hardware.models import HardDisk, NetworkBaseModel
 
 class HardDiskInline(admin.TabularInline):
     model = HardDisk
@@ -33,3 +33,4 @@ admin.site.register(RackPlace)
 admin.site.register(Chasis)
 admin.site.register(BladeServer)
 admin.site.register(MACsHistory)
+admin.site.register(NetworkBaseModel)
