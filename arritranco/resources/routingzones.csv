@@ -1,0 +1,22 @@
+prefix	name	bluevlan_prefix	public_nets	cajacanarias_nets	campus
+CM	Colegios Mayores	400	-	-	C
+IA	IUBO+Agricolas	800	193.145.123.0	10.2.2.24	A
+ET	ETSII	900	193.145.101.0,193.145.102.0	10.2.2.32	A
+FA	Farmacia	1000	193.145.114.0	10.2.2.40	A
+QU	Quimica	1100	193.145.106.0	10.2.2.48	A
+BI	Biologia	1200	193.145.116.0	10.2.2.56	A
+FI	Fisica	1300	193.145.98.0,193.145.105.0	10.2.2.64	A
+NA	Nautica	1400	193.145.117.0	10.2.2.72	S
+RE	Rectorado	1500	193.145.122.0	10.2.2.80	C
+HE	Heraclio	1600	193.145.100.0	10.2.2.88	C
+AP	Aparejadores	1700	193.145.103.0	10.2.2.96	C
+TO	Torre Quimica	1800	193.145.110.0	10.2.2.104	C
+CE	Central	1900	193.145.111.0	10.2.2.112	C
+EC	Economicas	2000	193.145.107.0	10.2.2.120	G
+DE	Derecho	2100	193.145.113.0	10.2.2.128	G
+BB	Biblioteca General	2200	193.145.99.0	10.2.2.136	G
+PS	Psicologia	2300	193.145.104.0	10.2.2.144, 10.2.2.152	G
+PE	Periodismo	2400	193.145.108.0	10.2.2.160	G
+DP	Departamentales	2500	193.145.97.0	10.2.2.168	G
+ME	Medicina	2600	193.145.112.0	10.2.2.176	G
+BA	Bellas Artes	2700	193.145.109.0	10.2.2.184	S

@@ -2,3 +2,5 @@ Django
 django_extensions
 south
 django_debug_toolbar
+paramiko
+pysnmp
