@@ -1,7 +1,1 @@
 *.pyc
-arritranco/.project
-arritranco/.pydevproject
-arritranco/dev.db
-arritranco/hardware/managementutils.py
-git.bat
-run.bat

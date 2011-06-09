@@ -29,10 +29,3 @@ How to build your development environment:
    - cd arritranco
    - ./manage.py syncdb --migrate
 
-   
-How to import some initial information:
-------------------------------------------
-   - ./manage.py import_networkedbuilding_csv resources\routingzones.csv
-   - ./manage.py import_switches_csv resources\switches-ctools.csv
-   
-   

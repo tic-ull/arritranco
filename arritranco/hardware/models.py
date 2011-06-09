@@ -1,6 +1,13 @@
 from django.db import models
-from location.models import Room, Building
+from location.models import Place, Building
 from django.utils.translation import ugettext_lazy as _
+
+SWITCH_LEVEL = (
+    (10, _(u'Access')),
+    (20, _(u'CPD')),
+    (30, _(u'Distribution')),
+    (40, _(u'Core')),
+)
 
 HD_CONN = (
     (0, 'SCSI'),
@@ -45,25 +52,30 @@ class HwModel(models.Model):
 class RackableModel(HwModel):
     units = models.IntegerField()
 
+class NetworkBaseModel(RackableModel):
+    recommended_version = models.CharField(max_length = 255)
+    ports = models.PositiveIntegerField(_(u'Default port number'))
+    template = models.TextField()
+    oid = models.CharField(max_length = 255,
+            help_text = _(u'The string returned by this kind of hw when snmp queried about model')
+            )
+
 class HwBase(models.Model):
     """This class is the base for all other hardware classes. It includes
     only those common attributes for all hardware classes such as serial
     numbers. Any particular attribute goes in the closer model"""
-    model = models.ForeignKey(HwModel, help_text = _('Harddware Model'))
+    model = models.ForeignKey(HwModel, help_text = _('Hawrdware Model'))
     serial_number = models.CharField(max_length = 255, help_text = _(u'Hardware Serial Number'))
 
-class Rack(models.Model):
+class Rack(HwBase):
     """This represent a RACK. It's possible interesting to include info for PDUs"""
     units_number = models.IntegerField()
-    room = models.ForeignKey(Room)
+    place = models.ForeignKey(Place)
     name = models.CharField(max_length = 255)
     slug = models.SlugField()
-    
-    def __unicode__(self):
-        return u"%s (%s)" % (self.name, self.room.name)    
 
 class RackPlace(models.Model):
-    """This is for place in rack"""
+    """This is for place in rack""" 
     rack = models.ForeignKey(Rack)
     base_unit = models.IntegerField()
     
@@ -73,16 +85,8 @@ class Rackable(HwBase, RackPlace):
     
 class Unrackable(HwBase):
     building = models.ForeignKey(Building)
-    
-class NetworkedDevice(models.Model): 
-    main_ip = models.IPAddressField(help_text = _(u'Management or main IP address'))
-    
-class NetworkPort(models.Model):
-    hw = models.ForeignKey(HwBase)
-    name = models.CharField(max_length = 255)
-    uplink = models.BooleanField(default = False)    
 
-class UserDevice(Unrackable, NetworkedDevice):
+class UserDevice(Unrackable):
     name = models.CharField(max_length = 255)
     wall_socket = models.CharField(max_length = 255)
     port = models.ForeignKey("NetworkPort")
@@ -131,4 +135,21 @@ class ProcessorType(models.Model):
 
     class Meta:
         ordering = ['manufacturer', 'model']
+        
+class Switch(Rackable):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField()
+    ports = models.PositiveIntegerField()
+    level = models.IntegerField(choices = SWITCH_LEVEL)
+    model = models.ForeignKey(NetworkBaseModel)
+    
+class NetworkPort(models.Model):
+    hw = models.ForeignKey(HwBase)
+    name = models.CharField(max_length = 255)
+    uplink = models.BooleanField(default = False)
+    
+class MACsHistory(models.Model):
+    port = models.ManyToManyField(NetworkPort)
+    captured = models.DateTimeField()
+    mac = models.CharField(max_length=12) 
 
