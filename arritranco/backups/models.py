@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from scheduler.models import Task
 from inventory.models import Machine
+from _pydev_xmlrpclib import datetime
 
 #class RevisionBackup(models.Model):
 # This file
@@ -105,10 +106,10 @@ class FileNamePattern(models.Model):
 #    def get_maquina_planificacion(self):
 #        return self.planificacion.maquina
 
-    class Meta:
-        ordering = ['pattern',]
-        verbose_name_plural = _(u'File backup products')
-        verbose_name = _(u'File backup product')
+#    class Meta:
+#        ordering = ['pattern',]
+#        verbose_name_plural = _(u'File backup products')
+#        verbose_name = _(u'File backup product')
 
 class FileBackupProduct(models.Model):
     file_backup_task = models.ForeignKey(FileBackupTask, related_name = 'file_backup')
