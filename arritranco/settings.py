@@ -90,7 +90,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'scheduler',
     'inventory',
-    'network',
+    #'network',
 #    'backups',
 )
 
