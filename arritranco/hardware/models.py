@@ -1,6 +1,7 @@
 from django.db import models
 from location.models import Room, Building
 from django.utils.translation import ugettext_lazy as _
+from hardware_model.models import HwModel, Manufacturer
 
 HD_CONN = (
     (0, 'SCSI'),
@@ -9,47 +10,11 @@ HD_CONN = (
     (3, 'SAS'),
 )
 
-class HwType(models.Model):
-    """This tool is intended to be used to store differents classes of hardware such as
-    switches, servers, racks, workstations, displays, etc. Therefore we need a way to
-    filter them"""
-    name = models.CharField(max_length=255, help_text = _(u'Hardware Type Name'))
-    slug = models.SlugField()
-
-    def __unicode__(self):
-        return unicode(self.name)
-
-    class Meta:
-        ordering = ['name', ]
-
-class Manufacturer(models.Model):
-    """This class is for inventory of manufacturer we have"""
-    name = models.CharField(max_length=255, help_text = _(u'Manufacturer Name'))
-    slug = models.SlugField()
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['name', ]
-        
-class HwModel(models.Model):
-    type = models.ForeignKey(HwType, help_text = _(u'Hardware Type'))
-    manufacturer = models.ForeignKey(Manufacturer, help_text=_(u'Hardware Manufacturer'))
-    name = models.CharField(max_length = 255, help_text = _(u'Name'))
-    slug = models.SlugField()
-    
-    def __unicode__(self):
-        return u"%s -- %s (%s)" % (self.manufacturer, self.name, self.type)
-    
-class RackableModel(HwModel):
-    units = models.IntegerField()
-
 class HwBase(models.Model):
     """This class is the base for all other hardware classes. It includes
     only those common attributes for all hardware classes such as serial
     numbers. Any particular attribute goes in the closer model"""
-    model = models.ForeignKey(HwModel, help_text = _('Harddware Model'))
+    model = models.ForeignKey(HwModel, help_text = _('Hardware Model'))
     serial_number = models.CharField(max_length = 255, help_text = _(u'Hardware Serial Number'))
 
 class Rack(models.Model):
@@ -70,6 +35,7 @@ class RackPlace(models.Model):
 class Rackable(HwBase, RackPlace):
     warranty_expires = models.DateField(blank=True, null=True)
     buy_date = models.DateField(blank=True, null=True)
+    units = models.CommaSeparatedIntegerField(max_length=300, help_text = _(u'Units the server takes'))
     
 class Unrackable(HwBase):
     building = models.ForeignKey(Building)
@@ -101,7 +67,6 @@ class Server(Rackable):
 class Chasis(Rackable):
     name = models.CharField(max_length = 255)
     slug = models.SlugField()
-    units = models.IntegerField()
     slots = models.IntegerField()
     
 class BladeServer(Server):
