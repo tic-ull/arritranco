@@ -1,1 +1,4 @@
 *.pyc
+arritranco/.project
+arritranco/.pydevproject
+arritranco/dev.db
