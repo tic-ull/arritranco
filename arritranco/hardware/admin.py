@@ -18,5 +18,3 @@ admin.site.register(Rack)
 admin.site.register(RackPlace)
 admin.site.register(Chasis)
 admin.site.register(BladeServer)
-
-

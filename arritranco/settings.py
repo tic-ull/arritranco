@@ -91,7 +91,7 @@ INSTALLED_APPS = (
     'scheduler',
     'inventory',
     'hardware_model',
-    #'network',
+    'network',
     'backups',
 )
 
