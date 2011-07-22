@@ -88,10 +88,14 @@ INSTALLED_APPS = (
     'location',
     'hardware',
     'debug_toolbar',
-    'scheduler',
+#    'scheduler',
     'inventory',
     'network',
 #    'backups',
+    # Add the scheduler app
+    'scheduler',
+    # Add the demo app
+    'demo',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
