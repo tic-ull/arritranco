@@ -11,7 +11,10 @@ class FileBackupTaskAdmin(admin.ModelAdmin):
     list_filter = ('bckp_type', 'checker_fqdn')
     list_editable = ('bckp_type', )
 
+class FileBackupProductAdmin(admin.ModelAdmin):
+    list_display = ('file_backup_task', 'file_pattern', 'task', 'variable_percentage')
+
 admin.site.register(FileBackupTask, FileBackupTaskAdmin)
 admin.site.register(FileNamePattern)
-admin.site.register(FileBackupProduct)
+admin.site.register(FileBackupProduct, FileBackupProductAdmin)
 admin.site.register(BackupFile)
