@@ -11,9 +11,8 @@ class HardDiskInline(admin.TabularInline):
     extra = 2
     
 class ServerAdmin(admin.ModelAdmin):
-    inlines = [HardDiskInline,
-               ]  
-   
+    inlines = [HardDiskInline, ]  
+
 admin.site.register(Server, ServerAdmin)
 admin.site.register(Rack)
 admin.site.register(RackPlace)

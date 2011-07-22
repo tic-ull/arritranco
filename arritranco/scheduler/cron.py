@@ -278,9 +278,15 @@ class SimpleCrontabEntry(object):
         current calls __next_hour and __next_minute functions to set
         them to the correct values"""
 
-        now = datetime.date(sol['year'], sol['month'], day)
+        try:
+            now = datetime.date(sol['year'], sol['month'], day)
+        except ValueError:
+            self.__next_month(sol['month']+1, sol)
+            day = 1
+            now = datetime.date(sol['year'], sol['month'], day)
         # The way is handled on the system is monday = 0, but for crontab sunday =0
         weekday = now.weekday()+1
+
         # first calculate day
         day_tmp, day_carry = self.__next_time(self.fields['day'], day)
         day_diff = datetime.date(sol['year'], sol['month'], day_tmp) - now

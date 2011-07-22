@@ -73,12 +73,14 @@ class Machine(models.Model):
     # UPS
     # Prioridades de actualizaciones
     epo_level = models.IntegerField(_(u'EPO Level'), choices=EPO_LEVELS, default=0)    
+
+    def __unicode__(self):
+        return u"%s" % (self.fqdn)
     
 class VirtualMachine(Machine):
     processors = models.IntegerField(_(u"Number of processors"))
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
     total_disks_size = models.DecimalField(_(u"GB"), max_digits=15, decimal_places=3, blank=True, null=True)
-    pass
 
 class PhysicalMachine(Machine):
     server = models.ForeignKey(Server, verbose_name=_(u'Server'))
