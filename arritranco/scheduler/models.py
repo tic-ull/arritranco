@@ -20,3 +20,25 @@ class Task(models.Model):
     def __unicode__(self):
         return "%s: %s" % (self.cron_syntax(), self.description)
 
+class TaskCheck(models.Model):
+    """
+        Model to store all backup ckecks done.
+    """
+    task = models.ForeignKey(Task)
+    task_time = models.DateField(auto_now_add = True, blank=True, null=True, help_text='Task time')
+    check_time = models.DateField(auto_now_add = True, blank=True, null=True, help_text='Check time')
+
+    def __unicode__(self):
+        return "%s %s" % (self.task.description, self.check_time.strftime('%d-%m-%Y'))
+
+class TaskStatus(models.Model):
+    """
+        Model to store information about status.
+    """
+    task_ckeck = models.ForeignKey(TaskCheck)
+    time = models.DateTimeField(auto_now_add = True, null=False, help_text='Task status time')
+    status = models.CharField(max_length=100, null=False, blank=False, help_text='Status')
+    comment = models.TextField(blank=True, null=True, help_text='Comment')
+
+    def __unicode__(self):
+        return "%s %s" % (self.time, self.status)

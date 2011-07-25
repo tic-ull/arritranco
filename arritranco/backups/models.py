@@ -4,21 +4,7 @@ from scheduler.models import Task
 from inventory.models import Machine
 import datetime
 
-#class RevisionBackup(models.Model):
-# This file
-#    maquina = models.ForeignKey(Maquina)
-#    # core = True
-#    fecha = models.DateField(blank=True, null=True, help_text='Fecha creaci0n')
-#
-#    def __unicode__(self):
-#        return "%s %s" % (self.maquina, self.fecha.strftime('%d-%m-%Y'))
-#
-#    class Meta:
-#        ordering = ['-fecha',]
-#        verbose_name_plural = 'Revisiones de backup'
-#        verbose_name = 'Revision de backup'
-
-class FileBackupTask(Task):
+class BackupTask(Task):
     """
         File backup task
     """
@@ -37,15 +23,6 @@ class FileBackupTask(Task):
 
     bckp_type = models.IntegerField(blank=True, null=True, choices=BACKUP_TYPE_CHOICES, default = SYSTEM_BACKUP)
 
-    checker_fqdn = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
-        help_text=_(u"Machine fqdn where this backups shoud be checked."))
-    directory = models.CharField(max_length=255,
-        help_text=_(u'Directory where files shoud be.'))
-    days_in_hard_drive = models.IntegerField(blank=False, null=False, default=90,
-        help_text=_(u'Number of days that this backup shoud be on disk at most.'))
-    max_backup_month = models.IntegerField(blank=False, null=False, default=60,
-        help_text=_(u'Number of backups that shoud to be on disk after a month.'))
-
     def __unicode__(self):
         return _(u"%s @ %s/%s") % (self.machine.fqdn, self.get_bckp_type_display(), self.cron_syntax())
 
@@ -62,6 +39,42 @@ class FileBackupTask(Task):
                     minutes = duracion.minute,
                     seconds = duracion.second
             )
+
+class VCBBackupTask(BackupTask):
+    """
+        TSM backup task
+    """
+    tsm_server = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
+        help_text=_(u"Machine fqdn where this backups shoud be checked."))
+
+class TSMBackupTask(BackupTask):
+    """
+        TSM backup task
+    """
+    tsm_server = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
+        help_text=_(u"Machine fqdn where this backups shoud be checked."))
+
+class R1BackupTask(BackupTask):
+    """
+        R1Soft backup task
+    """
+    r1_server = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
+        help_text=_(u"Machine fqdn where this backups shoud be checked."))
+
+
+class FileBackupTask(BackupTask):
+    """
+        File backup task
+    """
+    checker_fqdn = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
+        help_text=_(u"Machine fqdn where this backups shoud be checked."))
+    directory = models.CharField(max_length=255,
+        help_text=_(u'Directory where files shoud be.'))
+    days_in_hard_drive = models.IntegerField(blank=False, null=False, default=90,
+        help_text=_(u'Number of days that this backup shoud be on disk at most.'))
+    max_backup_month = models.IntegerField(blank=False, null=False, default=60,
+        help_text=_(u'Number of backups that shoud to be on disk after a month.'))
+
 
 class FileNamePattern(models.Model):
     """
