@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from scheduler.models import Task
 from inventory.models import Machine
-from _pydev_xmlrpclib import datetime
+import datetime
 
 #class RevisionBackup(models.Model):
 # This file
@@ -47,7 +47,7 @@ class FileBackupTask(Task):
         help_text=_(u'Number of backups that shoud to be on disk after a month.'))
 
     def __unicode__(self):
-        return _(u"%s @ %s/%s") % (self.machine.fqdn, self.get_bckp_type_display())
+        return _(u"%s @ %s/%s") % (self.machine.fqdn, self.get_bckp_type_display(), self.cron_syntax())
 
     def fecha_fin(self, day):
         """
@@ -81,6 +81,7 @@ class FileNamePattern(models.Model):
                 ('#', '(?P<chunk>\d+)'),
             )
         patron_re = self.pattern
+        #patron_re = patron_re.replace('__FQDN__', self.planificacion.maquina)
         for o, d in sustituciones:
             patron_re = patron_re.replace (o, d)
         return re.compile (patron_re)

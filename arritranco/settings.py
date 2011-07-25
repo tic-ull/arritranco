@@ -91,8 +91,8 @@ INSTALLED_APPS = (
     'scheduler',
     'inventory',
     'hardware_model',
-    #'network',
-#    'backups',
+    'network',
+    'backups',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],

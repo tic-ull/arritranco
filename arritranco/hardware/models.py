@@ -64,6 +64,9 @@ class Server(Rackable):
     processor_clock = models.DecimalField(_(u"Ghz"), max_digits=15, decimal_places=3, blank=True, null=True)
     processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Multi CPU servers has the same CPU type'))
     
+    def __unicode__(self):
+        return u"%s (%s)" % (self.model, self.serial_number)    
+
 class Chasis(Rackable):
     name = models.CharField(max_length = 255)
     slug = models.SlugField()
