@@ -104,11 +104,15 @@ class Command(BaseCommand):
             
             self._update_ref(hardwares, 'armario', pk, new_obj)
         
+        
+        
         proc_manufacturer = {0: 'Intel',
                              1: 'AMD',
                              2: 'IBM',
                              3: 'SUN',
                              }
+        for i in proc_manufacturer.values():
+            Manufacturer.objects.get_or_create(name = i, slug = i)
         
         for pk,processor_type in processors_models.items():
             manufacturer = Manufacturer.objects.get(name = proc_manufacturer[processor_type['fabricante']])
@@ -133,7 +137,7 @@ class Command(BaseCommand):
         for pk,hardware in hardwares.items():
             if hardware['modelo'] is None:
                 continue
-            if hardware['modelo'].type.name == 'Servidor Rack':
+            if hardware['modelo'].type.name == 'Servidor Rack' or hardware['modelo'].type.name == 'Servidor blade':
                 if not hardware['armario']:
                     hardware['armario'] = Rack.objects.get(pk = 1)
                 if not hardware['u_inicial']:
@@ -153,10 +157,9 @@ class Command(BaseCommand):
                 for key in ('proccesor_type', 'processor_clock', 'processor_units'):
                     if hardware.has_key(key):
                         kwargs[key] = hardware[key]
-                new_obj,created = Server.objects.get_or_create(**kwargs)
-                
-            elif hardware['modelo'].type.name == 'Servidor blade':
-                # Servidores Blade
-                pass
+                if hardware['modelo'].type.name == 'Servidor Rack':
+                    new_obj,created = Server.objects.get_or_create(**kwargs)
+#                elif hardware['modelo'].type.name == 'Servidor blade':
+#                    print hardware
             
             
