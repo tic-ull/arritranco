@@ -9,30 +9,33 @@ from django.db import models
 from django import forms
 
 class TaskStatusAdminForm(forms.ModelForm):
-
-    class Meta:
-        STATUS_CHOICES = (
-                ('', 'Seleccione un nuevo estado'),
-                ('ok', 'ok'),
-                ('Error', 'Error')
-            ) 
+#    class Meta:
+#        STATUS_CHOICES = (
+#                ('', 'Seleccione un nuevo estado'),
+#                ('ok', 'ok'),
+#                ('Error', 'Error')
+#            ) 
         model = TaskStatus
-        widgets = {
-            'status': forms.widgets.Select(choices = STATUS_CHOICES),
-        }
+#        widgets = {
+#            'status': forms.widgets.Select(choices = STATUS_CHOICES),
+#        }
 
 class TaskStatusAdmin(admin.StackedInline):
     model = TaskStatus
     form = TaskStatusAdminForm
-    readonly_fields = ('time', )
-    ordering = ('time', )
+    readonly_fields = ('check_time', )
+    ordering = ('check_time', )
     extra = 1
 
 
 class TaskCheckAdmin(admin.ModelAdmin):
+    list_display = ('task', 'task_time', 'num_status', 'get_status')
     inlines = [ TaskStatusAdmin, ]
-    readonly_fields = ('task_time', 'check_time', )
+    readonly_fields = ('task_time', )
 
-admin.site.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('description', 'cron_syntax', 'get_status', 'next_run')
+
+admin.site.register(Task, TaskAdmin)
 admin.site.register(TaskCheck, TaskCheckAdmin)
 

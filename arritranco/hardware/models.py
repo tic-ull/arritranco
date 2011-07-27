@@ -17,6 +17,7 @@ class HwBase(models.Model):
     model = models.ForeignKey(HwModel, help_text = _('Hardware Model'))
     serial_number = models.CharField(max_length = 255, help_text = _(u'Hardware Serial Number'))
 
+
 class Rack(models.Model):
     """This represent a RACK. It's possible interesting to include info for PDUs"""
     units_number = models.IntegerField()
@@ -95,7 +96,7 @@ class ProcessorType(models.Model):
     model = models.CharField(max_length=255)
 
     def __unicode__(self):
-        return u'%s %s' % (self.manufacturer, self.modelo)
+        return u'%s %s' % (self.manufacturer, self.model)
 
     class Meta:
         ordering = ['manufacturer', 'model']

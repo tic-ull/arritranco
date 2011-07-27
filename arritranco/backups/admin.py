@@ -5,7 +5,7 @@ Created on 25/12/2010
 '''
 from django.contrib import admin
 from models import FileBackupTask, FileNamePattern, FileBackupProduct, BackupFile
-from models import R1BackupTask, TSMBackupTask
+from models import BackupTask, R1BackupTask, TSMBackupTask
 
 class FileBackupTaskAdmin(admin.ModelAdmin):
     list_display = ('machine', 'duration', 'bckp_type', 'checker_fqdn', 'directory', 'days_in_hard_drive', 'max_backup_month')
@@ -21,3 +21,4 @@ admin.site.register(R1BackupTask)
 admin.site.register(TSMBackupTask)
 admin.site.register(FileBackupProduct, FileBackupProductAdmin)
 admin.site.register(BackupFile)
+admin.site.register(BackupTask)
