@@ -73,10 +73,11 @@ class Command(BaseCommand):
         hardware_model = parse_data['hardware.modelohw']
         racks = parse_data['hardware.armario']
         hardwares = parse_data['hardware.hardware']
-        inventory_parse_data = self._parse_file(inventario_data, ['inventario.servidor', 'inventario.modeloprocesador', 'inventario.procesador'])
+        inventory_parse_data = self._parse_file(inventario_data, ['inventario.servidor', 'inventario.modeloprocesador', 'inventario.procesador', 'inventario.discoduro'])
         servers = inventory_parse_data['inventario.servidor']
         processors_models = inventory_parse_data['inventario.modeloprocesador']
         processors = inventory_parse_data['inventario.procesador']
+        hard_disks = inventory_parse_data['inventario.discoduro']
         
         for pk,manufacturer in manufacturers.items():
             new_obj, created = Manufacturer.objects.get_or_create(name = manufacturer['nombre'],
@@ -168,6 +169,7 @@ class Command(BaseCommand):
                     kwargs['chasis'] = chasis
                     kwargs['slots_number'] = servidor['chasis_slot']
                     new_obj,created = BladeServer.objects.get_or_create(**kwargs)
+                self._update_ref(hard_disks, 'servidor', pk, new_obj)
             elif hardware['modelo'].type.name == 'Chasis blade':
                 CHASIS_CHOICES = {'JWHMF1J': {'name': 'A', 'pseudoid': 1},
                                   '88TRN1J': {'name': 'B', 'pseudoid': 2},
@@ -195,6 +197,15 @@ class Command(BaseCommand):
                                              slots = slots,
                                              **kwargs                  
                                          )
+                
+        for pk,hard_disk in hard_disks.items():
+            if not isinstance(hard_disk['servidor'], Server):
+                continue
+            new_obj,created = HardDisk.objects.get_or_create(server = hard_disk['servidor'],
+                                                             conn = hard_disk['conn'],
+                                                             size = hard_disk['capacidad']
+                                                            )
+            
         
             
             
