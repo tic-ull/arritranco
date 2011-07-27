@@ -73,7 +73,7 @@ class Chasis(Rackable):
     slots = models.IntegerField()
     
 class BladeServer(Server):
-    slots_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots used by this server'))
+    slots_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots used by this server'), default = 1)
     chasis = models.ForeignKey(Chasis)
     
 class HardDisk(models.Model):
@@ -95,7 +95,7 @@ class ProcessorType(models.Model):
     model = models.CharField(max_length=255)
 
     def __unicode__(self):
-        return u'%s %s' % (self.manufacturer, self.modelo)
+        return u'%s %s' % (self.manufacturer, self.model)
 
     class Meta:
         ordering = ['manufacturer', 'model']
