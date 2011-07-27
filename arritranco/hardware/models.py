@@ -62,7 +62,7 @@ class Server(Rackable):
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
     processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
     processor_clock = models.DecimalField(_(u"Ghz"), max_digits=15, decimal_places=3, blank=True, null=True)
-    processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Multi CPU servers has the same CPU type'))
+    processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Multi CPU servers has the same CPU type'), default = 1)
     
     def __unicode__(self):
         return u"%s (%s)" % (self.model, self.serial_number)    
