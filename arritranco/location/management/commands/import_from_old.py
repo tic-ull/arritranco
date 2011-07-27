@@ -3,6 +3,7 @@ from arritranco.location.models import *
 from arritranco.hardware_model.models import *
 from arritranco.hardware.models import *
 import json
+import string
 
 class Command(BaseCommand):
     args = "location_data hardware_data"
@@ -134,17 +135,20 @@ class Command(BaseCommand):
             hardwares[processor['servidor']]['processor_clock'] = processor['reloj']
             hardwares[processor['servidor']]['processor_number'] = processor_units[processor['servidor']] 
         
+    
         for pk,hardware in hardwares.items():
+
             if hardware['modelo'] is None:
                 continue
             if hardware['modelo'].type.name == 'Servidor Rack' or hardware['modelo'].type.name == 'Servidor blade':
+                servidor = servers[pk]
                 if not hardware['armario']:
                     hardware['armario'] = Rack.objects.get(pk = 1)
                 if not hardware['u_inicial']:
                     hardware['u_inicial'] = -1
                 if not hardware['u_final']:
                     hardware['u_final'] = -1
-                servidor = servers[pk]
+                
                 kwargs = dict(model = hardware['modelo'],
                                serial_number = hardware['no_serie'],
                                rack = hardware['armario'],
@@ -159,7 +163,38 @@ class Command(BaseCommand):
                         kwargs[key] = hardware[key]
                 if hardware['modelo'].type.name == 'Servidor Rack':
                     new_obj,created = Server.objects.get_or_create(**kwargs)
-#                elif hardware['modelo'].type.name == 'Servidor blade':
-#                    print hardware
+                elif hardware['modelo'].type.name == 'Servidor blade':
+                    chasis = Chasis.objects.get(name = string.ascii_uppercase[servidor['chasis'] - 1])
+                    kwargs['chasis'] = chasis
+                    kwargs['slots_number'] = servidor['chasis_slot']
+                    new_obj,created = BladeServer.objects.get_or_create(**kwargs)
+            elif hardware['modelo'].type.name == 'Chasis blade':
+                CHASIS_CHOICES = {'JWHMF1J': {'name': 'A', 'pseudoid': 1},
+                                  '88TRN1J': {'name': 'B', 'pseudoid': 2},
+                                  '33S652J': {'name': 'C', 'pseudoid': 3},
+                                  '480752J': {'name': 'D', 'pseudoid': 4},
+                                  'FT1WM3J': {'name': 'E', 'pseudoid': 5},
+                                  '6M70P3J': {'name': 'F', 'pseudoid': 6},
+                                  'HF3244J': {'name': 'G', 'pseudoid': 7},
+                          }
+                kwargs = dict(model = hardware['modelo'],
+                               serial_number = hardware['no_serie'],
+                               rack = hardware['armario'],
+                               base_unit = hardware['u_inicial'],
+                               warranty_expires = hardware['caducidad_garantia'],
+                               buy_date = hardware['fecha_compra'],
+                               units = hardware['u_final'],
+                               )
+                chasis = CHASIS_CHOICES[hardware['no_serie']]
+                if chasis['pseudoid'] <= 4:
+                    slots = 10
+                else:
+                    slots = 16
+                Chasis.objects.get_or_create(name = chasis['name'],
+                                             slug = chasis['name'],
+                                             slots = slots,
+                                             **kwargs                  
+                                         )
+        
             
             
