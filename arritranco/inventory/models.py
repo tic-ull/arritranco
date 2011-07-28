@@ -78,7 +78,7 @@ class Machine(models.Model):
         return u"%s" % (self.fqdn)
     
 class VirtualMachine(Machine):
-    processors = models.IntegerField(_(u"Number of processors"))
+    processors = models.IntegerField(_(u"Number of processors"), default = 1)
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
     total_disks_size = models.DecimalField(_(u"GB"), max_digits=15, decimal_places=3, blank=True, null=True)
 
