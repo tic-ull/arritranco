@@ -1,5 +1,9 @@
 from django.db import models
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
+import datetime
+from cron import *
 
 
 class Task(models.Model):
@@ -20,25 +24,77 @@ class Task(models.Model):
     def __unicode__(self):
         return "%s: %s" % (self.cron_syntax(), self.description)
 
+    def _get_crontab_entry(self):
+        return SimpleCrontabEntry(self.cron_syntax())
+
+    def next_run(self, start_time = None):
+        if not start_time:
+            start_time = datetime.datetime.now()
+        return self._get_crontab_entry().next_run(start_time)
+
+    @staticmethod
+    def todo(start_time = None, end_time = None, queryset = None):
+        '''
+            Tasks to be done in a period of time.
+        '''
+        if not start_time:
+            start_time = datetime.datetime.now()
+        if not end_time:
+            end_time = datetime.datetime.now() + datetime.timedelta(days = 1)
+        if start_time > end_time:
+            raise ValueError
+        if not queryset:
+            queryset = Task.objects.all()
+
+        todo = []
+        for t in queryset:
+            execution_time = t.next_run(start_time)
+            while execution_time < end_time:
+                todo.append((t, execution_time))
+                execution_time = t.next_run(execution_time + datetime.timedelta(minutes = 1))
+        return todo
+
+    def update_status(self, task_time, status, comment = None):
+        task_check, created = TaskCheck.objects.get_or_create(task = self, task_time = task_time)
+        if created:
+            task_check.save()
+        task_check.update_status(status, comment)
+
+    def get_status(self):
+        task_check = TaskCheck.objects.filter(task = self).order_by('-task_time')
+        if len(task_check):
+            return task_check[0].get_status()
+        return None
+    get_status.short_description = 'Last check and status'
+
 class TaskCheck(models.Model):
     """
         Model to store all backup ckecks done.
     """
     task = models.ForeignKey(Task)
     task_time = models.DateField(auto_now_add = True, blank=True, null=True, help_text='Task time')
-    check_time = models.DateField(auto_now_add = True, blank=True, null=True, help_text='Check time')
 
     def __unicode__(self):
-        return "%s %s" % (self.task.description, self.check_time.strftime('%d-%m-%Y'))
+        return u"%s %s (%s)" % (self.task.description, self.task_time.strftime('%d-%m-%Y'), self.get_status().status)
+
+    def get_status(self):
+        return self.taskstatus_set.all().order_by('-check_time')[0]
+
+    def update_status(self, status, comment = None):
+        task_status = TaskStatus.objects.create(status = status, comment = comment, task_check = self)
+        task_status.save()
+
+    def num_status(self):
+        return self.taskstatus_set.count()
 
 class TaskStatus(models.Model):
     """
         Model to store information about status.
     """
-    task_ckeck = models.ForeignKey(TaskCheck)
-    time = models.DateTimeField(auto_now_add = True, null=False, help_text='Task status time')
+    task_check = models.ForeignKey(TaskCheck)
+    check_time = models.DateTimeField(auto_now_add = True, blank=True, null=True, help_text='Check time')
     status = models.CharField(max_length=100, null=False, blank=False, help_text='Status')
     comment = models.TextField(blank=True, null=True, help_text='Comment')
 
     def __unicode__(self):
-        return "%s %s" % (self.time, self.status)
+        return "%s %s" % (self.check_time.strftime('%d-%m-%Y'), self.status)

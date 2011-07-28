@@ -17,4 +17,5 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
     # Necessary for Django Task Scheduler
     #(r'^scheduler/', include('scheduler.urls')),    
+    (r'^rest/backup/', include('backups.urls')),    
 )

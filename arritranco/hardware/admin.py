@@ -10,7 +10,17 @@ class HardDiskInline(admin.TabularInline):
     model = HardDisk
     extra = 2
     
-class ServerAdmin(admin.ModelAdmin):
+class RackableAdmin(admin.ModelAdmin):
+    list_display = ('serial_number', 'model_name', 'rack', 'buy_date', 'warranty_expires')
+    date_hierarchy = 'buy_date'
+    list_filter = ('model__manufacturer', 'rack__room__building' )
+
+    def model_name(self, obj):
+        return obj.model.name
+    model_name.short_description = 'model'
+
+class ServerAdmin(RackableAdmin):
+    list_display = RackableAdmin.list_display + ('memory', 'processor_type', 'processor_clock', 'processor_number')
     inlines = [HardDiskInline, ]  
 
 admin.site.register(Server, ServerAdmin)
