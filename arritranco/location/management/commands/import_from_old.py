@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from arritranco.location.models import *
 from arritranco.hardware_model.models import *
 from arritranco.hardware.models import *
+from arritranco.inventory.models import *
 import json
 import string
 
@@ -73,11 +74,12 @@ class Command(BaseCommand):
         hardware_model = parse_data['hardware.modelohw']
         racks = parse_data['hardware.armario']
         hardwares = parse_data['hardware.hardware']
-        inventory_parse_data = self._parse_file(inventario_data, ['inventario.servidor', 'inventario.modeloprocesador', 'inventario.procesador', 'inventario.discoduro'])
+        inventory_parse_data = self._parse_file(inventario_data, ['inventario.servidor', 'inventario.modeloprocesador', 'inventario.procesador', 'inventario.discoduro', 'inventario.sistemaoperativo'])
         servers = inventory_parse_data['inventario.servidor']
         processors_models = inventory_parse_data['inventario.modeloprocesador']
         processors = inventory_parse_data['inventario.procesador']
         hard_disks = inventory_parse_data['inventario.discoduro']
+        operating_systems = inventory_parse_data['inventario.sistemaoperativo']
         
         for pk,manufacturer in manufacturers.items():
             new_obj, created = Manufacturer.objects.get_or_create(name = manufacturer['nombre'],
@@ -206,6 +208,25 @@ class Command(BaseCommand):
                                                              size = hard_disk['capacidad']
                                                             )
             
-        
+        # At this point we have all hardware related things imported. We start with machine staffs
+        OS_TYPE = dict(
+                      ((1, 'Windows'),
+                      (2, 'Linux'),
+                      (3, 'Solaris')
+                      ))
+        for v in OS_TYPE.values():
+            OperatingSystemType.objects.get_or_create(name = v, slug= v)
+            
+        for pk,os in operating_systems.items():
+            print os
+            if not os['familia']:
+                continue 
+            ostype = OperatingSystemType.objects.get(name = OS_TYPE[os['familia']]) 
+            OperatingSystem.objects.get_or_create(name = os['nombre'],
+                                                  slug = os['nombre'],
+                                                  type = ostype,
+                                                  version = os['act'],
+                                                  logo = os['logo'])
+    
             
             
