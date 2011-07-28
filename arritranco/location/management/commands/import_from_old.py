@@ -74,12 +74,13 @@ class Command(BaseCommand):
         hardware_model = parse_data['hardware.modelohw']
         racks = parse_data['hardware.armario']
         hardwares = parse_data['hardware.hardware']
-        inventory_parse_data = self._parse_file(inventario_data, ['inventario.servidor', 'inventario.modeloprocesador', 'inventario.procesador', 'inventario.discoduro', 'inventario.sistemaoperativo'])
+        inventory_parse_data = self._parse_file(inventario_data, ['inventario.servidor', 'inventario.modeloprocesador', 'inventario.procesador', 'inventario.discoduro', 'inventario.sistemaoperativo', 'inventario.maquina'])
         servers = inventory_parse_data['inventario.servidor']
         processors_models = inventory_parse_data['inventario.modeloprocesador']
         processors = inventory_parse_data['inventario.procesador']
         hard_disks = inventory_parse_data['inventario.discoduro']
         operating_systems = inventory_parse_data['inventario.sistemaoperativo']
+        machines = inventory_parse_data['inventario.maquina']
         
         for pk,manufacturer in manufacturers.items():
             new_obj, created = Manufacturer.objects.get_or_create(name = manufacturer['nombre'],
@@ -171,7 +172,9 @@ class Command(BaseCommand):
                     kwargs['chasis'] = chasis
                     kwargs['slots_number'] = servidor['chasis_slot']
                     new_obj,created = BladeServer.objects.get_or_create(**kwargs)
+                self._update_ref(machines, 'servidor', pk, new_obj)
                 self._update_ref(hard_disks, 'servidor', pk, new_obj)
+                
             elif hardware['modelo'].type.name == 'Chasis blade':
                 CHASIS_CHOICES = {'JWHMF1J': {'name': 'A', 'pseudoid': 1},
                                   '88TRN1J': {'name': 'B', 'pseudoid': 2},
@@ -218,15 +221,35 @@ class Command(BaseCommand):
             OperatingSystemType.objects.get_or_create(name = v, slug= v)
             
         for pk,os in operating_systems.items():
-            print os
             if not os['familia']:
                 continue 
             ostype = OperatingSystemType.objects.get(name = OS_TYPE[os['familia']]) 
-            OperatingSystem.objects.get_or_create(name = os['nombre'],
+            new_obj,created = OperatingSystem.objects.get_or_create(name = os['nombre'],
                                                   slug = os['nombre'],
                                                   type = ostype,
                                                   version = os['act'],
                                                   logo = os['logo'])
+            self._update_ref(machines, 'sistema_operativo', pk, new_obj)
+            
+        for pk,machine in machines.items():
+            kwargs = dict(fqdn = machine['nombre'],
+                          description = machine['descripcion'],
+                          up = machine['en_servicio'],
+                          os = machine['sistema_operativo'],
+                          start_up = machine['fecha_alta'],
+                          update_priority = machine['prioridad_actualizacion'],
+                          
+                          )
+            if machine['virtual']:
+                new_obj,created = VirtualMachine.objects.get_or_create(**kwargs)
+            else:
+                if not  isinstance(machine['servidor'], Server):
+                    print "Not importing: ", machine
+                    continue
+                kwargs['server'] = machine['servidor']
+                kwargs['ups'] = machine['ups'] 
+                new_obj,created = PhysicalMachine.objects.get_or_create(**kwargs)
+            
     
             
             
