@@ -1,8 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-
-
 class HwType(models.Model):
     """This tool is intended to be used to store differents classes of hardware such as
     switches, servers, racks, workstations, displays, etc. Therefore we need a way to

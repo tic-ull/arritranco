@@ -19,7 +19,6 @@ class HwBase(models.Model):
     warranty_expires = models.DateField(blank=True, null=True)
     buy_date = models.DateField(blank=True, null=True)
 
-
 class Rack(models.Model):
     """This represent a RACK. It's possible interesting to include info for PDUs"""
     units_number = models.IntegerField()
