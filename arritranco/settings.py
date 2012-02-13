@@ -94,6 +94,8 @@ INSTALLED_APPS = (
     'network',
     'backups',
     'djangorestframework',
+    'monitoring.nagios',
+    'monitoring.cacti',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],

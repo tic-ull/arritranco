@@ -14,7 +14,8 @@ class MachineAdmin(admin.ModelAdmin):
 
 class PysicalMachineAdmin(MachineAdmin):
     list_display = ('fqdn', 'server', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
-    list_filter = ('up', 'os', 'update_priority', 'epo_level', 'server__rack__room')
+    #list_filter = ('up', 'os', 'update_priority', 'epo_level', 'server__rack__room')
+    list_filter = ('up', 'os', 'update_priority', 'epo_level')
 
 admin.site.register(PhysicalMachine, PysicalMachineAdmin)
 admin.site.register(VirtualMachine, MachineAdmin)

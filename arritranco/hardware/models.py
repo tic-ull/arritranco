@@ -16,6 +16,8 @@ class HwBase(models.Model):
     numbers. Any particular attribute goes in the closer model"""
     model = models.ForeignKey(HwModel, help_text = _('Hardware Model'))
     serial_number = models.CharField(max_length = 255, help_text = _(u'Hardware Serial Number'))
+    warranty_expires = models.DateField(blank=True, null=True)
+    buy_date = models.DateField(blank=True, null=True)
 
 
 class Rack(models.Model):
@@ -32,10 +34,6 @@ class RackPlace(models.Model):
     """This is for place in rack"""
     rack = models.ForeignKey(Rack)
     base_unit = models.IntegerField()
-    
-class Rackable(HwBase, RackPlace):
-    warranty_expires = models.DateField(blank=True, null=True)
-    buy_date = models.DateField(blank=True, null=True)
     units = models.CommaSeparatedIntegerField(max_length=300, help_text = _(u'Units the server takes'))
     
 class Unrackable(HwBase):
@@ -59,7 +57,7 @@ class UserDevice(Unrackable, NetworkedDevice):
 class Phone(UserDevice):
     extension = models.CharField(max_length = 4)
     
-class Server(Rackable):
+class Server(HwBase):
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
     processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
     processor_clock = models.DecimalField(_(u"Ghz"), max_digits=15, decimal_places=3, blank=True, null=True)
@@ -68,15 +66,18 @@ class Server(Rackable):
     def __unicode__(self):
         return u"%s (%s)" % (self.model, self.serial_number)    
 
-class Chasis(Rackable):
+class Chasis(HwBase, RackPlace):
     name = models.CharField(max_length = 255)
     slug = models.SlugField()
     slots = models.IntegerField()
     
 class BladeServer(Server):
-    slots_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots used by this server'), default = 1)
+    slot_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots used by this server'), default = 1)
     chasis = models.ForeignKey(Chasis)
-    
+
+class RackServer(Server, RackPlace):
+    pass
+
 class HardDisk(models.Model):
     """
         Disco duro

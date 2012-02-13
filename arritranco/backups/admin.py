@@ -13,7 +13,7 @@ class FileBackupTaskAdmin(admin.ModelAdmin):
     list_editable = ('bckp_type', )
 
 class FileBackupProductAdmin(admin.ModelAdmin):
-    list_display = ('file_backup_task', 'file_pattern', 'task', 'variable_percentage')
+    list_display = ('file_backup_task', 'file_pattern', 'variable_percentage')
 
 admin.site.register(FileBackupTask, FileBackupTaskAdmin)
 admin.site.register(FileNamePattern)

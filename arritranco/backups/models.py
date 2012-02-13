@@ -132,7 +132,6 @@ class FileBackupProduct(models.Model):
         help_text=_(u'If there is more than one file_pattern, the initial value of the sequence'))
     end_seq= models.IntegerField(blank=True, null=True,
         help_text=_(u'If there is more than one file_pattern, the last value of the sequence'))
-    task = models.ForeignKey(FileBackupTask, verbose_name=_(u"Task"))
     variable_percentage = models.DecimalField(default=20, max_digits=2, decimal_places=0, null=True, blank=True,
         help_text=_(u"% size that you expect to change between two backups"))
 

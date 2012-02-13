@@ -39,6 +39,9 @@ class OperatingSystemType(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
 
+    def __unicode__(self):
+        return u"%s" % self.name
+
 class OperatingSystem(models.Model):
     """
         OS

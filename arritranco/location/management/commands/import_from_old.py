@@ -141,6 +141,33 @@ class Command(BaseCommand):
         
     
         for pk,hardware in hardwares.items():
+            if hardware['modelo'] is None:
+                continue
+            if hardware['modelo'].type.name == 'Chasis blade':
+                CHASIS_CHOICES = {'JWHMF1J': {'name': 'A', 'slots': 10},
+                                  '88TRN1J': {'name': 'B', 'slots': 10},
+                                  '33S652J': {'name': 'C', 'slots': 10},
+                                  '480752J': {'name': 'D', 'slots': 10},
+                                  'FT1WM3J': {'name': 'E', 'slots': 16},
+                                  '6M70P3J': {'name': 'F', 'slots': 16},
+                                  'HF3244J': {'name': 'G', 'slots': 16},
+                          }
+                kwargs = dict(model = hardware['modelo'],
+                               serial_number = hardware['no_serie'],
+                               rack = hardware['armario'],
+                               base_unit = hardware['u_inicial'],
+                               warranty_expires = hardware['caducidad_garantia'],
+                               buy_date = hardware['fecha_compra'],
+                               units = hardware['u_final'],
+                               )
+                chasis = CHASIS_CHOICES[hardware['no_serie']]
+                Chasis.objects.get_or_create(name = chasis['name'],
+                                             slug = chasis['name'],
+                                             slots = chasis['slots'],
+                                             **kwargs                  
+                                         )
+
+        for pk,hardware in hardwares.items():
 
             if hardware['modelo'] is None:
                 continue
@@ -166,42 +193,22 @@ class Command(BaseCommand):
                     if hardware.has_key(key):
                         kwargs[key] = hardware[key]
                 if hardware['modelo'].type.name == 'Servidor Rack':
-                    new_obj,created = Server.objects.get_or_create(**kwargs)
+                    #new_obj,created = Server.objects.get_or_create(**kwargs)
+                    #print "Hay que enchufar los rack servers que no entran ... %s" % kwargs
+                    new_obj,created = RackServer.objects.get_or_create(**kwargs)
+
                 elif hardware['modelo'].type.name == 'Servidor blade':
+                    print string.ascii_uppercase[servidor['chasis'] - 1]
                     chasis = Chasis.objects.get(name = string.ascii_uppercase[servidor['chasis'] - 1])
                     kwargs['chasis'] = chasis
-                    kwargs['slots_number'] = servidor['chasis_slot']
+                    kwargs['slot_number'] = servidor['chasis_slot']
+                    del kwargs['base_unit']
+                    del kwargs['units']
+                    del kwargs['rack']
                     new_obj,created = BladeServer.objects.get_or_create(**kwargs)
                 self._update_ref(machines, 'servidor', pk, new_obj)
                 self._update_ref(hard_disks, 'servidor', pk, new_obj)
                 
-            elif hardware['modelo'].type.name == 'Chasis blade':
-                CHASIS_CHOICES = {'JWHMF1J': {'name': 'A', 'pseudoid': 1},
-                                  '88TRN1J': {'name': 'B', 'pseudoid': 2},
-                                  '33S652J': {'name': 'C', 'pseudoid': 3},
-                                  '480752J': {'name': 'D', 'pseudoid': 4},
-                                  'FT1WM3J': {'name': 'E', 'pseudoid': 5},
-                                  '6M70P3J': {'name': 'F', 'pseudoid': 6},
-                                  'HF3244J': {'name': 'G', 'pseudoid': 7},
-                          }
-                kwargs = dict(model = hardware['modelo'],
-                               serial_number = hardware['no_serie'],
-                               rack = hardware['armario'],
-                               base_unit = hardware['u_inicial'],
-                               warranty_expires = hardware['caducidad_garantia'],
-                               buy_date = hardware['fecha_compra'],
-                               units = hardware['u_final'],
-                               )
-                chasis = CHASIS_CHOICES[hardware['no_serie']]
-                if chasis['pseudoid'] <= 4:
-                    slots = 10
-                else:
-                    slots = 16
-                Chasis.objects.get_or_create(name = chasis['name'],
-                                             slug = chasis['name'],
-                                             slots = slots,
-                                             **kwargs                  
-                                         )
                 
         for pk,hard_disk in hard_disks.items():
             if not isinstance(hard_disk['servidor'], Server):

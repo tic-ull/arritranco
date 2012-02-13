@@ -4,7 +4,7 @@ Created on 23/12/2010
 @author: esauro
 '''
 from django.contrib import admin
-from models import Server, Rack, RackPlace, Chasis, BladeServer, HardDisk
+from models import Server, Rack, RackPlace, Chasis, BladeServer, HardDisk, RackServer
 
 class HardDiskInline(admin.TabularInline):
     model = HardDisk
@@ -19,11 +19,20 @@ class RackableAdmin(admin.ModelAdmin):
         return obj.model.name
     model_name.short_description = 'model'
 
-class ServerAdmin(RackableAdmin):
-    list_display = RackableAdmin.list_display + ('memory', 'processor_type', 'processor_clock', 'processor_number')
+class RackServerAdmin(RackableAdmin):
+#    list_display = RackableAdmin.list_display + ('memory', 'processor_type', 'processor_clock', 'processor_number')
+    list_display = ('memory', 'processor_type', 'processor_clock', 'processor_number')
     inlines = [HardDiskInline, ]  
 
+class ServerAdmin(admin.ModelAdmin):
+    list_display = ('memory', 'processor_type', 'processor_clock', 'processor_number')
+    inlines = [HardDiskInline, ]  
+
+class ServerAdmin2(admin.ModelAdmin):
+    list_display = ('warranty_expires',)
+
 admin.site.register(Server, ServerAdmin)
+admin.site.register(RackServer, ServerAdmin2)
 admin.site.register(Rack)
 admin.site.register(RackPlace)
 admin.site.register(Chasis)
