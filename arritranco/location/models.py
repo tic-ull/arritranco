@@ -9,7 +9,6 @@ class Campus(models.Model):
     def __unicode__(self):
         return self.name
 
-# Create your models here.
 class Building(models.Model):
     """
         A model to represent a simple Building
@@ -34,6 +33,4 @@ class Room(models.Model):
 
     def __unicode__(self):
         return u'%s (%s)' % (self.name , self.building.name)
-
-    
-    
+ 

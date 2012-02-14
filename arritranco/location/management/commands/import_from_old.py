@@ -109,8 +109,6 @@ class Command(BaseCommand):
             
             self._update_ref(hardwares, 'armario', pk, new_obj)
         
-        
-        
         proc_manufacturer = {0: 'Intel',
                              1: 'AMD',
                              2: 'IBM',
@@ -138,12 +136,13 @@ class Command(BaseCommand):
             hardwares[processor['servidor']]['processor_type'] = processor['modelo']
             hardwares[processor['servidor']]['processor_clock'] = processor['reloj']
             hardwares[processor['servidor']]['processor_number'] = processor_units[processor['servidor']] 
-        
     
         for pk,hardware in hardwares.items():
             if hardware['modelo'] is None:
                 continue
             if hardware['modelo'].type.name == 'Chasis blade':
+                if not hardware['u_inicial']:
+                    hardware['u_inicial'] = -1
                 CHASIS_CHOICES = {'JWHMF1J': {'name': 'A', 'slots': 10},
                                   '88TRN1J': {'name': 'B', 'slots': 10},
                                   '33S652J': {'name': 'C', 'slots': 10},
@@ -158,10 +157,9 @@ class Command(BaseCommand):
                                base_unit = hardware['u_inicial'],
                                warranty_expires = hardware['caducidad_garantia'],
                                buy_date = hardware['fecha_compra'],
-                               units = hardware['u_final'],
                                )
                 chasis = CHASIS_CHOICES[hardware['no_serie']]
-                Chasis.objects.get_or_create(name = chasis['name'],
+                Chassis.objects.get_or_create(name = chasis['name'],
                                              slug = chasis['name'],
                                              slots = chasis['slots'],
                                              **kwargs                  
@@ -186,7 +184,7 @@ class Command(BaseCommand):
                                base_unit = hardware['u_inicial'],
                                warranty_expires = hardware['caducidad_garantia'],
                                buy_date = hardware['fecha_compra'],
-                               units = hardware['u_final'],
+                               #units = hardware['u_final'],
                                memory = servidor['memoria'],
                                )
                 for key in ('proccesor_type', 'processor_clock', 'processor_units'):
@@ -199,11 +197,11 @@ class Command(BaseCommand):
 
                 elif hardware['modelo'].type.name == 'Servidor blade':
                     print string.ascii_uppercase[servidor['chasis'] - 1]
-                    chasis = Chasis.objects.get(name = string.ascii_uppercase[servidor['chasis'] - 1])
-                    kwargs['chasis'] = chasis
+                    chasis = Chassis.objects.get(name = string.ascii_uppercase[servidor['chasis'] - 1])
+                    kwargs['chassis'] = chasis
                     kwargs['slot_number'] = servidor['chasis_slot']
                     del kwargs['base_unit']
-                    del kwargs['units']
+                    #del kwargs['units']
                     del kwargs['rack']
                     new_obj,created = BladeServer.objects.get_or_create(**kwargs)
                 self._update_ref(machines, 'servidor', pk, new_obj)
@@ -256,7 +254,4 @@ class Command(BaseCommand):
                 kwargs['server'] = machine['servidor']
                 kwargs['ups'] = machine['ups'] 
                 new_obj,created = PhysicalMachine.objects.get_or_create(**kwargs)
-            
-    
-            
-            
+
