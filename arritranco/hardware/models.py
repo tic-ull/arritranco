@@ -1,5 +1,5 @@
 from django.db import models
-from location.models import Room, Building
+from location.models import Room
 from django.utils.translation import ugettext_lazy as _
 from hardware_model.models import HwModel, Manufacturer
 
@@ -19,9 +19,8 @@ class HwBase(models.Model):
     warranty_expires = models.DateField(blank=True, null=True)
     buy_date = models.DateField(blank=True, null=True)
 
-
 class Rack(models.Model):
-    """This represent a RACK. It's possible interesting to include info for PDUs"""
+    """This represent a rack. It's possible interesting to include info for PDUs"""
     units_number = models.IntegerField()
     room = models.ForeignKey(Room)
     name = models.CharField(max_length = 255)
@@ -31,13 +30,18 @@ class Rack(models.Model):
         return u"%s (%s)" % (self.name, self.room.name)    
 
 class RackPlace(models.Model):
-    """This is for place in rack"""
+    """A place in a rack. This model is not intented to be used directly but as a
+    base class for other models"""
     rack = models.ForeignKey(Rack)
-    base_unit = models.IntegerField()
-    units = models.CommaSeparatedIntegerField(max_length=300, help_text = _(u'Units the server takes'))
+    base_unit = models.IntegerField(help_text=_('The lowest U used by a rackable hardware'))
+    # The total number of units used actually depends on the hardware
+
+    class Meta:
+        abstract = True
     
 class Unrackable(HwBase):
-    building = models.ForeignKey(Building)
+    """It's a non rackable hardware. It must be in a room"""
+    room = models.ForeignKey(Room)
     
 class NetworkedDevice(models.Model): 
     main_ip = models.IPAddressField(help_text = _(u'Management or main IP address'))
@@ -58,27 +62,33 @@ class Phone(UserDevice):
     extension = models.CharField(max_length = 4)
     
 class Server(HwBase):
-    memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
+    """A generic server"""
+    memory = models.DecimalField(max_digits=15, decimal_places=3, blank=True, null=True, help_text=_('Installed memory in GB'))
     processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
-    processor_clock = models.DecimalField(_(u"Ghz"), max_digits=15, decimal_places=3, blank=True, null=True)
-    processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Multi CPU servers has the same CPU type'), default = 1)
+    processor_clock = models.DecimalField(_(u"GHz"), max_digits=15, decimal_places=3, blank=True, null=True)
+    # Multi CPU servers has the same CPU type
+    processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Processors number'), default = 1)
     
     def __unicode__(self):
         return u"%s (%s)" % (self.model, self.serial_number)    
 
-class Chasis(HwBase, RackPlace):
+class Chassis(HwBase, RackPlace):
+    """A chassis is a hardware where we can plug servers, network cards, etc.
+    Some samples: blade enclosures, modular switches, etc."""
     name = models.CharField(max_length = 255)
     slug = models.SlugField()
-    slots = models.IntegerField()
+    slots = models.IntegerField(help_text=_(u'Number of available slots'))
 
     def __unicode__(self):
         return u"Chasis (%s)" % (self.name)    
     
 class BladeServer(Server):
-    slot_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots used by this server'), default = 1)
-    chasis = models.ForeignKey(Chasis)
+    """A server to be plugged in a chassis"""
+    slot_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots number used by this server'))
+    chassis = models.ForeignKey(Chassis)
 
 class RackServer(Server, RackPlace):
+    """A rackable server"""
     pass
 
 class HardDisk(models.Model):
