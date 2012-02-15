@@ -3,6 +3,7 @@ from arritranco.location.models import *
 from arritranco.hardware_model.models import *
 from arritranco.hardware.models import *
 from arritranco.inventory.models import *
+from arritranco.backups.models import *
 import json
 import string
 
@@ -30,6 +31,13 @@ class Command(BaseCommand):
         location_data = json.load(open(args[0], "r"))
         hardware_data = json.load(open(args[1], "r"))
         inventario_data = json.load(open(args[2], "r"))
+        backup_filenamepatterns_data = json.load(open(args[3], "r"))
+        backup_planificacion_data = json.load(open(args[4], "r"))
+        backup_patron_data = json.load(open(args[5], "r"))
+
+        planificaciones = self._parse_file(backup_planificacion_data, ['backups.planificacion', ])['backups.planificacion']
+        patrones = self._parse_file(backup_patron_data, ['backups.patron', ])['backups.patron']
+        filenamepatterns = self._parse_file(backup_filenamepatterns_data, ['backups.tiposdefichero', ])['backups.tiposdefichero']
         
         # First app is location
         # First we gather info from the json 
@@ -262,8 +270,63 @@ class Command(BaseCommand):
                 new_obj,created = VirtualMachine.objects.get_or_create(**kwargs)
             else:
                 if not isinstance(machine['servidor'], Server):
-                    print "Not importing: ", machine
+                    #print "Not importing: ", machine
                     continue
                 kwargs['server'] = machine['servidor']
                 kwargs['ups'] = machine['ups'] 
                 new_obj,created = PhysicalMachine.objects.get_or_create(**kwargs)
+            self._update_ref(planificaciones, 'maquina', pk, new_obj)
+
+        for pk,planificacion in planificaciones.items():
+            hour = planificacion['time'].split(':')[0]
+            minute = planificacion['time'].split(':')[1]
+            if len(planificacion['dows']) == 7:
+                weekday = '*'
+            else:
+                weekday = ','.join(map(str, planificacion['dows']))
+            kwargs = dict(
+                    description = planificacion['descripcion'],
+                    machine = planificacion['maquina'],
+                    duration = planificacion['duracion'],
+                    minute = minute,
+                    hour = hour,
+                    monthday = planificacion['doms'],
+                    weekday = weekday,
+                    bckp_type = 1,
+                    checker_fqdn = planificacion['checker'],
+                    directory = planificacion['directorio'],
+                    days_in_hard_drive = -1,
+                    max_backup_month = -1,
+                    active = planificacion['activa'],
+                )
+            if type(planificacion['maquina']) == int:
+                print "Esta es de las maquinas no importadas, pasando de la planificacion"
+                continue
+            new_obj, created = FileBackupTask.objects.get_or_create(**kwargs)
+            self._update_ref(patrones, 'planificacion', pk, new_obj)
+
+        for pk,fnp in filenamepatterns.items():
+            kwargs = dict( pattern = fnp['patron_fn'],)
+            new_obj, created = FileNamePattern.objects.get_or_create(**kwargs)
+            new_obj.umbral_tamanio = fnp['umbral_tamanio'] #Hack para almacenar temporalmente el umbral
+            new_obj.tipo = fnp['tipo'] #Hack para almacenar temporalmente el tipo
+            self._update_ref(patrones, 'fichero', pk, new_obj)
+
+        for pk,patron in patrones.items():
+            if type(patron['planificacion']) == int:
+                print "Una de las maquinas no importadas, pasando de la planificacion"
+                continue
+            kwargs = dict(
+                    file_backup_task = patron['planificacion'],
+                    file_pattern = patron['fichero'],
+                    start_seq = patron['seq_inicio'],
+                    end_seq = patron['seq_fin'],
+                    variable_percentage = patron['fichero'].umbral_tamanio,
+                )
+            if patron['planificacion'].days_in_hard_drive == -1:
+                patron['planificacion'].days_in_hard_drive = patron['dias_en_disco'] 
+                patron['planificacion'].max_backup_month = patron['max_copias_mes']
+                patron['planificacion'].bckp_type = patron['fichero'].tipo
+                patron['planificacion'].save()
+
+            new_obj, created = FileBackupProduct.objects.get_or_create(**kwargs)
