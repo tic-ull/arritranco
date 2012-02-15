@@ -6,34 +6,47 @@ Created on 23/12/2010
 from django.contrib import admin
 from models import Server, Rack, RackPlace, Chasis, BladeServer, HardDisk, RackServer
 
+SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number')
+
 class HardDiskInline(admin.TabularInline):
     model = HardDisk
     extra = 2
     
-class RackableAdmin(admin.ModelAdmin):
-    list_display = ('serial_number', 'model_name', 'rack', 'buy_date', 'warranty_expires')
+class HwAdmin(admin.ModelAdmin):
+    list_display = ('serial_number', 'model_name', 'buy_date', 'warranty_expires')
     date_hierarchy = 'buy_date'
-    list_filter = ('model__manufacturer', 'rack__room__building' )
+    list_filter = ('model__manufacturer', )
 
     def model_name(self, obj):
         return obj.model.name
     model_name.short_description = 'model'
 
+class RackableAdmin(HwAdmin):
+    list_display = HwAdmin.list_display  + ('rack', )
+    list_filter = HwAdmin.list_filter + ('rack__room__building', )
+
 class RackServerAdmin(RackableAdmin):
-#    list_display = RackableAdmin.list_display + ('memory', 'processor_type', 'processor_clock', 'processor_number')
-    list_display = ('memory', 'processor_type', 'processor_clock', 'processor_number')
+    list_display = HwAdmin.list_display  + SERVER_LIST_DISPLAY
     inlines = [HardDiskInline, ]  
 
-class ServerAdmin(admin.ModelAdmin):
-    list_display = ('memory', 'processor_type', 'processor_clock', 'processor_number')
+class BladeServerAdmin(HwAdmin):
+    list_display = HwAdmin.list_display  + ('chasis', ) + SERVER_LIST_DISPLAY
+    list_filter = HwAdmin.list_filter + ('chasis', 'chasis__rack__room__building' )
     inlines = [HardDiskInline, ]  
 
-class ServerAdmin2(admin.ModelAdmin):
-    list_display = ('warranty_expires',)
+class ChasisAdmin(RackableAdmin):
+    list_display = RackableAdmin.list_display + ('slots', 'name')
+    inlines = [HardDiskInline, ]  
+
+class ServerAdmin(HwAdmin):
+    list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY
+
+class RackAdmin(admin.ModelAdmin):
+    list_display = ('name', 'room', 'units_number')
+    list_filter = ('room__building', )
 
 admin.site.register(Server, ServerAdmin)
-admin.site.register(RackServer, ServerAdmin2)
-admin.site.register(Rack)
-admin.site.register(RackPlace)
-admin.site.register(Chasis)
-admin.site.register(BladeServer)
+admin.site.register(RackServer, RackServerAdmin)
+admin.site.register(Rack, RackAdmin)
+admin.site.register(Chasis, ChasisAdmin)
+admin.site.register(BladeServer, BladeServerAdmin)

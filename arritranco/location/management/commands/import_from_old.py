@@ -160,12 +160,22 @@ class Command(BaseCommand):
                                buy_date = hardware['fecha_compra'],
                                units = hardware['u_final'],
                                )
+                if kwargs['units'] is None:
+                    kwargs['units'] = 10
+                if kwargs['base_unit'] is None:
+                    kwargs['base_unit'] = 0
                 chasis = CHASIS_CHOICES[hardware['no_serie']]
                 Chasis.objects.get_or_create(name = chasis['name'],
                                              slug = chasis['name'],
                                              slots = chasis['slots'],
                                              **kwargs                  
                                          )
+                if hardware['no_serie'] == 'JWHMF1J': # Burrada!!!!!!!
+                    Chasis.objects.get_or_create(name = 'almacen',
+                                                 slug = 'almacen',
+                                                 slots = 100,
+                                                 **kwargs                  
+                                             )
 
         for pk,hardware in hardwares.items():
 
@@ -193,15 +203,17 @@ class Command(BaseCommand):
                     if hardware.has_key(key):
                         kwargs[key] = hardware[key]
                 if hardware['modelo'].type.name == 'Servidor Rack':
-                    #new_obj,created = Server.objects.get_or_create(**kwargs)
-                    #print "Hay que enchufar los rack servers que no entran ... %s" % kwargs
                     new_obj,created = RackServer.objects.get_or_create(**kwargs)
 
                 elif hardware['modelo'].type.name == 'Servidor blade':
-                    print string.ascii_uppercase[servidor['chasis'] - 1]
-                    chasis = Chasis.objects.get(name = string.ascii_uppercase[servidor['chasis'] - 1])
-                    kwargs['chasis'] = chasis
-                    kwargs['slot_number'] = servidor['chasis_slot']
+                    if servidor['chasis'] is None:
+                        kwargs['chasis'] = Chasis.objects.get(name = 'almacen')
+                        kwargs['slot_number'] = 10
+                    else:
+                        chasis = Chasis.objects.get(name = string.ascii_uppercase[servidor['chasis'] - 1])
+                        kwargs['chasis'] = chasis
+                        kwargs['slot_number'] = servidor['chasis_slot']
+                    # Esta info esta en el chasis.
                     del kwargs['base_unit']
                     del kwargs['units']
                     del kwargs['rack']
@@ -245,18 +257,15 @@ class Command(BaseCommand):
                           os = machine['sistema_operativo'],
                           start_up = machine['fecha_alta'],
                           update_priority = machine['prioridad_actualizacion'],
+                          epo_level = machine['orden_apagado'],
                           
                           )
             if machine['virtual']:
                 new_obj,created = VirtualMachine.objects.get_or_create(**kwargs)
             else:
-                if not  isinstance(machine['servidor'], Server):
+                if not isinstance(machine['servidor'], Server):
                     print "Not importing: ", machine
                     continue
                 kwargs['server'] = machine['servidor']
                 kwargs['ups'] = machine['ups'] 
                 new_obj,created = PhysicalMachine.objects.get_or_create(**kwargs)
-            
-    
-            
-            

@@ -87,5 +87,5 @@ class VirtualMachine(Machine):
 
 class PhysicalMachine(Machine):
     server = models.ForeignKey(Server, verbose_name=_(u'Server'))
-    ups = models.IntegerField(blank=False, help_text=_('Connected UPS'),
-        choices=UPS_CHOICES, default=0)
+    ups = models.IntegerField(blank=False, help_text=_('Connected UPS'), choices=UPS_CHOICES, default=0)
+

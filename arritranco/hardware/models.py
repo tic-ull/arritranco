@@ -70,6 +70,9 @@ class Chasis(HwBase, RackPlace):
     name = models.CharField(max_length = 255)
     slug = models.SlugField()
     slots = models.IntegerField()
+
+    def __unicode__(self):
+        return u"Chasis (%s)" % (self.name)    
     
 class BladeServer(Server):
     slot_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots used by this server'), default = 1)
