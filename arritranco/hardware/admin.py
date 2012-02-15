@@ -4,7 +4,7 @@ Created on 23/12/2010
 @author: esauro
 '''
 from django.contrib import admin
-from models import Server, Rack, RackPlace, Chasis, BladeServer, HardDisk, RackServer
+from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer
 
 SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number')
 
@@ -30,8 +30,8 @@ class RackServerAdmin(RackableAdmin):
     inlines = [HardDiskInline, ]  
 
 class BladeServerAdmin(HwAdmin):
-    list_display = HwAdmin.list_display  + ('chasis', ) + SERVER_LIST_DISPLAY
-    list_filter = HwAdmin.list_filter + ('chasis', 'chasis__rack__room__building' )
+    list_display = HwAdmin.list_display  + ('chassis', ) + SERVER_LIST_DISPLAY
+    list_filter = HwAdmin.list_filter + ('chassis', 'chassis__rack__room__building' )
     inlines = [HardDiskInline, ]  
 
 class ChasisAdmin(RackableAdmin):
@@ -48,5 +48,5 @@ class RackAdmin(admin.ModelAdmin):
 admin.site.register(Server, ServerAdmin)
 admin.site.register(RackServer, RackServerAdmin)
 admin.site.register(Rack, RackAdmin)
-admin.site.register(Chasis, ChasisAdmin)
+admin.site.register(Chassis, ChasisAdmin)
 admin.site.register(BladeServer, BladeServerAdmin)

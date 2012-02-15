@@ -158,18 +158,18 @@ class Command(BaseCommand):
                                warranty_expires = hardware['caducidad_garantia'],
                                buy_date = hardware['fecha_compra'],
                                )
-                if kwargs['units'] is None:
+                if (('units' in kwargs) and (kwargs['units'] is None)):
                     kwargs['units'] = 10
                 if kwargs['base_unit'] is None:
                     kwargs['base_unit'] = 0
-                chasis = CHASIS_CHOICES[hardware['no_serie']]
-                Chassis.objects.get_or_create(name = chasis['name'],
-                                             slug = chasis['name'],
-                                             slots = chasis['slots'],
+                chassis = CHASIS_CHOICES[hardware['no_serie']]
+                Chassis.objects.get_or_create(name = chassis['name'],
+                                             slug = chassis['name'],
+                                             slots = chassis['slots'],
                                              **kwargs                  
                                          )
                 if hardware['no_serie'] == 'JWHMF1J': # Burrada!!!!!!!
-                    Chasis.objects.get_or_create(name = 'almacen',
+                    Chassis.objects.get_or_create(name = 'almacen',
                                                  slug = 'almacen',
                                                  slots = 100,
                                                  **kwargs                  
@@ -205,13 +205,13 @@ class Command(BaseCommand):
 
                 elif hardware['modelo'].type.name == 'Servidor blade':
                     if servidor['chasis'] is None:
-                        kwargs['chasis'] = Chasis.objects.get(name = 'almacen')
+                        kwargs['chassis'] = Chassis.objects.get(name = 'almacen')
                         kwargs['slot_number'] = 10
                     else:
-                        chasis = Chasis.objects.get(name = string.ascii_uppercase[servidor['chasis'] - 1])
-                        kwargs['chasis'] = chasis
+                        chassis = Chassis.objects.get(name = string.ascii_uppercase[servidor['chasis'] - 1])
+                        kwargs['chassis'] = chassis
                         kwargs['slot_number'] = servidor['chasis_slot']
-                    # Esta info esta en el chasis.
+                    # Esta info esta en el chassis.
                     del kwargs['base_unit']
                     #del kwargs['units']
                     del kwargs['rack']
