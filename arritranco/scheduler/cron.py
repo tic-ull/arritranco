@@ -278,18 +278,20 @@ class SimpleCrontabEntry(object):
         current calls __next_hour and __next_minute functions to set
         them to the correct values"""
 
-        try:
-            now = datetime.date(sol['year'], sol['month'], day)
-        except ValueError:
-            self.__next_month(sol['month']+1, sol)
-            day = 1
-            now = datetime.date(sol['year'], sol['month'], day)
+        while True:
+            try:
+                now = datetime.date(sol['year'], sol['month'], day)
+                # first calculate day
+                day_tmp, day_carry = self.__next_time(self.fields['day'], day)
+                day_diff = datetime.date(sol['year'], sol['month'], day_tmp) - now
+                break
+            except ValueError:
+                self.__next_month(sol['month']+1, sol)
+                day = 1
+                now = datetime.date(sol['year'], sol['month'], day)
+
         # The way is handled on the system is monday = 0, but for crontab sunday =0
         weekday = now.weekday()+1
-
-        # first calculate day
-        day_tmp, day_carry = self.__next_time(self.fields['day'], day)
-        day_diff = datetime.date(sol['year'], sol['month'], day_tmp) - now
 
         # if we have all days but we don't have all weekdays we need to
         # perform different
@@ -389,64 +391,80 @@ class SimpleCrontabEntry(object):
         if not carry :
             return base
 
-        # day
-        prev_day, carry_day = self.__prev_time(self.fields['day'], base.day)
-        day_diff = datetime.timedelta(days=(base.day - prev_day))
-        prev_weekday, carry_weekday = self.__prev_time(self.fields['weekday'], base.weekday()+1)
-        
-        # if we have all days but we don't have all weekdays we need to
-        # perform different
-        if len(self.fields['day']) == 31 and len(self.fields['weekday']) != 8:
-            # Both 0 and 7 represent sunday
-            prev_weekday -= 1
-            if prev_weekday < 0 : prev_weekday = 6
+        tmp_base = base
+        previous_months = False
+        while True:
+            # day
+            while True:
+                try:
+                    prev_day, carry_day = self.__prev_time(self.fields['day'], tmp_base.day)
+                    break
+                except ValueError:
+                    tmp_base -= datetime.timedelta(days = 1)
+            day_diff = datetime.timedelta(days=(base.day - prev_day))
+            prev_weekday, carry_weekday = self.__prev_time(self.fields['weekday'], base.weekday()+1)
             
-            if carry_weekday :
-                day_diff = datetime.timedelta(days=7+base.weekday() - prev_weekday)
-                carry = base.month != (base - day_diff).month
-            else :
-                weekday_diff = datetime.timedelta(days=base.weekday() - prev_weekday)
-                # weekday no es en el otro mes
-                day_diff = min([day_diff, weekday_diff])
-                carry = False
-
-        elif len(self.fields['weekday']) != 8:
-            # Both 0 and 7 represent sunday
-            prev_weekday -= 1
-            if prev_weekday < 0 : prev_weekday = 6
-            weekday_diff = datetime.timedelta(days=base.weekday() - prev_weekday)
-            
-            if carry_weekday :
-                weekday_diff += datetime.timedelta(weeks=1)
-                if carry_day :
-                    # ambos son el otro mes
-                    day_diff = max([day_diff, weekday_diff])
-                    carry = True
+            # if we have all days but we don't have all weekdays we need to
+            # perform different
+            if len(self.fields['day']) == 31 and len(self.fields['weekday']) != 8:
+                # Both 0 and 7 represent sunday
+                prev_weekday -= 1
+                if prev_weekday < 0 : prev_weekday = 6
+                
+                if carry_weekday :
+                    day_diff = datetime.timedelta(days=7+base.weekday() - prev_weekday)
+                    carry = base.month != (base - day_diff).month
                 else :
-                    # el day simple esta en el mismo mes y el weekday en otro
-                    pass
-            else :
-                # weekday no es en el otro mes
-                if carry_day :
-                    # el day esta en el otro mes y el weekday no
-                    prev_day = weekday_diff
-                    carry = False
-                else :
-                    # ambos estan el el mero mes
+                    weekday_diff = datetime.timedelta(days=base.weekday() - prev_weekday)
+                    # weekday no es en el otro mes
                     day_diff = min([day_diff, weekday_diff])
                     carry = False
-                
-        else :
-            carry = carry_day
-        base -= day_diff
-        if not carry :
-            return base
 
-        # month
-        prev_month, carry = self.__prev_time(self.fields['month'], base.month)
-        month_diff = datetime.date(base.year, base.month, base.day) - \
-                     datetime.date(base.year, prev_month, base.day)
-        base -= month_diff
+            elif len(self.fields['weekday']) != 8:
+                # Both 0 and 7 represent sunday
+                prev_weekday -= 1
+                if prev_weekday < 0 : prev_weekday = 6
+                weekday_diff = datetime.timedelta(days=base.weekday() - prev_weekday)
+                
+                if carry_weekday :
+                    weekday_diff += datetime.timedelta(weeks=1)
+                    if carry_day :
+                        # ambos son el otro mes
+                        day_diff = max([day_diff, weekday_diff])
+                        carry = True
+                    else :
+                        # el day simple esta en el mismo mes y el weekday en otro
+                        pass
+                else :
+                    # weekday no es en el otro mes
+                    if carry_day :
+                        # el day esta en el otro mes y el weekday no
+                        prev_day = weekday_diff
+                        carry = False
+                    else :
+                        # ambos estan el el mero mes
+                        day_diff = min([day_diff, weekday_diff])
+                        carry = False
+                    
+            else :
+                carry = carry_day
+            base -= day_diff
+            if not carry :
+                return base
+
+            # month
+            try:
+                if not previous_months:
+                    prev_month, carry = self.__prev_time(self.fields['month'], base.month)
+                    month_diff = datetime.date(base.year, base.month, base.day) - \
+                                 datetime.date(base.year, prev_month, base.day)
+                    base -= month_diff
+                else:
+                    base = tmp_base
+                break
+            except ValueError:
+                tmp_base -= datetime.timedelta(days = tmp_base.day)
+                previous_months = True
 
         return base 
 

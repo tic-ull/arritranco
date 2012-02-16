@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from scheduler.models import Task, TaskCheck
 from inventory.models import Machine
+from django.conf import settings
 import datetime
 
 class BackupTask(Task):
@@ -66,7 +67,7 @@ class FileBackupTask(BackupTask):
     """
         File backup task
     """
-    checker_fqdn = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
+    checker_fqdn = models.CharField(max_length=255, choices=settings.FILE_BACKUP_CHECKERS, verbose_name=_(u"Checker fqdn"),
         help_text=_(u"Machine fqdn where this backups shoud be checked."))
     directory = models.CharField(max_length=255,
         help_text=_(u'Directory where files shoud be.'))

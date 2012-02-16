@@ -32,6 +32,11 @@ class Task(models.Model):
             start_time = datetime.datetime.now()
         return self._get_crontab_entry().next_run(start_time)
 
+    def last_run(self, start_time = None):
+        if not start_time:
+            start_time = datetime.datetime.now()
+        return self._get_crontab_entry().prev_run(start_time)
+
     @staticmethod
     def todo(start_time = None, end_time = None, queryset = None):
         '''

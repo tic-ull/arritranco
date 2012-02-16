@@ -108,3 +108,15 @@ DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
     }
 
+
+FILE_BACKUP_CHECKERS = (
+        ('bckpsrv01.example.com', 'backup server1'),
+        ('bckpsrv02.example.com', 'backup server2'),
+        ('bckpsrv03.example.com', 'backup server3'),
+        ('bckpsrv04.example.com', 'backup server4'),
+    )
+
+try:
+    from settings_local import *
+except ImportError, e:
+    pass
