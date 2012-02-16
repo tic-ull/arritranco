@@ -35,9 +35,19 @@ class TaskCheckAdmin(admin.ModelAdmin):
 
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('description', 'cron_syntax', 'get_status', 'last_run', 'next_run')
-    #list_display = ('description', 'cron_syntax', 'get_status')
+    fieldsets = [
+        (
+            'Recurrence', {
+            'fields': ['minute', 'hour', 'monthday', 'month', 'weekday']
+            }
+        ),
+        (
+            'Date information', {
+            'fields': ['description', 'active']
+            }
+        ),
+    ]
 
 admin.site.register(Task, TaskAdmin)
-#admin.site.register(Task)
 admin.site.register(TaskCheck, TaskCheckAdmin)
 

@@ -100,6 +100,9 @@ class FileNamePattern(models.Model):
             patron_re = patron_re.replace (o, d)
         return re.compile (patron_re)
 
+    def get_filename_for_date (self, d):
+        return d.strftime(self.pattern)
+
     def __unicode__(self):
         return u"%s" % self.pattern
 
