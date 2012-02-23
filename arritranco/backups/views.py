@@ -27,6 +27,7 @@ class BackupFileCheckerView(ResponseMixin, View):
                 if fbt.machine.fqdn not in list_of_tasks:
                     list_of_tasks[fbt.machine.fqdn] = []
                 task = {
+                        'description':fbt.description,
                         'checker':fbt.checker_fqdn,
                         'directory':fbt.directory,
                         'last_run': last_run,
