@@ -35,6 +35,7 @@ STATE_TO_HUMAN = {
 
 URLBASE = 'http://localhost:8000/rest/backup/backupfilechecker/?checker=cdpbackup.sis.ccti.ull.es'
 UPDATEURL = 'https://localhost:8000/rest/backup/set_integrity_status'
+UPDATE_STATUS_URL = 'http://localhost:8000/rest/scheduler/taskstatus/'
 
 def usage():
     """
@@ -45,6 +46,7 @@ Usage: check_file_backups.py [options]
 
  -v  Verbose.
  -n  Nagios mode.
+ -d  Dry run, do not update arritranco information
  -h  Print this help message
 """
 
@@ -60,8 +62,9 @@ def parseOpts():
     """
     global verbose, nagios
     fqdn = None
+    dryrun = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "vnhH:")
+        opts, args = getopt.getopt(sys.argv[1:], "vnhH:d")
     except getopt.GetoptError:
         # print help information and exit:
         usage()
@@ -73,10 +76,12 @@ def parseOpts():
             nagios = True
         elif o == "-H":
             fqdn = a
+        elif o == "-d":
+            dryrun = True
         elif o == "-h":
             usage()
             sys.exit(0)
-    return fqdn
+    return (fqdn, dryrun)
 
 
 def update_inventory(id, status):
@@ -169,6 +174,7 @@ class FileBackupProduct(object):
 
 class FileBackup(object):
     def __init__(self, backup, verbose = False):
+        self.id = int(backup['id'])
         self.last_run = datetime.datetime(*(time.strptime(backup['last_run'], '%Y-%m-%d %H:%M:%S')[0:6]))
         self.previous_run = datetime.datetime(*(time.strptime(backup['previous_run'], '%Y-%m-%d %H:%M:%S')[0:6]))
         #self.last_run = datetime.datetime.strptime(backup['last_run'], '%Y-%m-%d %H:%M:%S')
@@ -203,7 +209,7 @@ class FileBackup(object):
 
 
 if __name__ == "__main__":
-    fqdn = parseOpts()
+    fqdn, dryrun = parseOpts()
 
     try:
         request = urllib2.Request(URLBASE, None, {'Accept': 'application/json'})
@@ -223,6 +229,19 @@ if __name__ == "__main__":
             if verbose:
                 print "Tarea %s" % fbp.description
             out = fbp.check_products()
+            data = {
+                'task':fbp.id,
+                'task_time':fbp.last_run,
+                'status':STATE_TO_HUMAN[out[0]],
+                'description':out[1]
+            }
+            if not dryrun:
+                try:
+                    request = urllib2.Request(UPDATE_STATUS_URL, urllib.urlencode(data), {'Accept': 'application/json'})
+                    res = urllib2.urlopen(request)
+                except Exception, e:
+                    print e
+                    raise e
             if nagios:
                 print "%s\t%s\t%s\t%s" % (host, fbp.description, out[0], out[1])
             elif (verbose or (out[0] != OK)):
