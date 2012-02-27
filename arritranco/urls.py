@@ -18,5 +18,6 @@ urlpatterns = patterns('',
     # Necessary for Django Task Scheduler
     #(r'^scheduler/', include('scheduler.urls')),    
     (r'^rest/backup/', include('backups.urls')),    
+    (r'^rest/scheduler/', include('scheduler.urls')),    
     (r'^monitoring/nagios/', include('monitoring.nagios.urls')),    
 )

@@ -65,7 +65,10 @@ class Task(models.Model):
             task_check.save()
         task_check.update_status(status, comment)
 
-    def get_status(self):
+    def get_status(self, d = None):
+        if d is not None:
+            task_check = get_object_or_404(TaskCheck, task = self, task_time = d)
+            return task_check.get_status()
         task_check = TaskCheck.objects.filter(task = self).order_by('-task_time')
         if len(task_check):
             return task_check[0].get_status()
@@ -77,7 +80,7 @@ class TaskCheck(models.Model):
         Model to store all backup ckecks done.
     """
     task = models.ForeignKey(Task)
-    task_time = models.DateField(auto_now_add = True, blank=True, null=True, help_text='Task time')
+    task_time = models.DateTimeField(blank=True, null=True, help_text='Task time')
 
     def __unicode__(self):
         return u"%s %s (%s)" % (self.task.description, self.task_time.strftime('%d-%m-%Y'), self.get_status().status)
@@ -102,4 +105,4 @@ class TaskStatus(models.Model):
     comment = models.TextField(blank=True, null=True, help_text='Comment')
 
     def __unicode__(self):
-        return "%s %s" % (self.check_time.strftime('%d-%m-%Y'), self.status)
+        return "%s %s" % (self.check_time.strftime('%d-%m-%Y %H:%M:%S'), self.status)
