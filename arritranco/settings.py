@@ -116,6 +116,11 @@ FILE_BACKUP_CHECKERS = (
         ('bckpsrv04.example.com', 'backup server4'),
     )
 
+PROPAGATE_STATUS_TO_NAGIOS = False
+SEND_NSCA_BIN = '/usr/sbin/send_nsca'
+NSCA_DAEMON_HOSTNAME = 'nagios.fully.qualified.domain.name'
+SEND_NSCA_CFG = '/etc/send_nsca.cfg'
+
 try:
     from settings_local import *
 except ImportError, e:
