@@ -14,7 +14,7 @@ class Building(models.Model):
         A model to represent a simple Building
     """
     name = models.CharField(max_length=255)
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=255)
     map_location = models.ImageField(upload_to=_("buildings_map"), blank=True)
     area = models.IntegerField(choices = settings.AREA_CHOICES)
     campus = models.ForeignKey(Campus)

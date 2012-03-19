@@ -14,7 +14,7 @@ class Task(models.Model):
     hour = models.CharField(max_length = 10, help_text = _('Hour (Cron like syntax)'), default = '*')
     monthday = models.CharField(max_length = 10, help_text = _('Day of moth (Cron like syntax)'), default = '*')
     month = models.CharField(max_length = 10, help_text = _('Month (Cron like syntax)'), default = '*')
-    weekday = models.CharField(max_length = 10, help_text = _('Day of week (Cron like syntax)'), default = '*')
+    weekday = models.CharField(max_length = 40, help_text = _('Day of week (Cron like syntax)'), default = '*')
     description = models.TextField(help_text = _('Task description'))
     active = models.BooleanField(help_text = _('Is this task active?'), default = True)
 
@@ -83,10 +83,17 @@ class TaskCheck(models.Model):
     task_time = models.DateTimeField(blank=True, null=True, help_text='Task time')
 
     def __unicode__(self):
-        return u"%s %s (%s)" % (self.task.description, self.task_time.strftime('%d-%m-%Y'), self.get_status().status)
+        status = ''
+        if isinstance(self.get_status(), TaskStatus):
+            status = self.get_status().status
+        return u"%s %s (%s)" % (self.task.description, self.task_time.strftime('%d-%m-%Y'), status)
+
 
     def get_status(self):
-        return self.taskstatus_set.all().order_by('-check_time')[0]
+        try:
+            return self.taskstatus_set.all().order_by('-check_time')[0]
+        except IndexError:
+            return u'Unknown'
 
     def update_status(self, status, comment = None):
         task_status = TaskStatus.objects.create(status = status, comment = comment, task_check = self)

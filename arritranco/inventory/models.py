@@ -1,6 +1,7 @@
 from django.db import models
 from hardware.models import Server
 from django.utils.translation import ugettext_lazy as _
+import socket
 
 UPDATE_PRIORITY = (
     (10, _(u'Don\'t worry')),
@@ -79,6 +80,13 @@ class Machine(models.Model):
 
     def __unicode__(self):
         return u"%s" % (self.fqdn)
+
+    @staticmethod
+    def get_by_addr(addr):
+        try:
+            return Machine.objects.get(fqdn = socket.getfqdn(addr))
+        except Machine.DoesNotExist:
+            return None
     
 class VirtualMachine(Machine):
     processors = models.IntegerField(_(u"Number of processors"), default = 1)

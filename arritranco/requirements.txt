@@ -5,3 +5,4 @@ django_debug_toolbar
 paramiko
 pysnmp
 djangorestframework
+gunicorn
