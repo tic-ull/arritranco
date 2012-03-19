@@ -7,7 +7,7 @@ from django.contrib import admin
 from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType
 
 class MachineAdmin(admin.ModelAdmin):
-    list_display = ('fqdn', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
+    list_display = ('fqdn', 'up', 'os', 'start_up', 'update_priority', 'epo_level','responsibles')
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
     list_editable = ('up','update_priority', 'epo_level')
     date_hierarchy = 'start_up'

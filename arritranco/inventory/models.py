@@ -79,7 +79,13 @@ class Machine(models.Model):
 
     def __unicode__(self):
         return u"%s" % (self.fqdn)
-    
+    def responsibles(self):
+        groups = []
+        for co in self.nagioscheckopts_set.all():
+            for cg in co.contact_groups.all():
+                groups.append(cg.name)
+        return ", ".join(groups)
+
 class VirtualMachine(Machine):
     processors = models.IntegerField(_(u"Number of processors"), default = 1)
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
