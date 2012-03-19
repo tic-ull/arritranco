@@ -1,0 +1,32 @@
+[
+   {
+      "pk": 1,
+      "model": "nagios.nagioscheck",
+      "fields": {
+         "default": true,
+         "default_params": "",
+         "name": "Load",
+         "slug": "load"
+      }
+   },
+   {
+      "pk": 2,
+      "model": "nagios.nagioscheck",
+      "fields": {
+         "default": true,
+         "default_params": "",
+         "name": "Mem",
+         "slug": "mem"
+      }
+   },
+   {
+      "pk": 3,
+      "model": "nagios.nagioscheck",
+      "fields": {
+         "default": true,
+         "default_params": "",
+         "name": "Disk",
+         "slug": "disk"
+      }
+   }
+]
