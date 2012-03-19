@@ -10,7 +10,7 @@ This application will be written in python using Django framework.
 Some interesting things:
 
     * http://github.com/thauber/django-schedule
-    * http://bitbucket.org/jespern/django-piston/wiki/Home
+    * http://django-rest-framework.org/
     * http://trac.mcs.anl.gov/projects/bcfg2
     * http://www.cacti.net/downloads/docs/html/scripts.html
     * http://code.google.com/p/django-photologue/

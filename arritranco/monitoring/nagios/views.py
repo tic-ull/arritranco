@@ -1,6 +1,13 @@
 from inventory.models import Machine, OperatingSystem
 from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask
 from django.shortcuts import render_to_response
+from models import NagiosCheck, NagiosCheckOpts
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
+from helpers.processors import mco2dict
+
+
+from django.utils.translation import ugettext_lazy as _
 
 def hosts(request):
     '''
@@ -9,6 +16,32 @@ def hosts(request):
     context = {}
     context['machines'] = Machine.objects.filter(up = True)
     return render_to_response('nagios/hosts.cfg', context, mimetype="text/plain")
+
+def get_checks(request, name):
+    """ Render all checks of "name" for all machines UP. """
+    template = 'nagios/' + name + '_checks.cfg'
+    context = {}
+    try:
+        check = NagiosCheck.objects.get(slug = name)
+    except ObjectDoesNotExist: 
+        check = None
+   
+    if check:
+        servers = []
+        for m in  check.all_machines():
+            servers.append(mco2dict(m))
+        context['servers'] = servers
+        if 'file' in request.GET:
+            filename = name + '_checks.cfg'
+            response = render_to_response(template, context, mimetype="text/plain")
+            response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file'] 
+        else:
+            response = render_to_response(template, context, mimetype="text/plain")
+    else:
+        response = HttpResponse(u"Check %s does not exist" % name, content_type = "text/plain")
+        response.status_code =  404
+    return response
+
 
 def hosts_ext_info(request):
     '''
