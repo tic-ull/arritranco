@@ -392,7 +392,7 @@ class SimpleCrontabEntry(object):
             return base
 
         tmp_base = base
-        previous_months = False
+        previous_months = True
         while True:
             # day
             while True:
@@ -414,10 +414,10 @@ class SimpleCrontabEntry(object):
                 if carry_weekday :
                     day_diff = datetime.timedelta(days=7+base.weekday() - prev_weekday)
                     carry = base.month != (base - day_diff).month
-                else :
+                else:
                     weekday_diff = datetime.timedelta(days=base.weekday() - prev_weekday)
                     # weekday no es en el otro mes
-                    day_diff = min([day_diff, weekday_diff])
+                    day_diff = max([day_diff, weekday_diff])
                     carry = False
 
             elif len(self.fields['weekday']) != 8:
@@ -432,10 +432,10 @@ class SimpleCrontabEntry(object):
                         # ambos son el otro mes
                         day_diff = max([day_diff, weekday_diff])
                         carry = True
-                    else :
+                    else:
                         # el day simple esta en el mismo mes y el weekday en otro
                         pass
-                else :
+                else:
                     # weekday no es en el otro mes
                     if carry_day :
                         # el day esta en el otro mes y el weekday no
@@ -485,9 +485,29 @@ class SimpleCrontabEntry(object):
             return False
         return True
 
-def _test():
-    import doctest
-    doctest.testfile("cronTest.txt")
-    
 if __name__ == "__main__" :
-    _test()
+    print "Inicio del test de los jueves y viernes"
+    cron_job_list = '''00 03 * * 2,5
+00 02 * * 1,6
+00 01 * * 1,2,3,4,5
+00 04 * * 2,4
+00 06 * * 2,3,4,5,6
+00 04 * * 2,3,4,5,6
+00 00 * * 2,3,4,5,6
+00 23 * * 3,5
+00 23 * * 2,4
+00 23 * * 1,2,3,4,5
+00 04 * * 2,4
+00 04 * * 2,4
+30 00 * * 1,2,3,4,5
+30 01 * * 2,3,4,5,6
+10 05 * * 2,3,4,5,6
+58 02 * * 1,2,3,4,5,6'''
+    cron_job_def = '00 23 * * 3,5'
+    d = datetime.datetime(2012, 3, 22)
+    for cron_job_def in cron_job_list.split('\n'):
+        print "--------------------------- %s -----------------------------" % cron_job_def
+        sce = SimpleCrontabEntry(cron_job_def)
+        print "Hoy es: %s" % d
+        print "Siguiente ejecucion: %s" % sce.next_run(d)
+        print "Anterior ejecucion: %s" % sce.prev_run(d)
