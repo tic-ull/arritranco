@@ -27,7 +27,8 @@ class BackupFileCheckerView(ResponseMixin, View):
             last_run = fbt.last_run()
             try:
                 tc = TaskCheck.objects.get(task = fbt, task_time = last_run)
-                if tc.get_status().status == 'Ok':
+                status = tc.get_status():
+                if (isinstance(status, TaskStatus) and status.status == 'Ok') or (status == 'Ok'):
                     continue
             except TaskCheck.DoesNotExist:
                 pass
