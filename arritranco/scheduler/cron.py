@@ -392,7 +392,7 @@ class SimpleCrontabEntry(object):
             return base
 
         tmp_base = base
-        previous_months = True
+        previous_months = False
         while True:
             # day
             while True:
@@ -457,7 +457,7 @@ class SimpleCrontabEntry(object):
                 if not previous_months:
                     prev_month, carry = self.__prev_time(self.fields['month'], base.month)
                     month_diff = datetime.date(base.year, base.month, base.day) - \
-                                 datetime.date(base.year, prev_month, base.day)
+                                 datetime.date(not carry and base.year or base.year - 1, prev_month, base.day)
                     base -= month_diff
                 else:
                     base = tmp_base
@@ -502,7 +502,8 @@ if __name__ == "__main__" :
 30 00 * * 1,2,3,4,5
 30 01 * * 2,3,4,5,6
 10 05 * * 2,3,4,5,6
-58 02 * * 1,2,3,4,5,6'''
+58 02 * * 1,2,3,4,5,6
+00 03 30 * *'''
     cron_job_def = '00 23 * * 3,5'
     d = datetime.datetime(2012, 3, 22)
     for cron_job_def in cron_job_list.split('\n'):
@@ -510,4 +511,6 @@ if __name__ == "__main__" :
         sce = SimpleCrontabEntry(cron_job_def)
         print "Hoy es: %s" % d
         print "Siguiente ejecucion: %s" % sce.next_run(d)
-        print "Anterior ejecucion: %s" % sce.prev_run(d)
+        ant = sce.prev_run(d)
+        print "Anterior ejecucion: %s" % ant
+        print "Anterior ejecucion a la anterior: %s" % sce.prev_run(ant)

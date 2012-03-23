@@ -6,7 +6,7 @@ from djangorestframework.mixins import ResponseMixin
 from djangorestframework.renderers import DEFAULT_RENDERERS
 from djangorestframework.response import Response
 from models import FileBackupTask, FileBackupProduct, BackupFile
-from scheduler.models import TaskCheck
+from scheduler.models import TaskCheck, TaskStatus
 from inventory.models import Machine
 import datetime
 import math
@@ -27,7 +27,7 @@ class BackupFileCheckerView(ResponseMixin, View):
             last_run = fbt.last_run()
             try:
                 tc = TaskCheck.objects.get(task = fbt, task_time = last_run)
-                status = tc.get_status():
+                status = tc.get_status()
                 if (isinstance(status, TaskStatus) and status.status == 'Ok') or (status == 'Ok'):
                     continue
             except TaskCheck.DoesNotExist:
