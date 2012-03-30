@@ -18,6 +18,9 @@ class HwBase(models.Model):
     serial_number = models.CharField(max_length = 255, help_text = _(u'Hardware Serial Number'))
     warranty_expires = models.DateField(blank=True, null=True)
     buy_date = models.DateField(blank=True, null=True)
+    
+    def __unicode__(self):
+        return u"%s" % self.model.name
 
 class Rack(models.Model):
     """This represent a rack. It's possible interesting to include info for PDUs"""

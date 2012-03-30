@@ -4,12 +4,16 @@ Created on 23/12/2010
 @author: esauro
 '''
 from django.contrib import admin
-from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer
+from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer, UserDevice, NetworkPort
 
 SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number')
 
 class HardDiskInline(admin.TabularInline):
     model = HardDisk
+    extra = 2
+    
+class NetworPortInline(admin.TabularInline):
+    model = NetworkPort
     extra = 2
     
 class HwAdmin(admin.ModelAdmin):
@@ -27,7 +31,7 @@ class RackableAdmin(HwAdmin):
 
 class RackServerAdmin(RackableAdmin):
     list_display = HwAdmin.list_display  + SERVER_LIST_DISPLAY
-    inlines = [HardDiskInline, ]  
+    inlines = [HardDiskInline, NetworPortInline]  
 
 class BladeServerAdmin(HwAdmin):
     list_display = HwAdmin.list_display  + ('chassis', ) + SERVER_LIST_DISPLAY
@@ -36,10 +40,10 @@ class BladeServerAdmin(HwAdmin):
 
 class ChasisAdmin(RackableAdmin):
     list_display = RackableAdmin.list_display + ('slots', 'name')
-    inlines = [HardDiskInline, ]  
 
 class ServerAdmin(HwAdmin):
     list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY
+    inlines = [HardDiskInline, NetworPortInline]  
 
 class RackAdmin(admin.ModelAdmin):
     list_display = ('name', 'room', 'units_number')
@@ -50,3 +54,5 @@ admin.site.register(RackServer, RackServerAdmin)
 admin.site.register(Rack, RackAdmin)
 admin.site.register(Chassis, ChasisAdmin)
 admin.site.register(BladeServer, BladeServerAdmin)
+admin.site.register(UserDevice)
+admin.site.register(NetworkPort)

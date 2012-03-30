@@ -7,6 +7,7 @@ ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 
+DEFAULT_NAGIOS_CG = 'grupo-sistemas'
 MANAGERS = ADMINS
 
 DATABASES = {
@@ -60,12 +61,16 @@ TEMPLATE_LOADERS = (
     'django.template.loaders.app_directories.load_template_source',
 #     'django.template.loaders.eggs.load_template_source',
 )
-
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.contrib.messages.context_processors.messages',
+)
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 )
 
 ROOT_URLCONF = 'arritranco.urls'
@@ -83,6 +88,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'django.contrib.messages',
     'django_extensions',
     'south',
     'location',

@@ -6,12 +6,19 @@ Created on 25/03/2011
 from django.contrib import admin
 from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType
 
+# This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
+from monitoring.nagios.models import NagiosCheckOpts
+
+class NagiosCheckOptsInline(admin.TabularInline):
+    model = NagiosCheckOpts
+
 class MachineAdmin(admin.ModelAdmin):
-    list_display = ('fqdn', 'up', 'os', 'start_up', 'update_priority', 'epo_level','responsibles')
+    list_display = ('fqdn', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
-    list_editable = ('up','update_priority', 'epo_level')
+    list_editable = ('up','update_priority','epo_level')
     date_hierarchy = 'start_up'
     search_fields = ('fqdn', 'os__name')
+    inlines = [NagiosCheckOptsInline]
 
 
 
