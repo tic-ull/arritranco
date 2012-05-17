@@ -1,5 +1,7 @@
 *.pyc
 *.json
+*.swp
+.idea
 arritranco/.project
 arritranco/.pydevproject
 arritranco/dev.db

@@ -18,7 +18,7 @@ class SwitchAdmin(admin.ModelAdmin):
                ]
 
 class NetworkAdmin(admin.ModelAdmin):
-    list_display = ('ip','first_ip','last_ip','netmask')
+    list_display = ('desc','ip','first_ip','last_ip','netmask')
 
 admin.site.register(Switch, SwitchAdmin)
 admin.site.register(MACsHistory)

@@ -8,6 +8,7 @@ ADMINS = (
 )
 
 DEFAULT_NAGIOS_CG = 'grupo-sistemas'
+DEFAULT_SVC_IFACE_NAME = 'service'
 MANAGERS = ADMINS
 
 DATABASES = {
@@ -57,8 +58,8 @@ SECRET_KEY = '9u)uyfcmr*p9m6d=km@r@(0bzvoi*nt^_9*yy)-h)+-o&$6z=5'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.load_template_source',
 )
 TEMPLATE_CONTEXT_PROCESSORS = (

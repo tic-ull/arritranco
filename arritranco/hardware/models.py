@@ -66,11 +66,12 @@ class Phone(UserDevice):
     
 class Server(HwBase):
     """A generic server"""
-    memory = models.DecimalField(max_digits=15, decimal_places=3, blank=True, null=True, help_text=_('Installed memory in GB'))
-    processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
-    processor_clock = models.DecimalField(_(u"GHz"), max_digits=15, decimal_places=3, blank=True, null=True)
+    memory = models.DecimalField(max_digits = 15, decimal_places = 3, blank = True, null = True, help_text =_('Installed memory in GB'))
+    management_ip = models.IPAddressField(help_text = _(u'Management or DRAC/iLO IP address'), blank = True, null = True)
+    processor_type = models.ForeignKey("ProcessorType", blank = True, null=True)
+    processor_clock = models.DecimalField(_(u"GHz"), max_digits = 15, decimal_places = 3, blank = True, null = True)
     # Multi CPU servers has the same CPU type
-    processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Processors number'), default = 1)
+    processor_number = models.IntegerField(_(u'Number of processors'), help_text = _('Processors number'), default = 1)
     
     def __unicode__(self):
         return u"%s (%s)" % (self.model, self.serial_number)    
@@ -80,7 +81,7 @@ class Chassis(HwBase, RackPlace):
     Some samples: blade enclosures, modular switches, etc."""
     name = models.CharField(max_length = 255)
     slug = models.SlugField()
-    slots = models.IntegerField(help_text=_(u'Number of available slots'))
+    slots = models.IntegerField(help_text = _(u'Number of available slots'))
 
     def __unicode__(self):
         return u"Chasis (%s)" % (self.name)    

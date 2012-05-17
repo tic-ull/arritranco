@@ -1,9 +1,14 @@
+#coding: utf8
 from django.core.management.base import BaseCommand, CommandError
+from django.core.exceptions import ObjectDoesNotExist
 from arritranco.location.models import *
 from arritranco.hardware_model.models import *
 from arritranco.hardware.models import *
 from arritranco.inventory.models import *
 from arritranco.backups.models import *
+from arritranco.network.models import Network
+import sys
+from socket import gethostbyname, gethostbyaddr
 import json
 import string
 
@@ -26,18 +31,71 @@ class Command(BaseCommand):
         for item in data.values():
             if item[key] == old:
                 item[key] = new
-    
+        
     def handle(self, *args, **options):
+        if len(args) == 2:
+            networks_data = json.load(open(args[0], "r"))
+            inventory_data = json.load(open(args[1], "r"))
+            maquinas = self._parse_file(inventory_data, ['inventario.maquina'])['inventario.maquina']
+            redes_parsed = self._parse_file(networks_data, ['comunicaciones.red', 'comunicaciones.datosred', 'comunicaciones.maquinared'])
+            redes = redes_parsed['comunicaciones.red']
+            datosred = redes_parsed['comunicaciones.datosred']
+            maquinared = redes_parsed['comunicaciones.maquinared'] 
+            for pk in datosred.keys():
+                if not pk in maquinared.keys():
+                    print "Popeando datosred noasociados a maquina: ",datosred.pop(pk)
+                else:
+                    print "PK %s está en maquinared.keys() %s" % (pk,maquinared.keys().index(pk))
+                    datosred[pk]['maquina'] = maquinas[maquinared[pk]['maquina']]['nombre']  #nombre de la máquina para buscarla en el inventario actual.
+            # Redes
+            for pk,net in redes.items():
+                kwargs = dict(
+                            ip = net['ip'] + '/' + str(net['nivel']),
+                            desc = net['descripcion']
+                        )
+                new_obj, created = Network.objects.get_or_create(**kwargs)
+                if created:
+                   print "creada red %s" % new_obj
+            # Datos de redes y asociar máquinas + crear interfaces
+            print "Datos red %d" % len(datosred)
+            for dr in datosred.values():
+                m = Machine.objects.filter(fqdn = dr['maquina'])
+                if m:   
+                    print "Encontrada máqunina %s" % m
+                    kwargs = dict(
+                                ip = dr['ip'],
+                                visible = dr['visible'],
+                                hwaddr = '00:00:00:00:00:00' if not dr['mac'] else dr['mac'],
+                                machine = m[0]
+                                )
+                    new_iface, created = Interface.objects.get_or_create(**kwargs)
+                    if created:
+                        print "Creada interfaz %s" % new_iface
+                else:
+                    print "Maquina %s para asociar a la ip %s, no encontrada en inventario actual" % (dr['maquina'], dr['ip'])
+                    
+                
+            sys.exit(0)
+           
+        elif len(args) < 7:
+            self.stdout.write("\nFaltan ficheros : <location_data.json> <hardware_data.json> <inventario_data.json> <backup_filenamepatterns_data.json> <backup_planification_data.json> <backup_patron_data.json> <redes.json>\n\n")
+            sys.exit(1)
         location_data = json.load(open(args[0], "r"))
         hardware_data = json.load(open(args[1], "r"))
         inventario_data = json.load(open(args[2], "r"))
         backup_filenamepatterns_data = json.load(open(args[3], "r"))
         backup_planificacion_data = json.load(open(args[4], "r"))
         backup_patron_data = json.load(open(args[5], "r"))
+        networks_data = json.load(open(args[6], "r"))
 
         planificaciones = self._parse_file(backup_planificacion_data, ['backups.planificacion', ])['backups.planificacion']
         patrones = self._parse_file(backup_patron_data, ['backups.patron', ])['backups.patron']
         filenamepatterns = self._parse_file(backup_filenamepatterns_data, ['backups.tiposdefichero', ])['backups.tiposdefichero']
+        redes_parsed = self._parse_file(networks_data, ['comunicaciones.red', 'comunicaciones.datosred', 'comunicaciones.maquinared'])
+        redes = redes_parsed['comunicaciones.red']
+        datosred = redes_parsed['comunicaciones.datosred']
+        maquinared = redes_parsed['comunicaciones.maquinared'] 
+        maquinas = self._parse_file(inventario_data, ['inventario.maquina', ])['inventario.maquina']
         
         # First app is location
         # First we gather info from the json 
@@ -266,6 +324,7 @@ class Command(BaseCommand):
                           epo_level = machine['orden_apagado'],
                           
                           )
+            print kwargs
             if machine['virtual']:
                 new_obj,created = VirtualMachine.objects.get_or_create(**kwargs)
             else:
@@ -276,6 +335,7 @@ class Command(BaseCommand):
                 kwargs['ups'] = machine['ups'] 
                 new_obj,created = PhysicalMachine.objects.get_or_create(**kwargs)
             self._update_ref(planificaciones, 'maquina', pk, new_obj)
+
 
         for pk,planificacion in planificaciones.items():
             hour = planificacion['time'].split(':')[0]
@@ -330,3 +390,63 @@ class Command(BaseCommand):
                 patron['planificacion'].save()
 
             new_obj, created = FileBackupProduct.objects.get_or_create(**kwargs)
+
+        for pk,net in redes.items():
+            kwargs = dict(
+                        ip = net['ip'] + '/' + str(net['nivel']),
+                        desc = net['descripcion']
+                    )
+            new_obj, created = Network.objects.get_or_create(**kwargs)
+            if created:
+                print "creada red %s" % new_obj
+
+        for pk in datosred.keys():
+            if not pk in maquinared.keys():
+                print "Popeando datosred noasociados a maquina: ",datosred.pop(pk)
+            else:
+                print "PK %s está en maquinared.keys() %s" % (pk,maquinared.keys().index(pk))
+                datosred[pk]['maquina'] = maquinas[maquinared[pk]['maquina']]['nombre']  #nombre de la máquina para buscarla en el inventario actual.
+        # Redes
+        for pk,net in redes.items():
+            kwargs = dict(
+                        ip = net['ip'] + '/' + str(net['nivel']),
+                        desc = net['descripcion']
+                    )
+            new_obj, created = Network.objects.get_or_create(**kwargs)
+            if created:
+                print "creada red %s" % new_obj
+        # Datos de redes y asociar máquinas + crear interfaces
+        print "Datos red %d" % len(datosred)
+        for dr in datosred.values():
+            m = Machine.objects.filter(fqdn = dr['maquina'])
+            if m:   
+                print "Encontrada máqunina %s" % m
+                kwargs = dict(
+                            ip = dr['ip'],
+                            visible = dr['visible'],
+                            hwaddr = '00:00:00:00:00:00' if not dr['mac'] else dr['mac'],
+                            machine = m[0]
+                            )
+                new_iface, created = Interface.objects.get_or_create(**kwargs)
+
+                if created:
+                    print "Creada interfaz %s" % new_iface
+
+
+                if m[0].up:
+                    try:
+                        fqdn_ip = gethostbyname(m[0].fqdn)
+                    except:
+                        fqdn_ip = None
+
+                    if fqdn_ip:
+                        if fqdn_ip == new_iface.ip:
+                            print "IPs iguales, asignando iterfaz de servicio: %s a maquina %s " % (new_iface,m[0])
+                            new_iface.name = 'service'
+                            new_iface.save()
+                else:
+                    new_iface.name = m[0].fqdn
+                    new_iface.save()
+            else:
+                print "Maquina %s para asociar a la ip %s, no encontrada o DOWN en inventario actual" % (dr['maquina'], dr['ip'])
+                
