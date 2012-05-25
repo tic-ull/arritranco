@@ -1,3 +1,4 @@
+# coding: utf8
 from django.db import models
 from hardware.models import Server
 from network.models import Network
@@ -39,6 +40,13 @@ EPO_LEVELS = (
     (20, _(u'Service Lost. No critical service')), 
     (30, _(u'Service Lost. CRITICAL service')),
 )
+
+HYPERVISOR_HOSTS = (
+    (0, _(u'Undefined')),
+    (1, _(u'VM Ware')),
+    (2, _(u'Kernel Virtual Machine')), 
+)
+KVM_HYPERVISOR = 2
 
 UPS_CHOICES = (
     (0, 'Sin UPS'),
@@ -176,6 +184,21 @@ class Machine(models.Model):
             networks.append(link % (net.get_admin_url(),net.desc))
         return ", ".join(networks)
 
+    def has_upsmon(self):
+        """Returns if this machine should have upsmon or not."""
+        try:
+            vm = self.virtualmachine
+        except: 
+            vm = None
+        if vm:
+            if vm.hypervisor == KVM_HYPERVISOR:
+                return True
+            else:
+                return not (vm.epo_level in [20,30])
+        else:
+            return True
+
+
     def build_service_interface(self):
         """Returns an Interface with the values of the default service interface for de machine instance.
            
@@ -224,6 +247,7 @@ class Interface(models.Model):
 
 class VirtualMachine(Machine):
     """ Machine with no real hardware running on a virtual server like VMWare, KVM or whatever """
+    hypervisor = models.IntegerField(_(u'Hypervisor host'), choices = HYPERVISOR_HOSTS, default = 0)    
     processors = models.IntegerField(_(u"Number of processors"), default = 1)
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
     total_disks_size = models.DecimalField(_(u"GB"), max_digits=15, decimal_places=3, blank=True, null=True)

@@ -47,18 +47,17 @@ def hosts_ext_info(request):
     return render_to_response('nagios/host_ext_info.cfg', context, mimetype="text/plain")
 
 def get_checks(request, name):
-    """ Render all checks of "name" for all machines UP. """
+    """ Render all defined checks of "name" for all machines UP. """
     template = 'nagios/' + name + '_checks.cfg'
     context = {}
     try:
         check = NagiosCheck.objects.get(slug = name)
     except ObjectDoesNotExist: 
         check = None
-   
     if check:
         servers = []
-        for m in  check.all_machines():
-            servers.append(mco2dict(m))
+        for machine_check_options in  check.all_machines(): 
+            servers.append(mco2dict(machine_check_options))
         context['servers'] = servers
         if 'file' in request.GET:
             filename = name + '_checks.cfg'
@@ -76,8 +75,6 @@ def backup_checks(request):
     '''
         Backup checks
     '''
-    # FIXME: Filter active hosts and active tasks
-
     template = 'nagios/backup_checks.cfg'
     context = {}
     context['backup_file_tasks'] = FileBackupTask.objects.filter(machine__up=True).filter(active=True)
@@ -89,5 +86,3 @@ def backup_checks(request):
     else:
         response = render_to_response(template, context, mimetype="text/plain")
     return response
-
-

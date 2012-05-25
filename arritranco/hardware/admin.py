@@ -32,6 +32,7 @@ class RackableAdmin(HwAdmin):
 class RackServerAdmin(RackableAdmin):
     list_display = HwAdmin.list_display  + SERVER_LIST_DISPLAY
     inlines = [HardDiskInline, NetworPortInline]  
+    raw_id_fields = ('model',)
 
 class BladeServerAdmin(HwAdmin):
     list_display = HwAdmin.list_display  + ('chassis', ) + SERVER_LIST_DISPLAY

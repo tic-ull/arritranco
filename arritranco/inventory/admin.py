@@ -32,6 +32,7 @@ class NagiosCheckOptsInline(admin.TabularInline):
 class InterfacesInline(admin.TabularInline):
     model = Interface
 
+
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('fqdn', 'up', 'os', 'start_up', 'update_priority', 'epo_level', 'network_names')
     list_filter = ('up', 'os', 'update_priority', 'epo_level', 'networks')
