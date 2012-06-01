@@ -32,6 +32,7 @@ class TaskCheckAdmin(admin.ModelAdmin):
     list_display = ('task', 'task_time', 'num_status', 'get_status')
     inlines = [ TaskStatusAdmin, ]
     readonly_fields = ('task_time', )
+    date_hierarchy = 'task_time'
 
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('description', 'cron_syntax', 'get_status', 'last_run', 'next_run')

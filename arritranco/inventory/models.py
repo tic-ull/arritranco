@@ -5,6 +5,7 @@ from network.models import Network
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
 from django.utils.translation import ugettext_lazy as _
+import socket
 
 from socket import gethostbyname, gethostbyaddr
 from django.core.urlresolvers import reverse
@@ -124,12 +125,10 @@ class Machine(models.Model):
     # Prioridades de actualizaciones
     epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 0)    
     networks = models.ManyToManyField(Network, help_text = _(u'Networks where machine is coneccted through his interfaces'), through = 'Interface')
+
     def __unicode__(self):
         return u"%s" % (self.fqdn)
 
-#    def save(self, *args, **kwargs):
-#        print "SAVE DE MACHINE"
-#        super(Machine,self).save(*args,**kwargs)
     def clean(self):
         """ Clean fields only when we need to """
         if self.up:
@@ -168,6 +167,13 @@ class Machine(models.Model):
             service_ip = '127.0.0.1'
         return service_ip
 
+    @staticmethod
+    def get_by_addr(addr):
+        try:
+            return Machine.objects.get(fqdn = socket.getfqdn(addr))
+        except Machine.DoesNotExist:
+            return None
+    
     def responsibles(self):
         """ String with all responsibles for notification on nagios """
         groups = []

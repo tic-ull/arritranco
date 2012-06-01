@@ -6,3 +6,4 @@ paramiko
 pysnmp
 djangorestframework
 IPy
+gunicorn
