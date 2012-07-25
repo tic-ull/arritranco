@@ -216,6 +216,7 @@ class Command(BaseCommand):
                                   'FT1WM3J': {'name': 'E', 'slots': 16},
                                   '6M70P3J': {'name': 'F', 'slots': 16},
                                   'HF3244J': {'name': 'G', 'slots': 16},
+                                  'HF3244J': {'name': 'H', 'slots': 16},
                           }
                 kwargs = dict(model = hardware['modelo'],
                                serial_number = hardware['no_serie'],
