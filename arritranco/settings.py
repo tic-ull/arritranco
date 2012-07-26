@@ -169,6 +169,11 @@ LOGGING = {
 
     },
     'loggers': {
+        'django': {
+            'handlers': ['null'],
+            'propagate': True,
+            'level': 'INFO',
+        },
         '': { # catch_all logger
             'handlers': ['fichero_rotado',],
             'level': 'DEBUG',
