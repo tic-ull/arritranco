@@ -7,6 +7,7 @@ from arritranco.hardware.models import *
 from arritranco.inventory.models import *
 from arritranco.backups.models import *
 from arritranco.network.models import Network
+from arritranco.monitoring.nagios.models import *
 import sys
 from socket import gethostbyname, gethostbyaddr
 import json
@@ -335,6 +336,12 @@ class Command(BaseCommand):
                 kwargs['server'] = machine['servidor']
                 kwargs['ups'] = machine['ups'] 
                 new_obj,created = PhysicalMachine.objects.get_or_create(**kwargs)
+            if created:
+                # Añadir todos los chequeos de nagios correspondientes
+                for n in NagiosCheck.objects.filter(default = True):
+                    nco = NagiosCheckOpts.objects.create(machine = new_obj, check = n)
+                    nco.contactgoups.add(NagiosContactGroup.objects.get(pk=1))
+                    nco.save()
             self._update_ref(planificaciones, 'maquina', pk, new_obj)
 
 
