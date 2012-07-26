@@ -1,25 +1,23 @@
 # coding: utf8
+
 from django.db import models
 from hardware.models import Server
 from network.models import Network
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-
 from django.utils.translation import ugettext_lazy as _
-import socket
-
-from socket import gethostbyname, gethostbyaddr
 from django.core.urlresolvers import reverse
-
+import socket
 import re
 import IPy
+
+import logging
+logger = logging.getLogger(__name__)
 
 # Try to import the default name for service interface of a machine
 try:
     from settings import DEFAULT_SVC_IFACE_NAME
 except ImportError:
     DEFAULT_SVC_IFACE_NAME = None
-
-
 
 UPDATE_PRIORITY = (
     (10, _(u'Don\'t worry')),
@@ -91,7 +89,7 @@ def clean_hwaddr(value):
 def clean_fqdn(value):
     """ Check fqdn hostname is defined on the DNS zone """
     try:
-        gethostbyname(value)
+        socket.gethostbyname(value)
     except:
         raise ValidationError, _(u'The fqdn name u entered is not resoluble, please enter a valid one')
 
@@ -140,8 +138,12 @@ class Machine(models.Model):
     def resolveip(self):
         """ Return DNS ip for the fqdn if it is resoluble """
         try:
-            ip = gethostbyname(self.fqdn)
-        except:
+            ip = socket.gethostbyname(self.fqdn)
+        except socket.gaierror:
+            # The fqdn is not in the DNS
+            ip = None
+        except Exception as e:
+            logger.exception("Unknown error resolving DNS name for '%s': %s" % (fqdn, e)) 
             ip = None
         return ip
 
@@ -176,10 +178,10 @@ class Machine(models.Model):
     
     def responsibles(self):
         """ String with all responsibles for notification on nagios """
-        groups = []
+        groups = set()
         for co in self.nagioscheckopts_set.all():
             for cg in co.contact_groups.all():
-                groups.append(cg.name)
+                groups.add(cg.ngcontact)
         return ", ".join(groups)
 
     def network_names(self):
