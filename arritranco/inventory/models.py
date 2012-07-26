@@ -102,25 +102,14 @@ def clean_ip(value):
 
 
 class Machine(models.Model):
-    """
-        Maquina Software
-    """
+    """Software Machine."""
     fqdn = models.CharField( max_length = 255, unique = True)
     description = models.TextField(blank = True, null = True)
     up = models.BooleanField('Up', default = False, help_text = _(u'Is this machine up?'))
-    #responsable = models.ForeignKey(Responsable, blank=True, null=True, verbose_name='Responsable',
-    #    help_text='Datos de contacto del responsable del servicio.')
-    #propietario = models.ForeignKey(Propietario, blank=True, null=True)
-    # Software
     os = models.ForeignKey(OperatingSystem, blank = True, null = True)
-    
-#    cacti = models.IntegerField(blank=True, null=True, help_text=_(u'The cacti id for host.'))
-#    nagios = models.CharField(max_length=100, blank=True, help_text='Nagios name')
     start_up = models.DateField(_(u'start up'), blank = True, null = True)
     update_priority = models.IntegerField(_(u'Update priority'), choices = UPDATE_PRIORITY, default = 30)
 #   fecha_ultima_actualizacion = models.DateField('Actualizada', blank=True, null=True)
-    # UPS
-    # Prioridades de actualizaciones
     epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 0)    
     networks = models.ManyToManyField(Network, help_text = _(u'Networks where machine is coneccted through his interfaces'), through = 'Interface')
 
@@ -161,7 +150,6 @@ class Machine(models.Model):
 
     def get_service_ip(self):
         """ Returns the ip of the interface with DEFAULT_SVC_IFACE_NAME name """
-        print "Mirando machine %s" % self
         try:
             service_interface = self.interface_set.get(name=DEFAULT_SVC_IFACE_NAME)
             service_ip = service_interface.ip
