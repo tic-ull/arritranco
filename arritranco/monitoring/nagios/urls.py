@@ -8,5 +8,5 @@ urlpatterns = patterns('',
     url(r'^backup_checks.cfg$', backup_checks, name='backup_checks_old'),
 #    url(r'^load_checks.cfg$', generic_checks, {'template':'nagios/load_checks.cfg'}, name='load_checks'),
     url(r'^getchecks/backup$', backup_checks, name='backup_checks'),
-    url(r'^getchecks/(?P<name>[a-z]+)$', get_checks, name='get_checks'),
+    url(r'^getchecks/(?P<name>[a-zA-Z0-9_]+)$', get_checks, name='get_checks'),
 )

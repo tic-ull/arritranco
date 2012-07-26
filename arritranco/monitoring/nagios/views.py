@@ -25,7 +25,6 @@ def hosts(request):
     return response
 
 
-
 def hosts_ext_info(request):
     '''
         nagios extinfo config file
@@ -46,28 +45,32 @@ def hosts_ext_info(request):
     context = {"logo_machines": l }
     return render_to_response('nagios/host_ext_info.cfg', context, mimetype="text/plain")
 
+
 def get_checks(request, name):
-    """ Render all defined checks of "name" for all machines UP. """
+    '''
+        Render all defined checks of "name" for all machines UP.
+    '''
     template = 'nagios/' + name + '_checks.cfg'
     context = {}
     try:
         check = NagiosCheck.objects.get(slug = name)
     except ObjectDoesNotExist: 
-        check = None
-    if check:
-        servers = []
-        for machine_check_options in  check.all_machines(): 
-            servers.append(mco2dict(machine_check_options))
-        context['servers'] = servers
-        if 'file' in request.GET:
-            filename = name + '_checks.cfg'
-            response = render_to_response(template, context, mimetype="text/plain")
-            response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file'] 
-        else:
-            response = render_to_response(template, context, mimetype="text/plain")
-    else:
         response = HttpResponse(u"Check %s does not exist" % name, content_type = "text/plain")
         response.status_code =  404
+        return response
+
+    servers = []
+    for machine_check_options in check.all_machines(): 
+        servers.append(mco2dict(machine_check_options))
+    context['servers'] = servers
+
+    if 'file' in request.GET:
+        filename = name + '_checks.cfg'
+        response = render_to_response(template, context, mimetype="text/plain")
+        response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file'] 
+    else:
+        response = render_to_response(template, context, mimetype="text/plain")
+
     return response
 
 
@@ -86,3 +89,4 @@ def backup_checks(request):
     else:
         response = render_to_response(template, context, mimetype="text/plain")
     return response
+

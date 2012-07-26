@@ -37,7 +37,7 @@ class NagiosCheck(models.Model):
 
     def all_machines(self):
         """ Returns all NagiosCheckOpts items which contains machine and options for the NagiosCheck """
-        return self.nagioscheckopts_set.filter(machine__up = True)
+        return self.nagioscheckopts_set.filter(machine__up = True).order_by('machine__fqdn')
 
 class NagiosCheckOpts(models.Model):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
@@ -51,7 +51,7 @@ class NagiosCheckOpts(models.Model):
 
     class Meta:
         verbose_name = _(u'Asigned nagios check')
-        verbose_name_plural = _(u'Asinged nagios checks')
+        verbose_name_plural = _(u'Asigned nagios checks')
 
     def get_ngcontact_groups(self):
         """ Returns the contactcroup comaseparated line for the nagios conf """
