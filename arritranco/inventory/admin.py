@@ -12,12 +12,14 @@ import django
 from django.template import RequestContext
 from network.models import Network
 
-
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
 # This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
 from monitoring.nagios.models import NagiosCheckOpts
+
+import logging
+logger = logging.getLogger(__name__)
 
 # Try to import the default name for service interface of a machine
 try:
@@ -28,6 +30,7 @@ except ImportError:
 
 class NagiosCheckOptsInline(admin.TabularInline):
     model = NagiosCheckOpts
+
 
 class InterfacesInline(admin.TabularInline):
     model = Interface
@@ -46,7 +49,7 @@ class MachineAdmin(admin.ModelAdmin):
         """ Control that interface called "DEFAULT_SVC_IFACE_NAME" e.g. "service" is asociated to de fqdn ip"""
         obj.clean()
         obj.save()
-        print "Acabamos de llamar al obj SAVE de MACHINEi %s" % [str(x.id) + " " + str(x) for x in obj.interface_set.all()]
+        logger.debug("Acabamos de llamar al obj SAVE de MACHINEi %s" % [str(x.id) + " " + str(x) for x in obj.interface_set.all()])
         if obj.up and not obj.get_service_iface():
             svc_iface = obj.build_service_interface() 
             try: # verify that an interface with the fqdn ip exists already then, rename it
@@ -59,19 +62,20 @@ class MachineAdmin(admin.ModelAdmin):
             else: # there is an interface with fqdn ip addr, we rename it to DEFAULT_SVC_IFACE_NAME
                 messages.info(request, _(u'The iface founded %s' % fqdn_iface))
                 fqdn_iface.name = DEFAULT_SVC_IFACE_NAME
-                print "Llamando al save de la iface: %d - %s " %(fqdn_iface.id, fqdn_iface)
+                logger.debug("Llamando al save de la iface: %d - %s " % (fqdn_iface.id, fqdn_iface))
                 fqdn_iface.save()
                 messages.info(request, _(u'The iface %s has been renamed to default service interface' % obj.get_service_iface()))
+
     def save_formset(self, request, form, formset, change):
         formset.is_valid()
         instances = formset.save(commit=False)
         for instance in instances:
             if isinstance(instance, Interface):
-                print instance
+                logger.debug(instance)
                 instance.save()
         formset.save_m2m()
         super(MachineAdmin,self).save_formset(request,form,formset,change)
-        print "DESPUES DE TODOO"
+        logger.debug("DESPUES DE TODOO")
 
     class CopyMachine(forms.Form):
         _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)

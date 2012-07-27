@@ -233,12 +233,12 @@ class Interface(models.Model):
         ip = IPy.IP(self.ip).int()
         nets =  Network.objects.filter(first_ip_int__lte = ip, last_ip_int__gte = ip).order_by('size')
         if nets:
-            print "Hay net y la asignamos %s" % nets[0]
+            logger.debug("Hay net y la asignamos %s" % nets[0])
             self.network = nets[0]
-            print "Ahora self network: %s" % self.network
+            logger.debug("Ahora self network: %s" % self.network)
         super(Interface,self).save(*args,**kwargs)
-        print "SAVE DE INTERFACCE DATOS: %d - %s" % (self.id,self)
-        print "Despues del super self network: %s" % self.network
+        logger.debug("SAVE DE INTERFACE DATOS: %d - %s" % (self.id,self))
+        logger.debug("Despues del super self network: %s" % self.network)
 
 
 class VirtualMachine(Machine):
