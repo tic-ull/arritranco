@@ -7,3 +7,5 @@ pysnmp
 djangorestframework
 IPy
 gunicorn
+pil
+pygraphviz
