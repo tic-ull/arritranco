@@ -6,10 +6,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from helpers.processors import mco2dict
 
-from django.contrib import messages
-
-from django.utils.translation import ugettext_lazy as _
-
 def hosts(request):
     '''
         Nagios hosts config file.
@@ -27,7 +23,7 @@ def hosts(request):
 
 def hosts_ext_info(request):
     '''
-        nagios extinfo config file
+        Nagios extinfo config file
     '''
     l = []
     # FIXME:

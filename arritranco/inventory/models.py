@@ -100,7 +100,6 @@ def clean_ip(value):
     except ValueError:
         raise ValidationError,  _(u'You must provide a valid IPv4 address e.g.: 10.119.70.0')
 
-
 class Machine(models.Model):
     """Software Machine."""
     fqdn = models.CharField( max_length = 255, unique = True)
@@ -180,20 +179,20 @@ class Machine(models.Model):
             networks.append(link % (net.get_admin_url(),net.desc))
         return ", ".join(networks)
 
+    network_names.short_description = _(u'Networks')
+    network_names.allow_tags = True
+
     def has_upsmon(self):
         """Returns if this machine should have upsmon or not."""
         try:
             vm = self.virtualmachine
-        except: 
-            vm = None
-        if vm:
-            if vm.hypervisor == KVM_HYPERVISOR:
-                return True
-            else:
-                return not (vm.epo_level in [20,30])
-        else:
+        except ObjectDoesNotExist: 
             return True
 
+        if vm.hypervisor == KVM_HYPERVISOR:
+            return True
+
+        return not (vm.epo_level in [20,30])
 
     def build_service_interface(self):
         """Returns an Interface with the values of the default service interface for de machine instance.
@@ -209,8 +208,8 @@ class Machine(models.Model):
                     )
         return iface
 
-    network_names.short_description = _(u'Networks')
-    network_names.allow_tags = True
+    def get_nagios_parents(self):
+        return 'Router_ccti1'
 
 class Interface(models.Model):
     """ Model to represent a machine network interface """
