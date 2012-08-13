@@ -7,7 +7,9 @@ from nsca import NSCA
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
 from inventory.models import Machine
+from network.models import Network
 from monitoring.models import Responsible
+from templatetags.nagios_filters import nagios_safe
 
 NAGIOS_OK = 0
 NAGIOS_WARNING = 1
@@ -37,7 +39,7 @@ class NagiosCheck(models.Model):
 
     def all_machines(self):
         """ Returns all NagiosCheckOpts items which contains machine and options for the NagiosCheck """
-        return self.nagioscheckopts_set.filter(machine__up = True).order_by('machine__fqdn')
+        return self.nagioscheckopts_set.filter(machine__up = True).order_by('-machine__os__type__name', 'machine__fqdn')
 
 class NagiosCheckOpts(models.Model):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
@@ -75,6 +77,29 @@ class NagiosContactGroup(Responsible):
         return u"%s (%s)" % (self.name, self.ng_contact)
 
 
+class NagiosNetworkParent(models.Model):
+    """ Find parents for nagios hosts """
+    network = models.ForeignKey(Network)
+    parent = models.CharField(max_length = 500, help_text="Parent nagios host for this network", null = False, blank = False)
+    
+    def __unicode__(self):
+        return u"%s is parent for net %s" % (self.parent, self.network)
+
+    class Meta:
+        verbose_name = _(u'Nagios network parent')
+        verbose_name_plural = _(u'Nagios network parents')
+
+    @staticmethod
+    def get_parents_for_host(host):
+        nagios_parents = set()
+        for iface in host.interface_set.all():
+            if iface.network:
+                for p in iface.network.nagiosnetworkparent_set.all():
+                    nagios_parents.add(p.parent)
+        if not nagios_parents:
+            return settings.DEFAULT_NAGIOS_HOST_PARENT
+        return ', '.join(nagios_parents)
+
 def propagate_status(sender, **kwargs):
     if not settings.PROPAGATE_STATUS_TO_NAGIOS:
         return
@@ -86,7 +111,7 @@ def propagate_status(sender, **kwargs):
     if hasattr(task, 'backuptask'):
         nsca = NSCA()
         status_code = HUMAN_TO_NAGIOS[status.status]
-        nsca.add_custom_status(task.backuptask.machine.fqdn, task.description, status_code, status.comment)
+        nsca.add_custom_status(task.backuptask.machine.fqdn, nagios_safe(task.description), status_code, status.comment)
         nsca.send()
 
 

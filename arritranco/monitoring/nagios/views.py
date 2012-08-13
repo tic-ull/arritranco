@@ -1,7 +1,7 @@
 from inventory.models import Machine, OperatingSystem
 from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask
 from django.shortcuts import render_to_response
-from models import NagiosCheck, NagiosCheckOpts
+from models import NagiosCheck, NagiosCheckOpts, NagiosNetworkParent
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from helpers.processors import mco2dict
@@ -16,7 +16,14 @@ def hosts(request):
     '''
     template = 'nagios/hosts.cfg'
     context = {}
-    context['machines'] = Machine.objects.filter(up = True).order_by('fqdn')
+    context['machines'] = []
+    for m in Machine.objects.filter(up = True).order_by('fqdn'):
+        context['machines'].append({
+            'fqdn': m.fqdn,
+            'service_ip': m.get_service_ip(),
+            'contact_groups': m.responsibles(),
+            'parents': NagiosNetworkParent.get_parents_for_host(m),
+        })
     if 'file' in request.GET:
         response = render_to_response(template, context, mimetype="text/plain")
         response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file'] 
@@ -80,9 +87,9 @@ def backup_checks(request):
     '''
     template = 'nagios/backup_checks.cfg'
     context = {}
-    context['backup_file_tasks'] = FileBackupTask.objects.filter(machine__up=True).filter(active=True)
-    context['r1soft_tasks'] = R1BackupTask.objects.filter(machine__up=True).filter(active=True)
-    context['TSM_tasks'] = TSMBackupTask.objects.filter(machine__up=True).filter(active=True)
+    context['backup_file_tasks'] = FileBackupTask.objects.filter(machine__up=True).filter(active=True).order_by('machine__fqdn')
+    context['r1soft_tasks'] = R1BackupTask.objects.filter(machine__up=True).filter(active=True).order_by('machine__fqdn')
+    context['TSM_tasks'] = TSMBackupTask.objects.filter(machine__up=True).filter(active=True).order_by('machine__fqdn')
     if 'file' in request.GET:
         response = render_to_response(template, context, mimetype="text/plain")
         response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file'] 

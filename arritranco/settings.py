@@ -10,7 +10,6 @@ ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 
-DEFAULT_NAGIOS_CG = 'grupo-sistemas'
 DEFAULT_SVC_IFACE_NAME = 'service'
 MANAGERS = ADMINS
 
@@ -127,6 +126,9 @@ FILE_BACKUP_CHECKERS = (
         ('bckpsrv04.example.com', 'backup server4'),
     )
 
+# If None or False no default parent will set.
+DEFAULT_NAGIOS_HOST_PARENT = None
+DEFAULT_NAGIOS_CG = 'grupo-sistemas'
 PROPAGATE_STATUS_TO_NAGIOS = False
 SEND_NSCA_BIN = '/usr/sbin/send_nsca'
 NSCA_DAEMON_HOSTNAME = 'nagios.fully.qualified.domain.name'

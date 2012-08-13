@@ -1,0 +1,180 @@
+<html>
+    <head><title>Backup grid</title>
+<link type="text/css" rel="stylesheet" href="/static/js/jquery.qtip.min.css" />
+<style type="text/css">
+body {
+    color: #5B80B2;
+    background-color: white;
+}
+
+.grid {
+    width: 1250px;
+    border-bottom: 1px solid #CDCDCD;
+    border-right: 1px solid #CDCDCD;
+    border-left: 1px solid #CDCDCD;
+}
+
+.day {
+    width:100%;
+    height: 45px;
+    border-top: 1px solid #CDCDCD;
+    clear: both;
+}
+
+.block {
+    height:45px;
+    float:left;
+}
+
+.backup {
+    border-left: 1px solid #EFEFEF;
+    border-right: 1px solid #EFEFEF;
+    background-color: #999999;
+    position:absolute;
+}
+
+.odd {
+    background-color: white;
+}
+
+.even {
+    background-color: #EDF3FE;
+}
+
+.machine {
+    width:200px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 14px;
+    background-color: #eeeeee;
+    border-right: 1px solid #CDCDCD;A
+}
+
+.machine div {
+    padding-top: 1em;
+}
+
+.info {
+    display:none;
+}
+
+#time {
+    position: absolute;
+    border: 1px solid #CDBA39;
+    background-color: #F1E987;
+    padding: 5px;
+    display:none;
+}
+
+#rule {
+    width: 1px;
+    border-left: 2px solid #CDBA39;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#colisiones {
+    display:none;
+    border: 1px solid red;
+    background-color: #FFBCBD;
+    padding: 1em;
+    color: red;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+</style>
+<!--JavaScript-->
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.qtip.min.js"></script>
+<script type="text/javascript">
+        // Create the tooltips only on document load
+        $(document).ready(function() {
+            $('#rule').height($('#grid').height());
+            $('#rule').css({'top':$('#grid').position().top});
+            $('#grid').mousemove(function(event) {
+                $('#time').css({'display':'block'});
+                if (event.pageX < 231) {
+                    return;
+                }
+                $('#rule').css({'left':event.pageX - 5});
+                $('#time').css({'top':event.pageY - 30, 'left':event.pageX + 8});
+                var time = (event.pageX - 231) / {{ minute_width }};
+                var minutes = time % 60;
+                var hour = (time - minutes) / 60;
+                hour = Math.round(hour);
+                minutes = Math.round(minutes);
+                if (hour < 10) { hour = "0" + hour; }
+                if (minutes < 10) { minutes = "0" + minutes; }
+                $('#time').html(hour + ':' +  minutes);
+                var colisiones = 0;
+                var colisiones_desc = new Array();
+                $('.backup').filter(function() {
+                    if (($(this).position().left < event.pageX - 5) && (event.pageX - 5 < $(this).position().left + $(this).width())) {
+                        colisiones ++;
+                        colisiones_desc.push($(this).parent().children('#fqdn').text());
+                        colisiones_desc.push($("#info-" + $(this).attr("id")).html());
+                        return true;
+                    }
+                    return false;
+                }).css({'background-color':'#525252'});
+                $('.backup').filter(function() {
+                    return (($(this).position().left > event.pageX - 5) || (event.pageX - 5 > $(this).position().left + $(this).width()));
+                }).css({'background-color':'#999999'});
+                if (colisiones > 1){
+                    var text = "<p>Colisiones: " + colisiones + '</p>';
+                    for (var i = 0; i < colisiones_desc.length; i++) {
+                        text += colisiones_desc[i];
+                    }
+                    $('#colisiones').html(text);
+                    $('#colisiones').css({'display': 'block'});
+                } else {
+                    $('#colisiones').html("");
+                    $('#colisiones').css({'display': 'none'});
+                }
+            });
+
+            $('.backup').qtip({
+                    content: {
+                            text: function(api) {
+                                return $("#info-" + $(this).attr("id")).html();
+                            }
+                        },
+                    style: {
+                        classes: 'ui-tooltip-shadow ui-tooltip-tipped ui-tooltip-rounded'
+                    },
+                    position: {
+                        my: 'right center',
+                        at: 'bottom left',
+                    },
+                });
+        });
+</script>
+
+    </head>
+    <body>
+        <div class="grid" id="grid">
+            {% for fqdn,fbts in list_of_tasks.items %}
+            <div class="day {% cycle 'odd' 'even' %}">
+                <div class="block machine" id='fqdn'><div>{{ fqdn }}</div></div>
+                {% for t in fbts %}
+                    <div id='{{ t.id }}' class="block backup" style="left:{{t.offset }}px;width:{{ t.width }}px;">&nbsp;
+                        <div id='info-{{ t.id }}' class="info">
+                            <ul>
+                            <li><strong>Time:</strong> {{ t.time }}</li>
+                            <li><strong>Descripcion:</strong> {{ t.description }}</li>
+                            <li><strong>Duration:</strong> {{ t.duration|time:"H" }} horas {{ t.duration|time:"i" }} minutos.</li>
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div id="rule"></div>
+        <div id="time"></div>
+        <div id="colisiones"></div>
+    </body>
+</html>

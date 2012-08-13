@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 
-from models import NagiosCheck, NagiosCheckOpts, NagiosContactGroup
+from models import NagiosCheck, NagiosCheckOpts, NagiosContactGroup, NagiosNetworkParent
 from arritranco.inventory.models import Machine
 
 # Try to import the default nagios contact group
@@ -94,6 +94,10 @@ class NagiosContactGroupAdmin(admin.ModelAdmin):
                     
     delete_contact.verbose_name = _(u'Delete selected contacts')
 
+class NagiosNetworkParentAdmin(admin.ModelAdmin):
+    list_display = ('network','parent')
+
 admin.site.register(NagiosCheckOpts, NagiosCheckOptsAdmin)
 admin.site.register(NagiosCheck, NagiosCheckAdmin)
 admin.site.register(NagiosContactGroup, NagiosContactGroupAdmin)
+admin.site.register(NagiosNetworkParent, NagiosNetworkParentAdmin)

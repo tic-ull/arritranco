@@ -113,6 +113,9 @@ class Machine(models.Model):
     epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 0)    
     networks = models.ManyToManyField(Network, help_text = _(u'Networks where machine is coneccted through his interfaces'), through = 'Interface')
 
+    class Meta:
+        ordering = ['fqdn']
+
     def __unicode__(self):
         return u"%s" % (self.fqdn)
 

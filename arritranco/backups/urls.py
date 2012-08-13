@@ -32,5 +32,6 @@ urlpatterns = patterns('',
     url(r'^addWindowsBackupFile$', add_backup_file, { 'windows':True }, name="addWindowsBackupFile"),
     url(r'^registerFileFromChecker$', register_file_from_checker, name="register_file_from_checker"),
     url(r'^addCompressedBackupFile$', add_compressed_backup_file, name="addCompressedBackupFile"),
+    url(r'^grid/$', BackupGrid.as_view(), name='backup-grid'),
     url(r'^(?P<pk>[^/]+)/$', InstanceModelView.as_view(resource=BackupTaskResource)),
 )
