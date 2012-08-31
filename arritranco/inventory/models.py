@@ -228,16 +228,15 @@ class Interface(models.Model):
 
     def save(self, *args, **kwargs):
         """ Assigning the net to which this interface belongs to. """
-        
+        logger.debug("Calling Interface Save method")
         ip = IPy.IP(self.ip).int()
         nets =  Network.objects.filter(first_ip_int__lte = ip, last_ip_int__gte = ip).order_by('size')
         if nets:
-            logger.debug("Hay net y la asignamos %s" % nets[0])
+            logger.debug("There is net and assign: %s" % nets[0])
             self.network = nets[0]
-            logger.debug("Ahora self network: %s" % self.network)
+            logger.debug("Result of asignation is: %s" % self.network)
         super(Interface,self).save(*args,**kwargs)
-        logger.debug("SAVE DE INTERFACE DATOS: %d - %s" % (self.id,self))
-        logger.debug("Despues del super self network: %s" % self.network)
+        logger.debug("Saved Interface: %d - %s" % (self.id,self))
 
 
 class VirtualMachine(Machine):
