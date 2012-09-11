@@ -16,7 +16,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
 # This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
-from monitoring.nagios.models import NagiosCheckOpts
+from monitoring.nagios.admin import NagiosCheckOptsInline
 
 import logging
 logger = logging.getLogger(__name__)
@@ -26,10 +26,6 @@ try:
     from settings import DEFAULT_SVC_IFACE_NAME
 except ImportError:
     DEFAULT_SVC_IFACE_NAME = None
-
-
-class NagiosCheckOptsInline(admin.TabularInline):
-    model = NagiosCheckOpts
 
 
 class InterfacesInline(admin.TabularInline):

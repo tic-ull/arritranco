@@ -7,6 +7,7 @@ from django.contrib import admin
 from models import Task, TaskCheck, TaskStatus
 from django.db import models
 from django import forms
+from django.conf import settings
 
 class TaskStatusAdminForm(forms.ModelForm):
 #    class Meta:
@@ -29,10 +30,15 @@ class TaskStatusAdmin(admin.StackedInline):
 
 
 class TaskCheckAdmin(admin.ModelAdmin):
-    list_display = ('task', 'task_time', 'num_status', 'get_status')
+    list_display = ('task', 'task_time', 'num_status', 'get_status', 'info')
     inlines = [ TaskStatusAdmin, ]
     readonly_fields = ('task_time', )
     date_hierarchy = 'task_time'
+
+    def info(self, obj):
+        if 'backups' in settings.INSTALLED_APPS:
+        # FIXME: We can have TaskChecks for task's that aren't backups
+            return u"Machine: %s" % obj.task.backuptask.machine.fqdn
 
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('description', 'cron_syntax', 'get_status', 'last_run', 'next_run')

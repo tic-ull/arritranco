@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.http import Http404, HttpResponse 
 from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView
 from djangorestframework.compat import View
 from djangorestframework.mixins import ResponseMixin
 from djangorestframework.renderers import DEFAULT_RENDERERS
@@ -11,6 +12,56 @@ from inventory.models import Machine
 import datetime
 import math
 import os
+
+
+class BackupGrid(TemplateView):
+    template_name = "backups/grid.html"
+    day_width = 1250.0 - 200
+    minute_width = day_width / (60 * 24.0)
+
+    def get_offset(self, run_time):
+        return (run_time.hour * 60 + run_time.minute + run_time.second / 60.0) * self.minute_width
+
+    def get_width(self, duration):
+        if duration is not None:
+            return self.get_offset(duration)
+        else:
+            return (30 * self.minute_width)
+
+    def get_context_data(self):
+        midnight = datetime.time(23,59,59)
+        list_of_tasks = {}
+        f = {}
+        if 'checker' in self.request.GET:
+            f = {'checker_fqdn':self.request.GET['checker']}
+        if 'date' in self.request.GET:
+            try:
+                today = datetime.datetime.strptime(self.request.GET['date'], '%Y/%m/%d').date()
+            except ValueError:
+                raise Http404('Invalid date %s fmt: %%Y/%%M/%%D' % self.request.GET['date'])
+        else:
+            today = datetime.date.today()
+        yesterday = today - datetime.timedelta(1)
+        id = 0
+        for fbt in FileBackupTask.objects.filter(active = True, machine__up = True, **f):
+            last_run = fbt.next_run(datetime.datetime.combine(yesterday, midnight))
+            while (last_run.date() == today):
+                if fbt.machine.fqdn not in list_of_tasks:
+                    list_of_tasks[fbt.machine.fqdn] = []
+                list_of_tasks[fbt.machine.fqdn].append({
+                    'time':last_run,
+                    'duration':fbt.duration,
+                    'description':fbt.description,
+                    'width': self.get_width(fbt.duration),
+                    'offset': 230 + self.get_offset(last_run),
+                    'id':id,
+                })
+                last_run = fbt.next_run(last_run + datetime.timedelta(minutes = 1))
+                id += 1
+        return {
+            'minute_width': self.minute_width,
+            'list_of_tasks':list_of_tasks
+            }
 
 class BackupFileCheckerView(ResponseMixin, View):
     """An example view using Django 1.3's class based views.
@@ -88,7 +139,7 @@ def add_backup_file (request, machine = False, windows = False):
         return HttpResponse ("There is no pattern for this file")
     next_run = fbp.file_backup_task.next_run(filedate)
     previous_run = fbp.file_backup_task.last_run(filedate)
-    if (abs(next_run - filedate) >= abs(filedate - previous_run)):
+    if (abs(next_run - filedate) <= abs(filedate - previous_run)):
         tch_time = next_run
     else:
         tch_time = previous_run

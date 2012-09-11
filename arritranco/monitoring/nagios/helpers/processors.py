@@ -19,5 +19,6 @@ def mco2dict(m_chckopts):
     rdict['ostype'] = m_chckopts.machine.os.type.name
     rdict['fqdn'] = m_chckopts.machine.fqdn
     rdict['cg'] = m_chckopts.get_ngcontact_groups() 
+    rdict['options'] = m_chckopts.options
     rdict['has_upsmon'] = m_chckopts.machine.has_upsmon()
     return rdict

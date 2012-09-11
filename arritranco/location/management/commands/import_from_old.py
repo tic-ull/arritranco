@@ -317,6 +317,9 @@ class Command(BaseCommand):
             self._update_ref(machines, 'sistema_operativo', pk, new_obj)
             
         for pk,machine in machines.items():
+            # Buscamos solo una maquina con el FQDN, si la trincamos seteamos el resto.
+            # Si no lo hacemos así lo más probable es que dupliquemos muchas máquinas, todas
+            # las que tengan cualquier cosa cambiada.
             kwargs = dict(fqdn = machine['nombre'],
                           description = machine['descripcion'],
                           up = machine['en_servicio'],
@@ -324,18 +327,38 @@ class Command(BaseCommand):
                           start_up = machine['fecha_alta'],
                           update_priority = machine['prioridad_actualizacion'],
                           epo_level = machine['orden_apagado'],
-                          
                           )
-            print kwargs
             if machine['virtual']:
-                new_obj,created = VirtualMachine.objects.get_or_create(**kwargs)
+                try:
+                    new_obj = VirtualMachine.objects.get(fqdn = machine['nombre'])
+                    new_obj.description = kwargs['description']
+                    new_obj.up = kwargs['up']
+                    new_obj.os = kwargs['os']
+                    new_obj.start_up = kwargs['start_up']
+                    new_obj.update_priority = kwargs['update_priority']
+                    new_obj.epo_level = kwargs['epo_level']
+                    new_obj.save()
+                except VirtualMachine.DoesNotExist, e:
+                    new_obj,created = VirtualMachine.objects.get_or_create(**kwargs)
             else:
                 if not isinstance(machine['servidor'], Server):
                     #print "Not importing: ", machine
                     continue
                 kwargs['server'] = machine['servidor']
                 kwargs['ups'] = machine['ups'] 
-                new_obj,created = PhysicalMachine.objects.get_or_create(**kwargs)
+                try:
+                    new_obj = PhysicalMachine.objects.get(fqdn = machine['nombre'])
+                    new_obj.description = kwargs['description']
+                    new_obj.up = kwargs['up']
+                    new_obj.os = kwargs['os']
+                    new_obj.start_up = kwargs['start_up']
+                    new_obj.update_priority = kwargs['update_priority']
+                    new_obj.epo_level = kwargs['epo_level']
+                    new_obj.server = kwargs['server']
+                    new_obj.ups = kwargs['ups'] 
+                    new_obj.save()
+                except PhysicalMachine.DoesNotExist, e:
+                    new_obj,created = PhysicalMachine.objects.get_or_create(**kwargs)
             if created:
                 # Añadir todos los chequeos de nagios correspondientes
                 for n in NagiosCheck.objects.filter(default = True):
@@ -360,17 +383,20 @@ class Command(BaseCommand):
                     hour = hour,
                     monthday = planificacion['doms'],
                     weekday = weekday,
-                    bckp_type = 1,
                     checker_fqdn = planificacion['checker'],
                     directory = planificacion['directorio'],
-                    days_in_hard_drive = -1,
-                    max_backup_month = -1,
+##                    bckp_type = 1,
+#                    days_in_hard_drive = -1,
+#                    max_backup_month = -1,
                     active = planificacion['activa'],
                 )
             if type(planificacion['maquina']) == int:
                 print "Esta es de las maquinas no importadas, pasando de la planificacion"
                 continue
             new_obj, created = FileBackupTask.objects.get_or_create(**kwargs)
+            if created:
+                print kwargs
+                print "planificacion creada: %s" % new_obj
             self._update_ref(patrones, 'planificacion', pk, new_obj)
 
         for pk,fnp in filenamepatterns.items():
