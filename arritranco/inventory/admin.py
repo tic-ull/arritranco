@@ -30,6 +30,7 @@ except ImportError:
 
 class InterfacesInline(admin.TabularInline):
     model = Interface
+    readonly_fields = ('network', )
 
 
 class MachineAdmin(admin.ModelAdmin):
@@ -39,14 +40,16 @@ class MachineAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_up'
     search_fields = ('fqdn', 'os__name', 'networks__desc', 'networks__ip')
     inlines = [InterfacesInline, NagiosCheckOptsInline,]
+#    inlines = [InterfacesInline,]
     actions = ['copy_machine']
 
     def save_model(self, request, obj, form, change):
         """ Control that interface called "DEFAULT_SVC_IFACE_NAME" e.g. "service" is asociated to de fqdn ip"""
         obj.clean()
         obj.save()
-        logger.debug("Acabamos de llamar al obj SAVE de MACHINEi %s" % [str(x.id) + " " + str(x) for x in obj.interface_set.all()])
+        logger.debug("Acabamos de llamar al obj SAVE de MACHINE %s" % [str(x.id) + " " + str(x) for x in obj.interface_set.all()])
         if obj.up and not obj.get_service_iface():
+            logger.debug("No service iface for %s. Creating it.", obj.fqdn)
             svc_iface = obj.build_service_interface() 
             try: # verify that an interface with the fqdn ip exists already then, rename it
                 fqdn_iface = obj.interface_set.get(ip=svc_iface.ip)
@@ -61,17 +64,26 @@ class MachineAdmin(admin.ModelAdmin):
                 logger.debug("Llamando al save de la iface: %d - %s " % (fqdn_iface.id, fqdn_iface))
                 fqdn_iface.save()
                 messages.info(request, _(u'The iface %s has been renamed to default service interface' % obj.get_service_iface()))
+        else:
+            logger.debug("Service iface for %s already exist. Nothing left to do.", obj.fqdn)
 
-    def save_formset(self, request, form, formset, change):
-        formset.is_valid()
-        instances = formset.save(commit=False)
-        for instance in instances:
-            if isinstance(instance, Interface):
-                logger.debug(instance)
-                instance.save()
-        formset.save_m2m()
-        super(MachineAdmin,self).save_formset(request,form,formset,change)
-        logger.debug("DESPUES DE TODOO")
+#    def save_formset(self, request, form, formset, change):
+#        logger.debug("Saving all formsets")
+#        formset.is_valid()
+#        logger.debug("Formset is valid, lets save it")
+#        instances = formset.save(commit=False)
+#        logger.debug("Formset saved (commit=False)")
+#        for instance in instances:
+#            logger.debug("%s", dir(instance))
+#            logger.debug("Instance: %s", instance)
+#            if isinstance(instance, Interface):
+#                logger.debug("Interface: %s", instance)
+#                instance.save()
+#        logger.debug("Saving m2m")
+#        formset.save_m2m()
+#        logger.debug("Saved m2m")
+#        super(MachineAdmin,self).save_formset(request,form,formset,change)
+#        logger.debug("DESPUES DE TODOO")
 
     class CopyMachine(forms.Form):
         _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)

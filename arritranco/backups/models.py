@@ -7,6 +7,10 @@ from django.conf import settings
 import datetime
 import re
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class BackupTask(Task):
     """
         File backup task
@@ -23,6 +27,7 @@ class BackupTask(Task):
 
     machine = models.ForeignKey(Machine)
     duration = models.TimeField(_(u"Duration"), blank=True, null=True)
+    extra_options = models.TextField(help_text = _(u'Extra options for backup jobs'), blank=True, null=True)
 
     bckp_type = models.IntegerField(blank=True, null=True, choices=BACKUP_TYPE_CHOICES, default = SYSTEM_BACKUP)
 
@@ -80,9 +85,11 @@ class FileBackupTask(BackupTask):
 
     @staticmethod
     def get_fbp(machine, filename):
+        logger.debug('Searching FileBackupProduct for filename %s and machine %s', filename, machine)
         for fbp in FileBackupProduct.objects.filter(file_backup_task__machine = machine):
-            if fbp.file_pattern.get_re().match(filename):
+            if fbp.file_pattern.get_re(machine).match(filename):
                 return fbp
+        logger.debug('There is no FileBackupProduct for machine %s', machine)
         return None
 
 class FileNamePattern(models.Model):
@@ -92,20 +99,24 @@ class FileNamePattern(models.Model):
     pattern = models.CharField('Nombre del archivo', max_length=255, blank=True, null=True,
         help_text=_(u'File name pattern, you can use regexp and date patterns here.'))
 
-    def get_re (self):
+    def get_re (self, machine = None):
         # FIXME: Change month list based on default locale language
         sustituciones = (
                 ('%Y', '(?P<year4>\d{4})'),
                 ('%y', '(?P<year2>\d{2})'),
                 ('%m', '(?P<month>\d{2})'),
                 ('%d', '(?P<day>\d{2})'),
+                ('%H', '(?P<hour>\d{2})'),
+                ('%M', '(?P<minute>\d{2})'),
 #                ('%B', '(?P<month_large>' + _(u'(Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre))')),
                 ('#', '(?P<chunk>\d+)'),
             )
         patron_re = self.pattern
-        #patron_re = patron_re.replace('__FQDN__', self.planificacion.maquina)
+        if machine is not None:
+            patron_re = patron_re.replace('__FQDN__', machine.fqdn)
         for o, d in sustituciones:
             patron_re = patron_re.replace (o, d)
+        logger.error('Regular expression pattern: %s', patron_re)
         return re.compile (patron_re)
 
     def get_filename_for_date (self, d):
@@ -146,6 +157,9 @@ class FileBackupProduct(models.Model):
         help_text=_(u'If there is more than one file_pattern, the last value of the sequence'))
     variable_percentage = models.DecimalField(default=20, max_digits=2, decimal_places=0, null=True, blank=True,
         help_text=_(u"% size that you expect to change between two backups"))
+
+    def __unicode__(self):
+        return u"%si -> %s" % (self.file_backup_task, self.file_pattern)
 
 class BackupFile(models.Model):
     file_backup_product = models.ForeignKey(FileBackupProduct)

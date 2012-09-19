@@ -163,8 +163,13 @@ class Machine(models.Model):
     @staticmethod
     def get_by_addr(addr):
         try:
-            return Machine.objects.get(fqdn = socket.getfqdn(addr))
+            return Machine.objects.get(interface__ip = addr, up = True)
         except Machine.DoesNotExist:
+            try:
+                return Machine.objects.get(fqdn = socket.getfqdn(addr))
+            except Machine.DoesNotExist:
+                return None
+        except Machine.MultipleObjectsReturned:
             return None
     
     def responsibles(self):
@@ -233,6 +238,7 @@ class Interface(models.Model):
     def save(self, *args, **kwargs):
         """ Assigning the net to which this interface belongs to. """
         
+        logger.debug("Llamando al save: %s", self.name)
         ip = IPy.IP(self.ip).int()
         nets =  Network.objects.filter(first_ip_int__lte = ip, last_ip_int__gte = ip).order_by('size')
         if nets:
@@ -240,8 +246,8 @@ class Interface(models.Model):
             self.network = nets[0]
             logger.debug("Ahora self network: %s" % self.network)
         super(Interface,self).save(*args,**kwargs)
-        logger.debug("SAVE DE INTERFACE DATOS: %d - %s" % (self.id,self))
-        logger.debug("Despues del super self network: %s" % self.network)
+        logger.debug("SAVE DE INTERFACE DATOS: %d - %s", self.id, self)
+        logger.debug("Despues del super self network: %s", self.network)
 
 
 class VirtualMachine(Machine):

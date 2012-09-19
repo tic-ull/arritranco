@@ -1,0 +1,22 @@
+{% extends "admin/app_index.html" %} 
+{% load i18n %} 
+{% load backup_admin_tags %}
+
+{% if not is_popup %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs"><a href="../">
+{% trans "Home" %}</a> &rsaquo; 
+{% for app in app_list %}
+{% blocktrans with app.name as name %}{{ name }}{% endblocktrans %}
+{% endfor %}</div>{% endblock %}
+
+{% endif %} 
+
+
+{% block sidebar %}
+<div id="content-related">
+    {% compress_todo %}
+    {% today_backups %}
+</div>
+{% endblock %}

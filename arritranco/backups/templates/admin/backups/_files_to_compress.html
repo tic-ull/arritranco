@@ -1,0 +1,13 @@
+{% load i18n %} 
+{% for checker in compress_todo.values %}
+    {% if checker.files.count %}
+    <div class="module" style="width: 400px" id="{{ checker.fqdn }}-compress-todo">
+    <h2>{% blocktrans with fqdn=checker.fqdn count=checker.files.count %}Uncompressed files for {{ fqdn }}: {{ count }}{% endblocktrans  %}</h2>
+        <ul class="actionlist">
+        {% for f in checker.files|slice:"10" %}
+            <li class="changelink"><a href="{% url admin:backups_backupfile_change f.id %}">{{ f.original_file_name|slice:"60" }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+{% endfor %}

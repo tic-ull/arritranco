@@ -184,6 +184,10 @@ LOGGING = {
     }
 }
 
+UPS_ROOM_NAMES = ('cpd',)
+
+MAX_COMPRESS_GB = 400
+
 try:
     from settings_local import *
 except ImportError, e:

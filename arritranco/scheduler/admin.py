@@ -13,7 +13,7 @@ class TaskStatusAdminForm(forms.ModelForm):
 #    class Meta:
 #        STATUS_CHOICES = (
 #                ('', 'Seleccione un nuevo estado'),
-#                ('ok', 'ok'),
+#                ('Ok', 'ok'),
 #                ('Error', 'Error')
 #            ) 
         model = TaskStatus
@@ -34,6 +34,7 @@ class TaskCheckAdmin(admin.ModelAdmin):
     inlines = [ TaskStatusAdmin, ]
     readonly_fields = ('task_time', )
     date_hierarchy = 'task_time'
+    list_filter = ('task', )
 
     def info(self, obj):
         if 'backups' in settings.INSTALLED_APPS:
