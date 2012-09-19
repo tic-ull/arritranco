@@ -1,14 +1,17 @@
+#coding:utf8
 '''
 Created on 25/03/2011
 
 @author: esauro
 '''
+
+
 from django.contrib import admin
+
 from django import forms
 from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType, Interface
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render_to_response, HttpResponseRedirect
-import django
 from django.template import RequestContext
 from network.models import Network
 
@@ -43,47 +46,32 @@ class MachineAdmin(admin.ModelAdmin):
 #    inlines = [InterfacesInline,]
     actions = ['copy_machine']
 
-    def save_model(self, request, obj, form, change):
-        """ Control that interface called "DEFAULT_SVC_IFACE_NAME" e.g. "service" is asociated to de fqdn ip"""
-        obj.clean()
-        obj.save()
-        logger.debug("Acabamos de llamar al obj SAVE de MACHINE %s" % [str(x.id) + " " + str(x) for x in obj.interface_set.all()])
-        if obj.up and not obj.get_service_iface():
-            logger.debug("No service iface for %s. Creating it.", obj.fqdn)
-            svc_iface = obj.build_service_interface() 
-            try: # verify that an interface with the fqdn ip exists already then, rename it
-                fqdn_iface = obj.interface_set.get(ip=svc_iface.ip)
-            except ObjectDoesNotExist:
-                fqdn_iface = None
-            if obj.get_num_ifaces() == 0 or not fqdn_iface: # If ther is no ifaces, or ther is some but no one with fqdn ip addr, we create the default one
-                obj.interface_set.add(svc_iface)
-                messages.info(request, _(u'The iface %s has been created bounded to the fqdn of %s' % (obj.get_service_iface(),obj)))
-            else: # there is an interface with fqdn ip addr, we rename it to DEFAULT_SVC_IFACE_NAME
-                messages.info(request, _(u'The iface founded %s' % fqdn_iface))
-                fqdn_iface.name = DEFAULT_SVC_IFACE_NAME
-                logger.debug("Llamando al save de la iface: %d - %s " % (fqdn_iface.id, fqdn_iface))
-                fqdn_iface.save()
-                messages.info(request, _(u'The iface %s has been renamed to default service interface' % obj.get_service_iface()))
-        else:
-            logger.debug("Service iface for %s already exist. Nothing left to do.", obj.fqdn)
+    def save_related(self, request, form, formsets, change):
+        """Control that interface called "DEFAULT_SVC_IFACE_NAME" e.g. "service" is asociated to de fqdn ip
 
-#    def save_formset(self, request, form, formset, change):
-#        logger.debug("Saving all formsets")
-#        formset.is_valid()
-#        logger.debug("Formset is valid, lets save it")
-#        instances = formset.save(commit=False)
-#        logger.debug("Formset saved (commit=False)")
-#        for instance in instances:
-#            logger.debug("%s", dir(instance))
-#            logger.debug("Instance: %s", instance)
-#            if isinstance(instance, Interface):
-#                logger.debug("Interface: %s", instance)
-#                instance.save()
-#        logger.debug("Saving m2m")
-#        formset.save_m2m()
-#        logger.debug("Saved m2m")
-#        super(MachineAdmin,self).save_formset(request,form,formset,change)
-#        logger.debug("DESPUES DE TODOO")
+        ¡Care! this only works under Django >= 1.4
+
+        """
+        form.save_m2m()
+        for formset in formsets:
+            self.save_formset(request, form, formset, change=change)
+        # Our custom process starts here
+        machine = form.instance
+        if machine.up and not machine.get_service_iface():
+            svc_iface = machine.build_service_interface()
+        try: # verify that an interface with the fqdn ip exists already, then rename it
+            fqdn_iface = machine.interface_set.get(ip=svc_iface.ip)
+        except ObjectDoesNotExist:
+            fqdn_iface = None
+        if machine.get_num_ifaces() == 0 or not fqdn_iface: # If ther is no ifaces, or ther is some but no one with fqdn ip addr, we create the default one
+            machine.interface_set.add(svc_iface)
+            messages.info(request, _(u'The iface %s has been created bounded to the fqdn of %s' % (machine.get_service_iface(),machine)))
+        else: # there is an interface with fqdn ip addr, we rename it to DEFAULT_SVC_IFACE_NAME
+            messages.info(request, _(u'The iface founded %s' % fqdn_iface))
+            fqdn_iface.name = DEFAULT_SVC_IFACE_NAME
+            logger.debug("Calling Interface Save method: %d - %s " % (fqdn_iface.id, fqdn_iface))
+            fqdn_iface.save()
+            messages.info(request, _(u'The iface %s has been renamed to default service interface' % machine.get_service_iface()))    
 
     class CopyMachine(forms.Form):
         _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)

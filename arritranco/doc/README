@@ -1,0 +1,3 @@
+
+The file data_model.png was generated with the following command: python manage.py graph_models -o doc/data_model.png -a
+

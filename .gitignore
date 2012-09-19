@@ -5,4 +5,6 @@
 arritranco/.project
 arritranco/.pydevproject
 arritranco/dev.db
+arritranco/dev.db-journal
 arritranco/settings_local.py
+virtualenv/

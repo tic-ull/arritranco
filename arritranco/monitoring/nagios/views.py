@@ -39,7 +39,7 @@ def hosts(request):
 
 def hosts_ext_info(request):
     '''
-        nagios extinfo config file
+        Nagios extinfo config file
     '''
     l = []
     # FIXME:

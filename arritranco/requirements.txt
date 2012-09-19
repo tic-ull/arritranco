@@ -1,4 +1,4 @@
-Django
+Django==1.4.1
 django_extensions
 south
 django_debug_toolbar
@@ -7,3 +7,5 @@ pysnmp
 djangorestframework
 IPy
 gunicorn
+pil
+pygraphviz
