@@ -6,7 +6,7 @@ from nsca import NSCA
 
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
-from inventory.models import Machine
+from inventory.models import Machine, PhysicalMachine, VirtualMachine
 from network.models import Network
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
@@ -115,5 +115,16 @@ def propagate_status(sender, **kwargs):
         nsca.send()
 
 
+def assign_default_checks(sender, **kwargs):
+    machine = kwargs['instance']
+    contact = NagiosContactGroup.objects.get(name = settings.DEFAULT_NAGIOS_CG)
+    if not NagiosCheckOpts.objects.filter(machine = machine).count():
+        for nch in NagiosCheck.objects.filter(default = True):
+            nchopt = NagiosCheckOpts.objects.create(machine = machine, check = nch)
+            nchopt.contact_groups.add(contact)
+            nchopt.save()
 
 post_save.connect(propagate_status, sender=TaskStatus)
+post_save.connect(assign_default_checks, sender=Machine)
+post_save.connect(assign_default_checks, sender=PhysicalMachine)
+post_save.connect(assign_default_checks, sender=VirtualMachine)

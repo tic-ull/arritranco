@@ -59,19 +59,19 @@ class MachineAdmin(admin.ModelAdmin):
         machine = form.instance
         if machine.up and not machine.get_service_iface():
             svc_iface = machine.build_service_interface()
-        try: # verify that an interface with the fqdn ip exists already, then rename it
-            fqdn_iface = machine.interface_set.get(ip=svc_iface.ip)
-        except ObjectDoesNotExist:
-            fqdn_iface = None
-        if machine.get_num_ifaces() == 0 or not fqdn_iface: # If ther is no ifaces, or ther is some but no one with fqdn ip addr, we create the default one
-            machine.interface_set.add(svc_iface)
-            messages.info(request, _(u'The iface %s has been created bounded to the fqdn of %s' % (machine.get_service_iface(),machine)))
-        else: # there is an interface with fqdn ip addr, we rename it to DEFAULT_SVC_IFACE_NAME
-            messages.info(request, _(u'The iface founded %s' % fqdn_iface))
-            fqdn_iface.name = DEFAULT_SVC_IFACE_NAME
-            logger.debug("Calling Interface Save method: %d - %s " % (fqdn_iface.id, fqdn_iface))
-            fqdn_iface.save()
-            messages.info(request, _(u'The iface %s has been renamed to default service interface' % machine.get_service_iface()))    
+            try: # verify that an interface with the fqdn ip exists already, then rename it
+                fqdn_iface = machine.interface_set.get(ip=svc_iface.ip)
+            except ObjectDoesNotExist:
+                fqdn_iface = None
+            if machine.get_num_ifaces() == 0 or not fqdn_iface: # If ther is no ifaces, or ther is some but no one with fqdn ip addr, we create the default one
+                machine.interface_set.add(svc_iface)
+                messages.info(request, _(u'The iface %s has been created bounded to the fqdn of %s' % (machine.get_service_iface(),machine)))
+            else: # there is an interface with fqdn ip addr, we rename it to DEFAULT_SVC_IFACE_NAME
+                messages.info(request, _(u'The iface founded %s' % fqdn_iface))
+                fqdn_iface.name = DEFAULT_SVC_IFACE_NAME
+                logger.debug("Calling Interface Save method: %d - %s " % (fqdn_iface.id, fqdn_iface))
+                fqdn_iface.save()
+                messages.info(request, _(u'The iface %s has been renamed to default service interface' % machine.get_service_iface()))    
 
     class CopyMachine(forms.Form):
         _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
