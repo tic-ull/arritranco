@@ -59,7 +59,7 @@ MEDIA_URL = ''
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/admin/'
+ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '9u)uyfcmr*p9m6d=km@r@(0bzvoi*nt^_9*yy)-h)+-o&$6z=5'
@@ -101,18 +101,18 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django_extensions',
     'south',
+    'debug_toolbar',
+    'djangorestframework',
+    'monitoring.nagios',
+    'monitoring.cacti',
+    'monitoring',
     'location',
     'hardware',
-    'debug_toolbar',
     'scheduler',
     'inventory',
     'hardware_model',
     'network',
     'backups',
-    'djangorestframework',
-    'monitoring.nagios',
-    'monitoring.cacti',
-    'monitoring',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
