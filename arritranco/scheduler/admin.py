@@ -8,6 +8,7 @@ from models import Task, TaskCheck, TaskStatus
 from django.db import models
 from django import forms
 from django.conf import settings
+from monitoring.nagios.models import HUMAN_TO_NAGIOS, NAGIOS_OK, NAGIOS_WARNING, NAGIOS_CRITICAL, NAGIOS_UNKNOWN
 
 class TaskStatusAdminForm(forms.ModelForm):
 #    class Meta:
@@ -40,6 +41,27 @@ class TaskCheckAdmin(admin.ModelAdmin):
         if 'backups' in settings.INSTALLED_APPS:
         # FIXME: We can have TaskChecks for task's that aren't backups
             return u"Machine: %s" % obj.task.backuptask.machine.fqdn
+
+    def get_status(self, obj):
+        status = obj.get_status()
+        if isinstance(status, TaskStatus):
+            nagios_status = HUMAN_TO_NAGIOS[status.status]
+        else:
+            nagios_status = NAGIOS_UNKNOWN
+        if nagios_status == NAGIOS_OK:
+            color = '#BBFEC9'
+        elif nagios_status == NAGIOS_WARNING:
+            color = 'orange'
+        elif nagios_status == NAGIOS_UNKNOWN:
+            color = 'orange'
+        elif nagios_status == NAGIOS_CRITICAL:
+            color = 'red'
+        else:
+            color = 'yellow'
+        return '<div style="width:100%%; height:100%%; background-color: %s;font-weight:bold;text-align:center;">%s</div>' % (color, status)
+    get_status.short_description = u'Last check and status'
+    get_status.allow_tags = True
+
 
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('description', 'cron_syntax', 'get_status', 'last_run', 'next_run')
