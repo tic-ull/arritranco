@@ -136,6 +136,7 @@ FILE_BACKUP_CHECKERS = (
 # If None or False no default parent will set.
 DEFAULT_NAGIOS_HOST_PARENT = None
 DEFAULT_NAGIOS_CG = 'grupo-sistemas'
+DEFAULT_NAGIOS_CG = 'Sistemas'
 PROPAGATE_STATUS_TO_NAGIOS = False
 SEND_NSCA_BIN = '/usr/sbin/send_nsca'
 NSCA_DAEMON_HOSTNAME = 'nagios.fully.qualified.domain.name'
