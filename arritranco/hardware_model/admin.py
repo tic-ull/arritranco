@@ -37,8 +37,12 @@ class HwModelAdmin(admin.ModelAdmin):
         self.convert_rackable_model(request, queryset, 4)
     convert_rackable_model_4u.short_description = u"Convert model into 4 units rackable model"
 
+class RackableModelAdmin(admin.ModelAdmin):
+    search_fields = ['name', 'manufacturer__name', 'units']
+    list_display = ('name', 'manufacturer', 'type', 'units')
+    list_filter = ('manufacturer', 'units')
 
 admin.site.register(Manufacturer, ManufacturerAdmin)
 admin.site.register(HwModel, HwModelAdmin)
 admin.site.register(HwType)
-admin.site.register(RackableModel)
+admin.site.register(RackableModel, RackableModelAdmin)
