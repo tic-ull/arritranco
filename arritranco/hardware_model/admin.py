@@ -10,7 +10,7 @@ class ManufacturerAdmin(admin.ModelAdmin):
 class HwModelAdmin(admin.ModelAdmin):
     search_fields = ['name', 'manufacturer__name']
     list_display = ('name', 'manufacturer', 'type')
-    list_filter = ('manufacturer', )
+    list_filter = ('manufacturer', 'type')
     actions = ['convert_rackable_model', 'convert_rackable_model_2u', 'convert_rackable_model_4u']
 
     def convert_rackable_model(self, request, queryset, units = 1):
@@ -40,7 +40,7 @@ class HwModelAdmin(admin.ModelAdmin):
 class RackableModelAdmin(admin.ModelAdmin):
     search_fields = ['name', 'manufacturer__name', 'units']
     list_display = ('name', 'manufacturer', 'type', 'units')
-    list_filter = ('manufacturer', 'units')
+    list_filter = ('manufacturer', 'units', 'type')
 
 admin.site.register(Manufacturer, ManufacturerAdmin)
 admin.site.register(HwModel, HwModelAdmin)
