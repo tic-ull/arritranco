@@ -1,5 +1,5 @@
 <div class="rack" style="height: {{ rack.get_render_height}}px; border: 1px solid black;width: 300px;float:left;position:relative;">
-    <h3>{{ rack.name }} {{ rack.units_number }}</h3>
+    <h3>{{ rack.slug }} {{ rack.name }} {{ rack.units_number }}</h3>
 
     {% for s in rack.rackserver_set.all %}
         <div class="server" style="

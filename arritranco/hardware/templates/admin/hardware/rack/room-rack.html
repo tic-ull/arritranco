@@ -22,7 +22,13 @@
 <div class="room" style="clear:both;padding-top: 2em; margin-top:2em;">
 <h1>{{ r.name }} - {{ r.building }}</h1>
     {% for rack in r.rack_set.all %}
-        {% include "admin/hardware/rack/_rack_view.html" %}
+        {% if rack_slug %}
+            {% ifequal rack_slug rack.slug %}
+                {% include "admin/hardware/rack/_rack_view.html" %}
+            {% endifequal %}
+        {% else %}
+            {% include "admin/hardware/rack/_rack_view.html" %}
+        {% endif %}
     {% endfor %}
 </div>
 {% endif %}
