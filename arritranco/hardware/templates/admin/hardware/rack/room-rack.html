@@ -20,7 +20,7 @@
 {% for r in rooms %}
 {% if r.rack_set.all.count %}
 <div class="room" style="clear:both;padding-top: 2em; margin-top:2em;">
-<h1>{{ r.name }} - {{ r.building }}</h1>
+<h1><a href="{% url room-rack-view r.slug %}">{{ r.name }} - {{ r.building }}</a></h1>
     {% for rack in r.rack_set.all %}
         {% if rack_slug %}
             {% ifequal rack_slug rack.slug %}
