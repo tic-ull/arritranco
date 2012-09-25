@@ -1,34 +1,42 @@
-<div class="rack" style="height: {{ rack.get_render_height}}px; border: 1px solid black;width: 300px;float:left;position:relative;">
+<div class="rack" style="height: {{ rack.get_render_height}}px;
+    border: 1px solid black;
+    width: 300px;
+    float:left;
+    position:relative;
+    background-color: #C3C3C3;
+    ">
     <h3><a href="{% url room-rack-view r.slug rack.slug %}">{{ rack.name }} {{ rack.units_number }}</a></h3>
 
     {% for s in rack.rackserver_set.all %}
         <div class="server" style="
             font-size: 10px;
-            background-color: orange;
-            border: 1px solid green;
-            
+            color: white;
+            background-color: #737373;
+            border: 1px solid #565656;
             position:absolute;
             width:100%;
             height: {{s.model.rackablemodel.get_render_height }}px;
             bottom: {{ s.get_render_offset}}px;
             ">
-            {{s.model.name }} {{ s.base_unit }} {{ s.base_unit|add:s.model.rackablemodel.units }} {{ s.model.rackablemodel.units }} {% for p in s.physicalmachine_set.all %}{{ p.fqdn }} {% endfor %}
+            {% for p in s.physicalmachine_set.all %}{{ p.fqdn }} {% endfor %}
         </div>
     {% endfor %}
 
     {% for c in rack.chassis_set.all %}
         <div class="chasis" style="
                 font-size: 10px;
-                background-color: blue;
-                border: 1px solid blue;
-
+                color: white;
+                background-color: #656565;
+                border: 1px solid #303030;
                 position:absolute;
                 width:100%;
                 height: {{c.model.rackablemodel.get_render_height }}px;
                 bottom: {{ c.get_render_offset }}px;
                 ">
-             Chasis {{c.name}}
-            {{c.model.name }} {{ c.base_unit }} {{ c.base_unit|add:c.model.rackablemodel.units }} {{ c.model.rackablemodel.units }} 
+             <p>Chasis {{c.name}} {{ c.serial_number }}</p>
+            {% for bs in c.bladeserver_set.all %}
+                <div class="blade" style="border:1px solid #303030;float: left;widt:40px;width:73px;height:31px">{{ bs.serial_number }}</div>
+            {% endfor %}
         </div>
     {% endfor %}
 </div>
