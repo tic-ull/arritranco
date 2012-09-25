@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+{% load adminmedia admin_list i18n %}
+{% block title %}Room Rack{% endblock %}
+
+{% if not is_popup %}
+  {% block breadcrumbs %}
+    <div class="breadcrumbs">
+      <a href="../../">
+        {% trans "Home" %}
+      </a>
+       &rsaquo;
+       <a href="../">Hardware</a>
+      &rsaquo;
+      {% trans "Room Rack" %}
+    </div>
+  {% endblock %}
+{% endif %}
+
+{% block content %}
+{% for r in rooms %}
+{% if r.rack_set.all.count %}
+<div class="room" style="clear:both;padding-top: 2em; margin-top:2em;">
+<h1>{{ r.name }} - {{ r.building }}</h1>
+    {% for rack in r.rack_set.all %}
+        {% include "admin/hardware/rack/_rack_view.html" %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endfor %}
+{% endblock content %}

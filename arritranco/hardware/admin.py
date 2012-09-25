@@ -17,6 +17,7 @@ class NetworPortInline(admin.TabularInline):
     extra = 2
     
 class HwAdmin(admin.ModelAdmin):
+    search_fields = ['model__name', 'serial_number']
     list_display = ('serial_number', 'model_name', 'buy_date', 'warranty_expires')
     date_hierarchy = 'buy_date'
     list_filter = ('model__manufacturer', )
@@ -27,7 +28,7 @@ class HwAdmin(admin.ModelAdmin):
 
 class RackableAdmin(HwAdmin):
     list_display = HwAdmin.list_display  + ('rack', )
-    list_filter = HwAdmin.list_filter + ('rack__room__building', )
+    list_filter = HwAdmin.list_filter + ('rack__room__building', 'model')
 
 class RackServerAdmin(RackableAdmin):
     list_display = HwAdmin.list_display  + SERVER_LIST_DISPLAY

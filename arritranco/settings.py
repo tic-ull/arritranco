@@ -78,7 +78,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
@@ -101,7 +101,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django_extensions',
     'south',
-    'debug_toolbar',
+#    'debug_toolbar',
     'djangorestframework',
     'monitoring.nagios',
     'monitoring.cacti',
@@ -195,6 +195,8 @@ LOGGING = {
 UPS_ROOM_NAMES = ('cpd',)
 
 MAX_COMPRESS_GB = 400
+
+PX_FOR_UNITS=15
 
 try:
     from settings_local import *

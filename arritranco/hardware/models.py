@@ -2,6 +2,7 @@ from django.db import models
 from location.models import Room
 from django.utils.translation import ugettext_lazy as _
 from hardware_model.models import HwModel, Manufacturer
+from django.conf import settings
 
 HD_CONN = (
     (0, 'SCSI'),
@@ -32,6 +33,9 @@ class Rack(models.Model):
     def __unicode__(self):
         return u"%s (%s)" % (self.name, self.room.name)    
 
+    def get_render_height(self):
+        return settings.PX_FOR_UNITS * self.units_number
+
 class RackPlace(models.Model):
     """A place in a rack. This model is not intented to be used directly but as a
     base class for other models"""
@@ -41,6 +45,12 @@ class RackPlace(models.Model):
 
     class Meta:
         abstract = True
+
+    def get_render_offset(self):
+        if self.base_unit > 0:
+            return settings.PX_FOR_UNITS * (self.base_unit - 1)
+        else:
+            return 0
     
 class Unrackable(HwBase):
     """It's a non rackable hardware. It must be in a room"""
@@ -74,7 +84,7 @@ class Server(HwBase):
     processor_number = models.IntegerField(_(u'Number of processors'), help_text = _('Processors number'), default = 1)
     
     def __unicode__(self):
-        return u"%s (%s)" % (self.model, self.serial_number)    
+        return u"%s (%s)" % (self.model, self.serial_number)
 
 class Chassis(HwBase, RackPlace):
     """A chassis is a hardware where we can plug servers, network cards, etc.

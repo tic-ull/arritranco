@@ -14,6 +14,7 @@ urlpatterns = patterns('',
 
     # FIXME: This url shoud be in backup app
     url(r'^admin/backups/grid/', BackupGrid.as_view(), name='backup-grid'),
+    url(r'^admin/hardware/', include('hardware.admin_urls')),
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
     # Necessary for Django Task Scheduler
