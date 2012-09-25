@@ -86,6 +86,9 @@ class Server(HwBase):
     def __unicode__(self):
         return u"%s (%s)" % (self.model, self.serial_number)
 
+    def get_running_machine(self):
+        return self.physicalmachine_set.get(up = True)
+
 class Chassis(HwBase, RackPlace):
     """A chassis is a hardware where we can plug servers, network cards, etc.
     Some samples: blade enclosures, modular switches, etc."""

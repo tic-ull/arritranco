@@ -18,7 +18,7 @@
             height: {{s.model.rackablemodel.get_render_height }}px;
             bottom: {{ s.get_render_offset}}px;
             ">
-            {% for p in s.physicalmachine_set.all %}{{ p.fqdn }} {% endfor %}
+            {% if s.get_running_machine %}{{ s.get_running_machine }}{% else %}{{ s.serial_number }}{% endif %}
         </div>
     {% endfor %}
 
@@ -35,7 +35,7 @@
                 ">
              <p>Chasis {{c.name}} {{ c.serial_number }}</p>
             {% for bs in c.bladeserver_set.all %}
-                <div class="blade" style="border:1px solid #303030;float: left;widt:40px;width:73px;height:31px">{{ bs.serial_number }}</div>
+                <div class="blade" style="border:1px solid #303030;float: left;widt:40px;width:73px;height:31px">{{ bs.get_running_machine }}</div>
             {% endfor %}
         </div>
     {% endfor %}
