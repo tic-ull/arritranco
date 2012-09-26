@@ -1,3 +1,4 @@
+{% if rack.rackserver_set.count or rack.chassis_set.count %}
 <div class="rack" style="height: {{ rack.get_render_height}}px;
     border: 1px solid black;
     width: 300px;
@@ -18,6 +19,12 @@
             height: {{s.model.rackablemodel.get_render_height }}px;
             bottom: {{ s.get_render_offset}}px;
             ">
+            <span id="title" style="display:none;">{{ s.serial_number }}</span>
+            <div id="tooltip" style="display:none;">
+                <b>Manufacturer:</b> {{ s.model.manufacturer }}</br>
+                <b>Model:</b> {{ s.model.name }}</br>
+                <b>Serial number:</b> {{ s.serial_number }}</br>
+            </div>
             {% if s.get_running_machine %}{{ s.get_running_machine }}{% else %}{{ s.serial_number }}{% endif %}
         </div>
     {% endfor %}
@@ -35,8 +42,19 @@
                 ">
              <p>Chasis {{c.name}} {{ c.serial_number }}</p>
             {% for bs in c.bladeserver_set.all %}
-                <div class="blade" style="border:1px solid #303030;float: left;widt:40px;width:73px;height:31px">{{ bs.get_running_machine }}</div>
+                <div class="blade" style="border:1px solid #303030;float: left;widt:40px;width:73px;height:31px">
+                    <span id="title" style="display:none;">{{ bs.serial_number }}</span>
+                    <div id="tooltip" style="display:none;">
+                        <b>Manufacturer:</b> {{ bs.model.manufacturer }}</br>
+                        <b>Model:</b> {{ bs.model.name }}</br>
+                        <b>Serial number:</b> {{ bs.serial_number }}</br>
+                    </div>
+                    {{ bs.get_running_machine }}
+                </div>
             {% endfor %}
         </div>
     {% endfor %}
 </div>
+{% else %}
+<h2>Rack {{ rack.name }} empty.</h2>
+{% endif %}
