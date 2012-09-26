@@ -1,6 +1,75 @@
 {% extends "admin/base_site.html" %}
 {% load adminmedia admin_list i18n %}
 {% block title %}Room Rack{% endblock %}
+{% block extrastyle %}
+<style type="text/css">
+body {
+    color: #5B80B2;
+    background-color: white;
+}
+
+.rack {
+    border: 1px solid black;
+    width: 300px;
+    float:left;
+    position:relative;
+    background-color: #C3C3C3;
+}
+
+.server {
+    font-size: 10px;
+    color: white;
+    background-color: #737373;
+    border-top: 1px solid #565656;
+    border-bottom: 1px solid #565656;
+    position:absolute;
+    width:100%
+}
+
+.chasis {
+    font-size: 10px;
+    color: white;
+    background-color: #656565;
+    border-top: 2px solid #303030;
+    border-bottom: 2px solid #303030;
+    position:absolute;
+}
+
+.chasis_label {
+    padding-top: 4px;
+    padding-bottom:3px;
+    border-bottom:1px solid #303030;
+    margin-left:1em;
+    font-size: 12px;
+}
+.blade {
+    border-bottom:1px solid #303030;
+    float: left;
+    width:50%;
+    height:1.4em
+}
+.blade:hover,.server:hover {
+    background-color: #F4F379;
+    color: #417690;
+}
+
+.chasis:hover {
+    background-color: #3E6564;
+}
+
+.slot_number {
+    background-color: black;
+    float:left;
+    width:14px;
+    height:100%;
+}
+
+#tooltip,#title {
+    display: none;
+}
+
+</style>
+{% endblock extrastyle %}
 {% block extrahead %}
 <link type="text/css" rel="stylesheet" href="/static/js/jquery.qtip.min.css" />
 
@@ -28,6 +97,10 @@
                         target: 'mouse',
                         viewprot: $(window),
                         at: 'top center',
+                        adjust: {
+                            x: 0,  y: -10
+                        }
+
                     },
                     events: {
                         hidden: function(event, api) {
@@ -36,12 +109,18 @@
                         }
                     }
                 };
-            $('.server').qtip(args);
-            $('.blade').qtip(args);
-            $('.server').click(function() {
+
+            function set_fixed() {
                 $(this).qtip('api').set('hide.event', 'click');
                 $(this).qtip('api').set('position.target', $(this));
-            });
+            };
+
+            $('.server').qtip(args);
+            $('.chasis_label').qtip(args);
+            $('.blade').qtip(args);
+            $('.server').click(set_fixed);
+            $('.chasis_label').click(set_fixed);
+            $('.blade').click(set_fixed);
         });
 </script>
 

@@ -104,6 +104,9 @@ class BladeServer(Server):
     slot_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots number used by this server'))
     chassis = models.ForeignKey(Chassis)
 
+    class Meta:
+        ordering = ['slot_number']
+
 class RackServer(Server, RackPlace):
     """A rackable server"""
     pass

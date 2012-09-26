@@ -1,55 +1,24 @@
 {% if rack.rackserver_set.count or rack.chassis_set.count %}
-<div class="rack" style="height: {{ rack.get_render_height}}px;
-    border: 1px solid black;
-    width: 300px;
-    float:left;
-    position:relative;
-    background-color: #C3C3C3;
-    ">
-    <h3><a href="{% url room-rack-view r.slug rack.slug %}">{{ rack.name }} {{ rack.units_number }}</a></h3>
+<div class="rack" style="height: {{ rack.get_render_height}}px;">
+    <h3><a href="{% url room-rack-view r.slug rack.slug %}">{{ rack.name }}</a></h3>
 
     {% for s in rack.rackserver_set.all %}
-        <div class="server" style="
-            font-size: 10px;
-            color: white;
-            background-color: #737373;
-            border: 1px solid #565656;
-            position:absolute;
-            width:100%;
-            height: {{s.model.rackablemodel.get_render_height }}px;
-            bottom: {{ s.get_render_offset}}px;
-            ">
-            <span id="title" style="display:none;">{{ s.serial_number }}</span>
-            <div id="tooltip" style="display:none;">
-                <b>Manufacturer:</b> {{ s.model.manufacturer }}</br>
-                <b>Model:</b> {{ s.model.name }}</br>
-                <b>Serial number:</b> {{ s.serial_number }}</br>
-            </div>
-            {% if s.get_running_machine %}{{ s.get_running_machine }}{% else %}{{ s.serial_number }}{% endif %}
+        <div class="server" style="height: {{s.model.rackablemodel.get_render_height }}px; bottom: {{ s.get_render_offset}}px;" >
+        {% include "admin/hardware/rack/_server_tooltip.html" with obj=s type='server'%}
+        {% if s.get_running_machine %}{{ s.get_running_machine }}{% else %}{{ s.serial_number }}{% endif %}
         </div>
     {% endfor %}
 
     {% for c in rack.chassis_set.all %}
-        <div class="chasis" style="
-                font-size: 10px;
-                color: white;
-                background-color: #656565;
-                border: 1px solid #303030;
-                position:absolute;
-                width:100%;
-                height: {{c.model.rackablemodel.get_render_height }}px;
-                bottom: {{ c.get_render_offset }}px;
-                ">
-             <p>Chasis {{c.name}} {{ c.serial_number }}</p>
+        <div class="chasis" style="height: {{c.model.rackablemodel.get_render_height }}px; bottom: {{ c.get_render_offset }}px;" >
+             <div class="chasis_label">Chasis {{c.name}} <b>Slots:</b> {{ c.slots }}
+                {% include "admin/hardware/rack/_server_tooltip.html" with obj=c type='chasis' %}
+             </div>
             {% for bs in c.bladeserver_set.all %}
-                <div class="blade" style="border:1px solid #303030;float: left;widt:40px;width:73px;height:31px">
-                    <span id="title" style="display:none;">{{ bs.serial_number }}</span>
-                    <div id="tooltip" style="display:none;">
-                        <b>Manufacturer:</b> {{ bs.model.manufacturer }}</br>
-                        <b>Model:</b> {{ bs.model.name }}</br>
-                        <b>Serial number:</b> {{ bs.serial_number }}</br>
-                    </div>
-                    {{ bs.get_running_machine }}
+                <div class="blade">
+                    {% include "admin/hardware/rack/_server_tooltip.html" with obj=bs type='bladeserver' %}
+                    <div class="slot_number">{{ bs.slot_number }}</div>
+                    {% if bs.get_running_machine %}{{ bs.get_running_machine }}{% else %}{{ bs.serial_number }}{% endif %}
                 </div>
             {% endfor %}
         </div>

@@ -1,0 +1,27 @@
+<span id="title">{{ obj.serial_number }}
+{% ifequal type 'chasis' %}
+{% endifequal %}
+{% ifequal type 'server' %}
+[{{ obj.base_unit }}/{{ obj.model.rackablemodel.units|add:obj.base_unit }}]
+{% endifequal %}
+{% ifequal type 'bladeserver' %}
+{% endifequal %}
+</span>
+<div id="tooltip">
+    <b>Manufacturer:</b> {{ obj.model.manufacturer }}</br>
+    <b>Model:</b> {{ obj.model.name }}</br>
+    {% if type == 'server' or type == 'bladeserver' %}
+    <b>Serial number:</b> <a href="{% if type == 'server' %}{% url admin:hardware_rackserver_change obj.id %}{% else %}{% url admin:hardware_bladeserver_change obj.id %}{% endif %}">{{ obj.serial_number }}</a></br>
+    {% if obj.get_running_machine %}
+        <b>Machine:</b> <a href="{% url admin:inventory_physicalmachine_change obj.get_running_machine.id %}">{{ obj.get_running_machine }}</a></br>
+        <b>OS:</b> {{ obj.get_running_machine.os }}</br>
+    {% endif %}
+    {% endif %}
+    {% if type == 'chasis' %}
+    <ul>
+            {% for bs in c.bladeserver_set.all %}
+            <li><b>{{ bs.slot_number }}</b> {% if bs.get_running_machine %}{{ bs.get_running_machine }}{% else %}{{ bs.serial_number }}{% endif %}</li>
+            {% endfor %}
+    </ul>
+    {% endif %}
+</div>
