@@ -50,7 +50,7 @@ class BackupTask(Task):
 
 class VCBBackupTask(BackupTask):
     """
-        TSM backup task
+        VCB backup task
     """
     tsm_server = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
         help_text=_(u"Machine fqdn where this backups shoud be checked."))
@@ -59,8 +59,8 @@ class TSMBackupTask(BackupTask):
     """
         TSM backup task
     """
-    tsm_server = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
-        help_text=_(u"Machine fqdn where this backups shoud be checked."))
+    tsm_server = models.CharField(max_length=255, verbose_name=_(u"TSM Server name"),
+        help_text=_(u"TSM Server name."))
 
 class R1BackupTask(BackupTask):
     """

@@ -30,8 +30,14 @@ class BackupFileAdmin(admin.ModelAdmin):
 class FileNamePatternAdmin(admin.ModelAdmin):
     search_fields = ['pattern', ]
 
+class TSMBackupTaskAdmin(admin.ModelAdmin):
+    list_display = ('machine', 'description', 'tsm_server', )
+    list_filter = ('bckp_type', 'tsm_server')
+    list_editable = ('tsm_server', )
+    search_fields = ['machine__fqdn', 'tsm_server', 'description']
+
 admin.site.register(FileBackupTask, FileBackupTaskAdmin)
+admin.site.register(TSMBackupTask, TSMBackupTaskAdmin)
 admin.site.register(FileNamePattern, FileNamePatternAdmin)
 admin.site.register(R1BackupTask)
-admin.site.register(TSMBackupTask)
 admin.site.register(BackupFile, BackupFileAdmin)
