@@ -25,6 +25,15 @@ class Manufacturer(models.Model):
 
     class Meta:
         ordering = ['name', ]
+
+    def get_product_url(self, serial_number):
+        '''
+            Think about how to solve this problem.
+        '''
+        if self.name == 'Dell':
+            return 'http://support.euro.dell.com/support/topics/topic.aspx/emea/shared/support/my_systems_info/es/details?c=es&l=es&s=gen&ServiceTag=%s' % serial_number
+        else:
+            return None
         
 class HwModel(models.Model):
     type = models.ForeignKey(HwType, help_text = _(u'Hardware Type'))

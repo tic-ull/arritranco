@@ -1,0 +1,104 @@
+{% extends "admin/base_site.html" %}
+{% load adminmedia admin_list i18n %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />
+  <style>
+    #changelist table thead th:first-child {width: inherit}
+  </style>
+{% endblock %}
+{% block bodyclass %}change-list{% endblock %}
+
+{% if not is_popup %}
+  {% block breadcrumbs %}
+    <div class="breadcrumbs">
+      <a href="../../">
+        {% trans "Home" %}
+      </a>
+       &rsaquo;
+       <a href="../"> {% trans "Inventory" %} </a>
+      &rsaquo;
+       {% trans "Active machines" %}
+    </div>
+  {% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div id="changelist" class="module">
+        <div class="results">
+            <form id="changelist-form" method="post" action="">
+            <table id="result_list">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 1em;">{% trans "Nº" %}</th>
+                        <th scope="col">{% trans "FQDN" %}</th>
+                        <th scope="col">{% trans "Hardware" %}</th>
+                        <th scope="col">{% trans "OS type" %}</th>
+                        <th scope="col">{% trans "OS" %}</th>
+                        <th scope="col">{% trans "Service IP" %}</th>
+                        <th scope="col">{% trans "EPO" %}</th>
+                        <th scope="col">{% trans "Location" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in machines %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>{{ forloop.counter }}</td>
+                        <th>{% if m.physicalmachine %}
+                                <a href="{% url admin:inventory_physicalmachine_change m.id %}">
+                            {% endif %}
+                            {% if m.virtualmachine %}
+                                <a href="{% url admin:inventory_virtualmachine_change m.id %}">
+                            {% endif %}
+                            {{ m.fqdn }}</a>
+                        </th>
+                        <td>{% if m.physicalmachine %}
+                                {% if m.physicalmachine.server.rackserver %}
+                                <a href="{% url admin:hardware_rackserver_change m.physicalmachine.server.id %}">{{ m.physicalmachine.server.model.name }}</a>
+                                {% endif %}
+                                {% if m.physicalmachine.server.bladeserver %}
+                                <a href="{% url admin:hardware_bladeserver_change m.physicalmachine.server.id %}">{{ m.physicalmachine.server.model.name }}</a>
+                                {% endif %}
+                                - <a href="{{ m.physicalmachine.server.get_manufacturer_product_url }}">{{ m.physicalmachine.server.serial_number }}</a>
+                            {% else %}
+                                {{ m.get_hypervisor_display }}
+                            {% endif %}
+                        </td>
+                        <td>{{ m.os.type.name }}</td>
+                        <td>{{ m.os }}</td>
+                        <td>
+                            {% if m.os.type.name == 'Linux' %}
+                                <a href="ssh://adminsis@{{ m.fqdn }}/{{ m.fqdn }}">{{ m.get_service_ip }}</a>
+                            {% endif %}
+                            {% if m.os.type.name == 'Windows' %}
+                                <a href="rdesktop://adminsis@{{ m.fqdn }}/{{ m.fqdn }}">{{ m.get_service_ip }}</a>
+                            {% endif %}
+                        </td>
+                        <td>{{ m.get_epo_level_display }}</td>
+                        <td>{% if m.physicalmachine %}
+                                {% if m.physicalmachine.server.rackserver %}
+                                <a href="{% url room-rack-view m.physicalmachine.server.rackserver.rack.room.slug %}">
+                                {{ m.physicalmachine.server.rackserver.rack }} - {{ m.physicalmachine.server.rackserver.base_unit }}
+                                {% endif %}
+                                {% if m.physicalmachine.server.bladeserver %}
+                                <a href="{% url room-rack-view m.physicalmachine.server.bladeserver.chassis.rack.room.slug %}">
+                                {{ m.physicalmachine.server.bladeserver.chassis }} - {{ m.physicalmachine.server.bladeserver.slot_number }}
+                                {% endif %}
+                            </a>
+                            {% else %}
+                                {% trans "Virtual machine" %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

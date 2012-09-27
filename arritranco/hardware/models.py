@@ -23,6 +23,9 @@ class HwBase(models.Model):
     def __unicode__(self):
         return u"%s" % self.model.name
 
+    def get_manufacturer_product_url(self):
+        return self.model.manufacturer.get_product_url(self.serial_number)
+
 class Rack(models.Model):
     """This represent a rack. It's possible interesting to include info for PDUs"""
     units_number = models.IntegerField()
