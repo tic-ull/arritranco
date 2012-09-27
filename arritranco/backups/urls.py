@@ -22,7 +22,7 @@ class R1BackupsTodo(BackupsTodo):
 
 urlpatterns = patterns('',
     url(r'^$', ListOrCreateModelView.as_view(resource=BackupTaskResource)),
-    url(r'^tsm/todo/$', TSMBackupsTodo.as_view(), name='tsm-backups-todo'), 
+    url(r'^tsm/hosts/$', TSMHostsView.as_view(), name='tsm-hosts'), 
     url(r'^r1/todo/$', R1BackupsTodo.as_view(), name='r1-backups-todo'), 
     url(r'^todo/$', BackupsTodo.as_view(), name='backups-todo'), 
     url(r'^backupfilechecker/$', BackupFileCheckerView.as_view(), name='backup-file-checker'),

@@ -8,7 +8,7 @@ from djangorestframework.mixins import ResponseMixin
 from djangorestframework.renderers import DEFAULT_RENDERERS
 from djangorestframework.response import Response
 from django.conf import settings
-from models import FileBackupTask, FileBackupProduct, BackupFile
+from models import FileBackupTask, FileBackupProduct, BackupFile, TSMBackupTask
 from scheduler.models import TaskCheck, TaskStatus
 from inventory.models import Machine
 import datetime
@@ -375,3 +375,34 @@ class GetBackupFileInfo(ResponseMixin, View):
         }
         response = Response(200, info)
         return self.render(response)
+
+
+class TSMHostsView(ResponseMixin, View):
+    """Lists of hosts baked up with tsm"""
+
+    renderers = DEFAULT_RENDERERS
+
+    def get(self, request):
+        if request.GET.has_key('checker'):
+            machine = Machine.get_by_addr(request.GET['checker'])
+        else:
+            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+        if not machine:
+            raise Http404('Machine object not found')
+        if request.GET.has_key('tsm_server'):
+            qs = TSMBackupTask.objects.filter(tsm_server = request.GET['tsm_server'])
+        else:
+            qs = TSMBackupTask.objects.all()
+        logger.debug('TSM Hosts')
+        totalsize = 0
+        tsm_hosts = []
+        for bt in qs:
+            tsm_hosts.append({
+                'fqdn':bt.machine.fqdn,
+                'tsm_server':bt.tsm_server,
+                'ipaddress':bt.machine.get_service_ip(),
+                })
+        logger.debug('Total hosts: %s', len(tsm_hosts))
+        response = Response(200, tsm_hosts)
+        return self.render(response)
+
