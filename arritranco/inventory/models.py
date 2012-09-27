@@ -108,7 +108,7 @@ class Machine(models.Model):
     os = models.ForeignKey(OperatingSystem, blank = True, null = True)
     start_up = models.DateField(_(u'start up'), blank = True, null = True)
     update_priority = models.IntegerField(_(u'Update priority'), choices = UPDATE_PRIORITY, default = 30)
-#   fecha_ultima_actualizacion = models.DateField('Actualizada', blank=True, null=True)
+    up_to_date_date = models.DateField(_(u'update date'), blank=True, null=True)
     epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 0)    
     networks = models.ManyToManyField(Network, help_text = _(u'Networks where machine is coneccted through his interfaces'), through = 'Interface')
 

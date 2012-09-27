@@ -21,6 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 # This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
 from monitoring.nagios.admin import NagiosCheckOptsInline
 
+import datetime
 import logging
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class MachineAdmin(admin.ModelAdmin):
     search_fields = ('fqdn', 'os__name', 'networks__desc', 'networks__ip')
     inlines = [InterfacesInline, NagiosCheckOptsInline,]
 #    inlines = [InterfacesInline,]
-    actions = ['copy_machine']
+    actions = ['copy_machine', 'update_machine']
 
     def save_related(self, request, form, formsets, change):
         """Control that interface called "DEFAULT_SVC_IFACE_NAME" e.g. "service" is asociated to de fqdn ip
@@ -89,6 +90,14 @@ class MachineAdmin(admin.ModelAdmin):
                                                          'copy_form': form,
                                                         }, context_instance = RequestContext(request))
     copy_machine.short_description = _(u'Copy from selected machine(TODO)') 
+
+    def update_machine(self, request, queryset):
+        """ Admin action to set update date to now"""
+        for machine in queryset:
+            machine.up_to_date_date = datetime.date.today()
+            machine.save()
+        messages.info(request, _(u'%s machines has been updated' % (queryset.count())))
+    update_machine.short_description = _(u'Machine up to date')
 
 class PysicalMachineAdmin(MachineAdmin):
     list_display = ('fqdn', 'server', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
