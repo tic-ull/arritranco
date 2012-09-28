@@ -104,6 +104,11 @@ class PysicalMachineAdmin(MachineAdmin):
     #list_filter = ('up', 'os', 'update_priority', 'epo_level', 'server__rack__room')
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
 
+class VirtualMachineAdmin(MachineAdmin):
+    list_display = ('fqdn', 'hypervisor', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
+    list_filter = ('hypervisor', 'up', 'os', 'update_priority', 'epo_level', 'networks')
+    list_editable = ('hypervisor',)
+
 class InterfaceAdmin(admin.ModelAdmin):
     list_display = ('ip', 'visible', 'machine', 'network')
     list_filter = ('visible','machine','network')
@@ -113,7 +118,7 @@ class OperatingSystemAdmin(admin.ModelAdmin):
 
 
 admin.site.register(PhysicalMachine, PysicalMachineAdmin)
-admin.site.register(VirtualMachine, MachineAdmin)
+admin.site.register(VirtualMachine, VirtualMachineAdmin)
 admin.site.register(OperatingSystem, OperatingSystemAdmin)
 admin.site.register(OperatingSystemType)
 admin.site.register(Interface, InterfaceAdmin)
