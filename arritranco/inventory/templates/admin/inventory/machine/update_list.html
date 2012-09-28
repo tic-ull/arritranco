@@ -43,7 +43,9 @@
                 </td>
                 <td>{{ m.get_epo_level_display }}</td>
                 <td>{{ m.get_update_priority_display }}</td>
-                <td>{{ m.up_to_date_date }}</td>
+                <td style="background-color: {% if m.up_to_date_date < six_month_ago %}#FF0606{% elif m.up_to_date_date < three_month_ago %}#FFA858{% elif m.up_to_date_date < two_month_ago %}#FFA39A{% else %}#FFCECE{% endif %}">
+                    {{ m.up_to_date_date|date:'Y-m-d' }}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
