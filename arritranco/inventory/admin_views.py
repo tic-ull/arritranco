@@ -15,4 +15,4 @@ class ActiveMachinesView(TemplateView):
 class UpdateListView(ListView):
     template_name = "admin/inventory/machine/update_list.html"
 
-    queryset = Machine.objects.filter(up = True).order_by('update_priority', 'up_to_date_date')
+    queryset = Machine.objects.filter(up = True).order_by('-os__type', '-up_to_date_date','update_priority' )
