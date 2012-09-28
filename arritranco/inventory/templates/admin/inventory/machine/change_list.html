@@ -60,13 +60,18 @@
         <ul class="object-tools">
           {% block object-tools-items %}
             <li>
+              <a href="{% url "update-list" %}" class="link">
+                {% trans "Update list" %}
+              </a>
+            </li>
+            <li>
               <a href="{% url "active-machines" %}" class="link">
                 {% trans "Active machines" %}
               </a>
             </li>
             <li>
-              <a href="add/{% if is_popup %}?_popup=1{% endif %}" class="addlink">
-                {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+              <a href=".">
+                {% blocktrans with cl.opts.verbose_name_plural as name %}{{ name }}{% endblocktrans %}
               </a>
             </li>
           {% endblock %}
