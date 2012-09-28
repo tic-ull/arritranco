@@ -40,12 +40,15 @@ EPO_LEVELS = (
     (30, _(u'Service Lost. CRITICAL service')),
 )
 
-HYPERVISOR_HOSTS = (
-    (0, _(u'Undefined')),
-    (1, _(u'VM Ware')),
-    (2, _(u'Kernel Virtual Machine')), 
-)
+UNDEF_HYPERVISOR = 0
+VMWARE_HYPERVISOR = 1
 KVM_HYPERVISOR = 2
+
+HYPERVISOR_HOSTS = (
+    (UNDEF_HYPERVISOR, _(u'Undefined')),
+    (VMWARE_HYPERVISOR, _(u'VM Ware')),
+    (KVM_HYPERVISOR, _(u'Kernel Virtual Machine')), 
+)
 
 UPS_CHOICES = (
     (0, 'Sin UPS'),

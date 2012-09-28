@@ -65,7 +65,7 @@
                                 {% endif %}
                                 - <a href="{{ m.physicalmachine.server.get_manufacturer_product_url }}">{{ m.physicalmachine.server.serial_number }}</a>
                             {% else %}
-                                {{ m.get_hypervisor_display }}
+                                {{ m.virtualmachine.get_hypervisor_display }}
                             {% endif %}
                         </td>
                         <td>{{ m.os.type.name }}</td>
