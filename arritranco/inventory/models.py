@@ -46,8 +46,8 @@ KVM_HYPERVISOR = 2
 
 HYPERVISOR_HOSTS = (
     (UNDEF_HYPERVISOR, _(u'Undefined')),
-    (VMWARE_HYPERVISOR, _(u'VM Ware')),
-    (KVM_HYPERVISOR, _(u'Kernel Virtual Machine')), 
+    (VMWARE_HYPERVISOR, _(u'VMWare')),
+    (KVM_HYPERVISOR, _(u'KVM')), 
 )
 
 UPS_CHOICES = (
@@ -243,6 +243,7 @@ class Machine(models.Model):
     def get_nagios_parents(self):
         return 'Router_ccti1'
 
+
 class Interface(models.Model):
     """ Model to represent a machine network interface """
     machine = models.ForeignKey(Machine)
@@ -253,7 +254,8 @@ class Interface(models.Model):
     network = models.ForeignKey(Network, null = True, blank = True,editable = False)
 
     class Meta:
-        ordering = ['id']
+        verbose_name = _('Interface')
+        verbose_name_plural = _('Interfaces')
     
     def __unicode__(self):
         return u"%s (%s)  <%s>" % (self.name, self.ip, "UP" if self.visible else "DOWN")
@@ -278,8 +280,17 @@ class VirtualMachine(Machine):
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
     total_disks_size = models.DecimalField(_(u"GB"), max_digits=15, decimal_places=3, blank=True, null=True)
 
+    class Meta:
+        verbose_name = _('Virtual machine')
+        verbose_name_plural = _('Virtual machines')
+    
+
 class PhysicalMachine(Machine):
     """ Machine with real hardware """
     server = models.ForeignKey(Server, verbose_name=_(u'Server'))
     ups = models.IntegerField(blank=False, help_text=_('Connected UPS'), choices=UPS_CHOICES, default=0)
 
+    class Meta:
+        verbose_name = _('Physical machine')
+        verbose_name_plural = _('Physical machines')
+    

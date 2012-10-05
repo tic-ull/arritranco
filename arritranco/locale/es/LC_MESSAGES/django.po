@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-10-05 20:05+0100\n"
+"POT-Creation-Date: 2012-10-05 20:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,7 +32,7 @@ msgstr ""
 
 #: backups/models.py:29
 msgid "Duration"
-msgstr ""
+msgstr "Duración"
 
 #: backups/models.py:30
 msgid "Extra options for backup jobs"
@@ -271,7 +271,7 @@ msgstr ""
 msgid "GHz"
 msgstr ""
 
-#: hardware/models.py:97 inventory/models.py:277
+#: hardware/models.py:97 inventory/models.py:279
 msgid "Number of processors"
 msgstr ""
 
@@ -279,7 +279,7 @@ msgstr ""
 msgid "Processors number"
 msgstr ""
 
-#: hardware/models.py:100 inventory/models.py:283
+#: hardware/models.py:100 inventory/models.py:290
 msgid "Server"
 msgstr "Servidor"
 
@@ -315,13 +315,13 @@ msgstr "Servidor enrackable"
 msgid "Rack servers"
 msgstr "Servidores enrackables"
 
-#: hardware/models.py:148 inventory/models.py:279
+#: hardware/models.py:148 inventory/models.py:281
 msgid "GB"
 msgstr ""
 
 #: hardware/models.py:149
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 #: hardware/models.py:152
 msgid "Hard disk"
@@ -333,7 +333,7 @@ msgstr "Discos duros"
 
 #: hardware/templates/admin/hardware/rack/change_list.html:64
 msgid "Room Rack view"
-msgstr ""
+msgstr "Vista de armarios"
 
 #: hardware/templates/admin/hardware/rack/room-rack.html:138
 msgid "Room Rack"
@@ -357,7 +357,7 @@ msgstr ""
 
 #: hardware_model/models.py:41
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: inventory/admin.py:69
 #, python-format
@@ -384,7 +384,7 @@ msgstr ""
 
 #: inventory/admin.py:98
 msgid "Machine up to date"
-msgstr ""
+msgstr "Máquina actualizada"
 
 #: inventory/models.py:23
 msgid "Don't worry"
@@ -392,7 +392,7 @@ msgstr ""
 
 #: inventory/models.py:24
 msgid "Watch services."
-msgstr ""
+msgstr "Vigilar servicios"
 
 #: inventory/models.py:25
 msgid "Watch services. Be careful."
@@ -404,19 +404,19 @@ msgstr ""
 
 #: inventory/models.py:27
 msgid "HA services."
-msgstr ""
+msgstr "Servicios en HA"
 
 #: inventory/models.py:28
 msgid "Not defined. Caution."
-msgstr ""
+msgstr "No definido. Precaución."
 
 #: inventory/models.py:29
 msgid "DANGER DO NOT UPDATE!"
-msgstr ""
+msgstr "¡CUIDADO NO ACTUALIZAR!"
 
 #: inventory/models.py:30
 msgid "DO NOT TOUCH, OUT OF UPDATE CYCLE!"
-msgstr ""
+msgstr "¡NO TOCAR, FUERA DEL CICLO DE ACTUALIZACIONES!"
 
 #: inventory/models.py:31
 msgid "Depend on third party"
@@ -447,11 +447,11 @@ msgid "Service Lost. CRITICAL service"
 msgstr ""
 
 #: inventory/models.py:49
-msgid "VM Ware"
+msgid "VMWare"
 msgstr ""
 
 #: inventory/models.py:50
-msgid "Kernel Virtual Machine"
+msgid "KVM"
 msgstr ""
 
 #: inventory/models.py:90
@@ -507,39 +507,64 @@ msgstr "Máquinas"
 msgid "Networks"
 msgstr "Redes"
 
-#: inventory/models.py:249
+#: inventory/models.py:250
 msgid "Itentified name for the interface"
 msgstr ""
 
-#: inventory/models.py:250
+#: inventory/models.py:251
 msgid "Interface IP v4 address"
 msgstr ""
 
-#: inventory/models.py:251
+#: inventory/models.py:252
 msgid "Mac / Hardware address of the interface"
 msgstr ""
 
-#: inventory/models.py:252
+#: inventory/models.py:253
 msgid "Whether the interface and IP are visible through the network"
 msgstr ""
 
-#: inventory/models.py:276
+#: inventory/models.py:257
+msgid "Interface"
+msgstr "Interfaz"
+
+#: inventory/models.py:258
+msgid "Interfaces"
+msgstr "Interfaces"
+
+#: inventory/models.py:278
 msgid "Hypervisor host"
 msgstr ""
 
 #: inventory/models.py:284
+#: inventory/templates/admin/inventory/machine/active-machines.html:69
+msgid "Virtual machine"
+msgstr "Máquina virtual"
+
+#: inventory/models.py:285
+msgid "Virtual machines"
+msgstr "Máquinas virtuales"
+
+#: inventory/models.py:291
 msgid "Connected UPS"
 msgstr ""
+
+#: inventory/models.py:294
+msgid "Physical machine"
+msgstr "Máquina física"
+
+#: inventory/models.py:295
+msgid "Physical machines"
+msgstr "Máquinas físicas"
 
 #: inventory/templates/admin/inventory/machine/active-machines.html:4
 #: inventory/templates/admin/inventory/machine/change_list.html:69
 #: inventory/templates/admin/inventory/machine/custom_machine_list.html:42
 msgid "Active machines"
-msgstr ""
+msgstr "Máquinas activas"
 
 #: inventory/templates/admin/inventory/machine/active-machines.html:6
 msgid "Active machines list"
-msgstr ""
+msgstr "Listado de máquinas activas"
 
 #: inventory/templates/admin/inventory/machine/active-machines.html:13
 #: inventory/templates/admin/inventory/machine/update_list.html:14
@@ -567,7 +592,7 @@ msgstr ""
 #: inventory/templates/admin/inventory/machine/active-machines.html:18
 #: inventory/templates/admin/inventory/machine/update_list.html:17
 msgid "Service IP"
-msgstr ""
+msgstr "IP de servicio"
 
 #: inventory/templates/admin/inventory/machine/active-machines.html:19
 #: inventory/templates/admin/inventory/machine/update_list.html:18
@@ -576,10 +601,6 @@ msgstr ""
 
 #: inventory/templates/admin/inventory/machine/active-machines.html:20
 msgid "Location"
-msgstr ""
-
-#: inventory/templates/admin/inventory/machine/active-machines.html:69
-msgid "Virtual machine"
 msgstr ""
 
 #: inventory/templates/admin/inventory/machine/change_list.html:64
@@ -591,7 +612,7 @@ msgstr ""
 
 #: inventory/templates/admin/inventory/machine/custom_machine_list.html:20
 msgid "Inventory"
-msgstr ""
+msgstr "Inventario"
 
 #: inventory/templates/admin/inventory/machine/custom_machine_list.html:22
 msgid "List description"
@@ -802,4 +823,8 @@ msgstr ""
 
 #: templates/admin/base_site.html:7
 msgid "Arritranco"
+msgstr ""
+
+#: templates/admin/base_site.html:15
+msgid "OS updates"
 msgstr ""
