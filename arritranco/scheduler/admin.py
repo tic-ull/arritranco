@@ -22,6 +22,7 @@ class TaskStatusAdminForm(forms.ModelForm):
 #            'status': forms.widgets.Select(choices = STATUS_CHOICES),
 #        }
 
+
 class TaskStatusAdmin(admin.StackedInline):
     model = TaskStatus
     form = TaskStatusAdminForm
@@ -35,11 +36,11 @@ class TaskCheckAdmin(admin.ModelAdmin):
     inlines = [ TaskStatusAdmin, ]
     readonly_fields = ('task_time', )
     date_hierarchy = 'task_time'
-    list_filter = ('task', )
+    search_fields = ['task__description', ]
 
     def info(self, obj):
         if 'backups' in settings.INSTALLED_APPS:
-        # FIXME: We can have TaskChecks for task's that aren't backups
+            # FIXME: We can have TaskChecks for tasks that aren't backups
             return u"Machine: %s" % obj.task.backuptask.machine.fqdn
 
     def get_status(self, obj):
@@ -51,7 +52,7 @@ class TaskCheckAdmin(admin.ModelAdmin):
         if nagios_status == NAGIOS_OK:
             color = '#BBFEC9'
         elif nagios_status == NAGIOS_WARNING:
-            color = 'orange'
+            color = 'yellow'
         elif nagios_status == NAGIOS_UNKNOWN:
             color = 'orange'
         elif nagios_status == NAGIOS_CRITICAL:

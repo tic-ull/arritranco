@@ -14,6 +14,7 @@ class ActiveMachinesView(TemplateView):
         qs = Machine.objects.filter(up = True)
         return { 'machines': qs, }
 
+
 class UpdateListView(ListView):
     template_name = "admin/inventory/machine/update_list.html"
 

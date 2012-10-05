@@ -75,6 +75,7 @@ class Task(models.Model):
         return None
     get_status.short_description = 'Last check and status'
 
+
 class TaskCheck(models.Model):
     """
         Model to store all backup ckecks done.
@@ -101,6 +102,7 @@ class TaskCheck(models.Model):
 
     def num_status(self):
         return self.taskstatus_set.count()
+
 
 class TaskStatus(models.Model):
     """
