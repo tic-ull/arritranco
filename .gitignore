@@ -1,6 +1,7 @@
 *.pyc
 *.json
 *.swp
+*.mo
 .idea
 arritranco/.project
 arritranco/.pydevproject

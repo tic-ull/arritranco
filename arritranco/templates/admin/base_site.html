@@ -10,8 +10,8 @@
 {% block nav-global %}
 {% if user.is_authenticated %}
 <div style="padding: 5px">
-<a href="{% url admin:inventory_machine_changelist %}">Máquinas</a> |
-<a href="{% url room-rack-view %}">Armarios</a> |
+<a href="{% url admin:inventory_machine_changelist %}">{% trans "Machines" %}</a> |
+<a href="{% url room-rack-view %}">{% trans "Racks" %}</a> |
 </div>
 {% endif %}
 {% endblock %}

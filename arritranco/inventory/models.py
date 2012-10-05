@@ -1,4 +1,4 @@
-# coding: utf8
+# coding: utf-8
 
 from django.db import models
 from hardware.models import Server
@@ -117,6 +117,8 @@ class Machine(models.Model):
 
     class Meta:
         ordering = ['fqdn']
+        verbose_name = _('Machine')
+        verbose_name_plural = _('Machines')
 
     def __unicode__(self):
         return u"%s" % (self.fqdn)

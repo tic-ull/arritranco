@@ -1,4 +1,4 @@
-#coding:utf8
+# coding: utf-8
 '''
 Created on 25/03/2011
 
@@ -63,7 +63,7 @@ class MachineAdmin(admin.ModelAdmin):
                 # If there is no ifaces, or ther is some but no one with fqdn
                 # ip addr, we create the default one
                 machine.interface_set.add(svc_iface)
-                messages.info(request, _(u'The iface %s has been created bounded to the fqdn of %s' % (machine.get_service_iface(),machine)))
+                messages.info(request, u'The iface %s has been created bounded to the fqdn of %s' % (machine.get_service_iface(),machine))
             else:
                 # There is an interface with fqdn ip addr, we rename it to DEFAULT_SVC_IFACE_NAME
                 messages.info(request, _(u'The iface founded %s' % fqdn_iface))

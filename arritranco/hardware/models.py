@@ -1,4 +1,4 @@
-# coding: utf8
+# coding: utf-8
 
 from django.db import models
 from location.models import Room
@@ -39,6 +39,10 @@ class Rack(models.Model):
     name = models.CharField(max_length = 255)
     slug = models.SlugField()
     
+    class Meta:
+        verbose_name = _('Rack')
+        verbose_name_plural = _('Racks')
+
     def __unicode__(self):
         return u"%s (%s)" % (self.name, self.room.name)    
 
@@ -92,6 +96,10 @@ class Server(HwBase):
     # Multi CPU servers has the same CPU type
     processor_number = models.IntegerField(_(u'Number of processors'), help_text = _('Processors number'), default = 1)
     
+    class Meta:
+        verbose_name = _('Server')
+        verbose_name_plural = _('Servers')
+
     def __unicode__(self):
         return u"%s (%s)" % (self.model, self.serial_number)
 
@@ -108,6 +116,10 @@ class Chassis(HwBase, RackPlace):
     slug = models.SlugField()
     slots = models.IntegerField(help_text = _(u'Number of available slots'))
 
+    class Meta:
+        verbose_name = _('Chassis')
+        verbose_name_plural = _('Chassis')
+
     def __unicode__(self):
         return u"Chasis (%s)" % (self.name)    
     
@@ -118,18 +130,27 @@ class BladeServer(Server):
 
     class Meta:
         ordering = ['slot_number']
+        verbose_name = _('Blade server')
+        verbose_name_plural = _('Blade servers')
+
 
 class RackServer(Server, RackPlace):
     """A rackable server"""
-    pass
+
+    class Meta:
+        verbose_name = _('Rack server')
+        verbose_name_plural = _('Rack servers')
+
 
 class HardDisk(models.Model):
-    """
-        Disco duro
-    """
+    """A hard disk"""
     server = models.ForeignKey(Server)
     size = models.DecimalField(_(u"GB"), max_digits=15, decimal_places=3, blank=True, null=True)
-    conn = models.IntegerField(_(u"Tipo"), choices=HD_CONN, blank=True, null=True)
+    conn = models.IntegerField(_(u"Type"), choices=HD_CONN, blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Hard disk')
+        verbose_name_plural = _('Hard disks')
 
     def __unicode__(self):
         return u'%s Gb %s' % (self.size, self.get_conn_display())

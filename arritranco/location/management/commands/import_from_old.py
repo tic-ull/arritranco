@@ -1,4 +1,4 @@
-#coding: utf8
+# coding: utf-8
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 from arritranco.location.models import *

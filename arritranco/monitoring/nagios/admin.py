@@ -60,7 +60,7 @@ class NagiosCheckAdmin(admin.ModelAdmin):
                             co.contact_groups = (def_cg,)
                             co.save()
                             n_checks += 1
-                messages.info(request,_(u'Created %d nagios checks on %d  UP! machines (%d checks already exists).' % (n_checks, len(up_machines),n_existent_checks)))
+                messages.info(request, u'Created %d nagios checks on %d  UP! machines (%d checks already exists).' % (n_checks, len(up_machines),n_existent_checks))
     set_def_checks.short_description = _(u'Asign selected default checks to all up machines')
 
 

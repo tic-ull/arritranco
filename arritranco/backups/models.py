@@ -32,7 +32,7 @@ class BackupTask(Task):
     bckp_type = models.IntegerField(blank=True, null=True, choices=BACKUP_TYPE_CHOICES, default = SYSTEM_BACKUP)
 
     def __unicode__(self):
-        return _(u"%s @ %s/%s") % (self.machine.fqdn, self.get_bckp_type_display(), self.cron_syntax())
+        return _(u"%(fqdn)s @ %(bckp_type)s/%(cron)s") % {'fqdn': self.machine.fqdn, 'bckp_type': self.get_bckp_type_display(), 'cron': self.cron_syntax()}
 
     def fecha_fin(self, day):
         """
