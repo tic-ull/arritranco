@@ -215,6 +215,7 @@ def add_compressed_backup_file (request):
     backup_file.save ()
     return HttpResponse("Ok")
 
+
 class FilesToCompressView(ResponseMixin, View):
     """Returns a json with the list of files to be compressed"""
 
@@ -244,6 +245,7 @@ class FilesToCompressView(ResponseMixin, View):
         logger.debug('Total files: %s', len(tocompress))
         response = Response(200, tocompress)
         return self.render(response)
+
 
 class FilesToDeleteView(ResponseMixin, View):
     """An example view using Django 1.3's class based views.
@@ -350,6 +352,7 @@ class FilesToDeleteView(ResponseMixin, View):
         response = Response(200, files_to_delete)
         return self.render(response)
  
+
 class GetBackupFileInfo(ResponseMixin, View):
     renderers = DEFAULT_RENDERERS
 

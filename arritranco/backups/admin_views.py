@@ -6,7 +6,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 import datetime
 
-
 class BackupGrid(TemplateView):
     template_name = "admin/backups/filebackuptask/grid.html"
     day_width = 1250.0 - 200

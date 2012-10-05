@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-10-05 20:18+0100\n"
+"POT-Creation-Date: 2012-10-05 20:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -230,10 +230,17 @@ msgstr[1] ""
 msgid "Filter"
 msgstr "Filtro"
 
+#: backups/templates/admin/backups/filebackuptask/grid.html:3
 #: backups/templates/admin/backups/filebackuptask/grid.html:172
 #: backups/templates/admin/backups/filebackuptask/grid.html:178
-msgid "Backup grid"
-msgstr ""
+#: templates/admin/base_site.html:16
+msgid "Backups grid"
+msgstr "Matriz de backups"
+
+#: backups/templates/admin/backups/filebackuptask/grid.html:170
+#, fuzzy
+msgid "Backups"
+msgstr "Matriz de backups"
 
 #: hardware/models.py:24
 msgid "Hardware Model"
@@ -828,3 +835,6 @@ msgstr ""
 #: templates/admin/base_site.html:15
 msgid "OS updates"
 msgstr "Actualizaciones de SO"
+
+#~ msgid "Backup grid"
+#~ msgstr "Matriz de backups"

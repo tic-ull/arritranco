@@ -1,6 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load adminmedia admin_list i18n %}
-{% block title %}Backup grid{% endblock %}
+{% block title %}{% trans "Backups grid" %}{% endblock %}
 {% block extrastyle %}
 <style type="text/css">
 body {
@@ -167,15 +167,15 @@ body {
         {% trans "Home" %}
       </a>
        &rsaquo;
-       <a href="../">Backups</a>
+       <a href="../">{% trans "Backups" %}</a>
       &rsaquo;
-      {% trans "Backup grid" %}
+      {% trans "Backups grid" %}
     </div>
   {% endblock %}
 {% endif %}
 
 {% block content %}
-<h1>{% trans "Backup grid" %}</h1>
+<h1>{% trans "Backups grid" %}</h1>
 <div id="content-main">
         <ul class="object-tools">
           {% block object-tools-items %}
