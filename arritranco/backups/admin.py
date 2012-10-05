@@ -7,7 +7,6 @@ from django.contrib import admin
 from models import FileBackupTask, FileNamePattern, FileBackupProduct, BackupFile
 from models import BackupTask, R1BackupTask, TSMBackupTask
 
-
 class FileBackupProductAdmin(admin.ModelAdmin):
     list_display = ('file_backup_task', 'file_pattern', 'variable_percentage')
 
@@ -26,6 +25,8 @@ class BackupFileAdmin(admin.ModelAdmin):
     list_display = ('original_file_name', 'original_date', 'original_file_size_display', 'machine', 'checker', 'deletion_date')
     search_fields = ['original_file_name', 'compressed_file_name', 'file_backup_product__file_backup_task__machine__fqdn']
     raw_id_fields = ('file_backup_product', 'task_check')
+    date_hierarchy = 'original_date'
+    list_filter = ('file_backup_product__file_backup_task__checker_fqdn',)
 
 class FileNamePatternAdmin(admin.ModelAdmin):
     search_fields = ['pattern', ]
