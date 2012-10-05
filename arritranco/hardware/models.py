@@ -1,8 +1,14 @@
+# coding: utf8
+
 from django.db import models
 from location.models import Room
 from django.utils.translation import ugettext_lazy as _
 from hardware_model.models import HwModel, Manufacturer
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+
+import logging
+logger = logging.getLogger(__name__)
 
 HD_CONN = (
     (0, 'SCSI'),
@@ -90,7 +96,10 @@ class Server(HwBase):
         return u"%s (%s)" % (self.model, self.serial_number)
 
     def get_running_machine(self):
-        return self.physicalmachine_set.get(up = True)
+        try:
+            return self.physicalmachine_set.get(up = True)
+        except ObjectDoesNotExist:
+            return None
 
 class Chassis(HwBase, RackPlace):
     """A chassis is a hardware where we can plug servers, network cards, etc.
