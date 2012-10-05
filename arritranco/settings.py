@@ -106,6 +106,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    PROJECT_ROOT + '/templates',
 )
 
 INSTALLED_APPS = (
@@ -142,7 +143,6 @@ INTERNAL_IPS = ('127.0.0.1',)
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
     }
-
 
 FILE_BACKUP_CHECKERS = (
         ('bckpsrv01.example.com', 'backup server1'),

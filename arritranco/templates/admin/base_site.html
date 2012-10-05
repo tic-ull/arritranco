@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'Django site admin' %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">{% trans 'Arritranco' %}</h1>
+{% endblock %}
+
+{% block nav-global %}
+{% if user.is_authenticated %}
+<div style="padding: 5px">
+<a href="{% url admin:inventory_machine_changelist %}">Máquinas</a> |
+<a href="{% url room-rack-view %}">Armarios</a> |
+</div>
+{% endif %}
+{% endblock %}
+
