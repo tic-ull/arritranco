@@ -164,15 +164,34 @@ class Machine(models.Model):
 
     @staticmethod
     def get_by_addr(addr):
+        """
+            Returns a machine by a IP or a DNS name
+        """
         try:
+            # Search by IP
             return Machine.objects.get(interface__ip = addr, up = True)
         except Machine.DoesNotExist:
-            try:
-                return Machine.objects.get(fqdn = socket.getfqdn(addr))
-            except Machine.DoesNotExist:
-                return None
+            # It's ok, we'll try searching by name
+            pass
         except Machine.MultipleObjectsReturned:
+            logger.error("Multiple machines with the same IP %s" % addr)
             return None
+
+        try:
+            # Search by Name
+            return Machine.objects.get(fqdn = addr, up = True)
+        except Machine.DoesNotExist:
+            # It's ok too, our last try will be a reverse DNS search
+            pass
+
+        try:
+            # FIXME
+            # The addr name could have more than one reverse DNS name.
+            # In these cases we would iterate by the list of reverse names
+            return Machine.objects.get(fqdn = socket.getfqdn(addr), up = True)
+        except Machine.DoesNotExist:
+            return None
+    
     
     def responsibles(self):
         """ String with all responsibles for notification on nagios """

@@ -19,7 +19,6 @@ class TSMBackupsTodo(BackupsTodo):
 class R1BackupsTodo(BackupsTodo):
     queryset = R1BackupTask.objects.all()
 
-
 urlpatterns = patterns('',
     url(r'^$', ListOrCreateModelView.as_view(resource=BackupTaskResource)),
     url(r'^tsm/hosts/$', TSMHostsView.as_view(), name='tsm-hosts'), 

@@ -17,6 +17,8 @@ import os
 import logging
 logger = logging.getLogger(__name__)
 
+MACHINE_NOT_FOUND_ERROR = 'Machine object not found'
+
 class BackupFileCheckerView(ResponseMixin, View):
     """An example view using Django 1.3's class based views.
     Uses djangorestframework's RendererMixin to provide support for multiple output formats."""
@@ -61,30 +63,35 @@ class BackupFileCheckerView(ResponseMixin, View):
         response = Response(200, list_of_tasks)
         return self.render(response)
 
-def add_backup_file (request, machine = False, windows = False):
+def add_backup_file(request, machine = False, windows = False):
     """
         Asocia un fichero a una planificación de una máquina.
     """
     # Hay que saber desde qué máquina nos están consultando.
     logger.debug('Adding backup file')
+
     if not machine:
         machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
         if not machine:
-            msg = 'There is no machine for address: %s' % request.META['REMOTE_ADDR']
-            logger.error(msg)
-            raise Http404(msg)
+            logger.error('There is no machine for address: %s' % request.META['REMOTE_ADDR'])
+            raise Http404(MACHINE_NOT_FOUND_ERROR)
+
     if not request.GET.has_key('filename'):
-        logger.error('No Filename in request')
+        logger.error('No filename in request')
         raise Http404("filename")
+
     if not request.GET.has_key ('filedate'):
-        logger.error('No File date in request')
+        logger.error('No file date in request')
         raise Http404("Filedate")
+
     if windows and not request.GET.has_key ('filetime'):
-        logger.error('No File time in request')
+        logger.error('No file time in request')
         raise Http404("Filetime")
+
     if not windows and not request.GET.has_key('filesize'):
-        logger.error('No File size in request')
+        logger.error('No file size in request')
         raise Http404("Filesize")
+
     filename = request.GET['filename']
     logger.debug('filename: %s', filename)
     if windows:
@@ -95,13 +102,17 @@ def add_backup_file (request, machine = False, windows = False):
         filesize = 0
     else:
         logger.debug('Unix file')
-        filedate = datetime.datetime.fromtimestamp(float(request.GET['filedate']))
+        try:
+            filedate = datetime.datetime.fromtimestamp(float(request.GET['filedate']))
+        except ValueError, e:
+            logger.error(e)
+            return HttpResponse(e)
         filesize = request.GET['filesize']
     fbp = FileBackupTask.get_fbp(machine, filename)
     if not fbp:
         msg = "There is no pattern for this file"
         logger.error(msg)
-        return HttpResponse (msg)
+        return HttpResponse(msg)
     next_run = fbp.file_backup_task.next_run(filedate)
     previous_run = fbp.file_backup_task.last_run(filedate)
     if (abs(next_run - filedate) <= abs(filedate - previous_run)):
@@ -135,11 +146,15 @@ def register_file_from_checker(request):
     """
         Asocia un fichero con su planificación partiendo del repositorio de copias.
     """
-    if not request.GET.has_key ('host'):
-        raise Http404("Host")
+    if not request.GET.has_key('host'):
+        logger.warning("Host missing calling register_file_from_checker")
+        raise Http404("Host missing")
+
     machine = Machine.get_by_addr(request.GET['host'])
     if not machine:
-        raise Http404('Machine object not found')
+        logger.error(MACHINE_NOT_FOUND_ERROR)
+        raise Http404(MACHINE_NOT_FOUND_ERROR)
+
     return add_backup_file(request, machine)
 
 def add_compressed_backup_file (request):
@@ -147,13 +162,15 @@ def add_compressed_backup_file (request):
         Asocia un fichero comprimido a una su fichero de backup.
     """
     id = directory = compressedmd5 = originalmd5 = None
+
     if request.GET.has_key('checker'):
         machine = Machine.get_by_addr(request.GET['checker'])
     else:
         machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
     if not machine:
-        logger.debug('Can\'t get machine')
-        raise Http404('Machine object not found')
+        logger.error(MACHINE_NOT_FOUND_ERROR)
+        raise Http404(MACHINE_NOT_FOUND_ERROR)
+
     logger.debug('add_compressed_backup_file called from %s', machine.fqdn)
 
     if not request.GET.has_key ('filedate'):
@@ -199,19 +216,20 @@ def add_compressed_backup_file (request):
     return HttpResponse("Ok")
 
 class FilesToCompressView(ResponseMixin, View):
-    """An example view using Django 1.3's class based views.
-    Uses djangorestframework's RendererMixin to provide support for multiple output formats."""
+    """Returns a json with the list of files to be compressed"""
 
     renderers = DEFAULT_RENDERERS
 
     def get(self, request):
         machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
         if not machine:
-            raise Http404('Machine object not found')
+            logger.error(MACHINE_NOT_FOUND_ERROR)
+            raise Http404(MACHINE_NOT_FOUND_ERROR)
+
         logger.debug('Files to compress in: %s', machine.fqdn)
         tocompress = []
         totalsize = 0
-        for bf in BackupFile.objects.filter (
+        for bf in BackupFile.objects.filter(
                 compressed_file_name = '', deletion_date__isnull = True,
                 file_backup_product__file_backup_task__checker_fqdn = machine.fqdn).order_by('-original_date'):
             tocompress.append (
@@ -243,7 +261,8 @@ class FilesToDeleteView(ResponseMixin, View):
     def post(self, request):
         machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
         if not machine:
-            raise Http404('Machine object not found')
+            logger.error(MACHINE_NOT_FOUND_ERROR)
+            raise Http404(MACHINE_NOT_FOUND_ERROR)
 
         if not request.POST.has_key('deleted_files'):
             return HttpResponseBadRequest()
@@ -274,12 +293,14 @@ class FilesToDeleteView(ResponseMixin, View):
         else:
             machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
         if not machine:
-            logger.debug('Can\'t get machine')
-            raise Http404('Machine object not found')
+            logger.error(MACHINE_NOT_FOUND_ERROR)
+            raise Http404(MACHINE_NOT_FOUND_ERROR)
+
         filter = {}
         if request.GET.has_key('host'):
             host = Machine.get_by_addr(request.GET['host'])
             filter['machine'] = host
+
         task_to_delete = []
         logger.debug('Files to delete in: %s', machine.fqdn)
         today = datetime.date.today()
@@ -344,8 +365,9 @@ class GetBackupFileInfo(ResponseMixin, View):
         else:
             machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
         if not machine:
-            logger.debug('Can\'t get machine')
-            raise Http404('Machine object not found')
+            logger.error(MACHINE_NOT_FOUND_ERROR)
+            raise Http404(MACHINE_NOT_FOUND_ERROR)
+
         file_name = request.GET['file_name']
         logger.debug('Searching for: "%s" in "%s"', file_name, request.GET['directory'])
         logger.debug('Checker: "%s"', machine.fqdn)
@@ -388,7 +410,9 @@ class TSMHostsView(ResponseMixin, View):
         else:
             machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
         if not machine:
-            raise Http404('Machine object not found')
+            logger.error(MACHINE_NOT_FOUND_ERROR)
+            raise Http404(MACHINE_NOT_FOUND_ERROR)
+
         if request.GET.has_key('tsm_server'):
             qs = TSMBackupTask.objects.filter(tsm_server = request.GET['tsm_server'])
         else:
