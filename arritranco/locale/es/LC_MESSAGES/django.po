@@ -608,7 +608,7 @@ msgstr ""
 #: inventory/templates/admin/inventory/machine/update_list.html:4
 #: inventory/templates/admin/inventory/machine/update_list.html:6
 msgid "Update list"
-msgstr ""
+msgstr "Lista de actualizaciones"
 
 #: inventory/templates/admin/inventory/machine/custom_machine_list.html:20
 msgid "Inventory"
@@ -624,7 +624,7 @@ msgstr ""
 
 #: inventory/templates/admin/inventory/machine/update_list.html:20
 msgid "Last update"
-msgstr ""
+msgstr "Última actualización"
 
 #: location/models.py:18
 msgid "buildings_map"
@@ -827,4 +827,4 @@ msgstr ""
 
 #: templates/admin/base_site.html:15
 msgid "OS updates"
-msgstr ""
+msgstr "Actualizaciones de SO"
