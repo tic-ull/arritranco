@@ -1,0 +1,29 @@
+{% if rack.rackserver_set.count or rack.chassis_set.count %}
+<div class="rack" style="height: {{ rack.get_render_height}}px;">
+    <h3><a href="{% url room-rack-view r.slug rack.slug %}">{{ rack.name }}</a></h3>
+
+    {% for s in rack.rackserver_set.all %}
+        <div class="server" style="height: {{s.model.rackablemodel.get_render_height }}px; bottom: {{ s.get_render_offset}}px;" >
+        {% include "admin/hardware/rack/_server_tooltip.html" with obj=s type='server'%}
+        {% if s.get_running_machine %}{{ s.get_running_machine }}{% else %}{{ s.serial_number }}{% endif %}
+        </div>
+    {% endfor %}
+
+    {% for c in rack.chassis_set.all %}
+        <div class="chasis" style="height: {{c.model.rackablemodel.get_render_height }}px; bottom: {{ c.get_render_offset }}px;" >
+             <div class="chasis_label">Chasis {{c.name}} <b>Slots:</b> {{ c.slots }}
+                {% include "admin/hardware/rack/_server_tooltip.html" with obj=c type='chasis' %}
+             </div>
+            {% for bs in c.bladeserver_set.all %}
+                <div class="blade">
+                    {% include "admin/hardware/rack/_server_tooltip.html" with obj=bs type='bladeserver' %}
+                    <div class="slot_number">{{ bs.slot_number }}</div>
+                    {% if bs.get_running_machine %}{{ bs.get_running_machine }}{% else %}{{ bs.serial_number }}{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>
+{% else %}
+<h2>Rack {{ rack.name }} empty.</h2>
+{% endif %}

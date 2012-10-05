@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+{% load adminmedia admin_list i18n %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />
+  <style>
+    #changelist table thead th:first-child {width: inherit}
+  </style>
+{% endblock %}
+{% block bodyclass %}change-list{% endblock %}
+
+{% if not is_popup %}
+  {% block breadcrumbs %}
+    <div class="breadcrumbs">
+      <a href="../../">
+        {% trans "Home" %}
+      </a>
+       &rsaquo;
+       <a href="../"> {% trans "Inventory" %} </a>
+      &rsaquo;
+       {% block breadcrumb_list_description %}{% trans "List description" %}{% endblock %}
+    </div>
+  {% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+
+{% block content %}
+<h1>{% block list_title %}{% trans "List title" %}{% endblock %}</h1>
+<div id="content-main">
+    {% block object-tools %}
+        <ul class="object-tools">
+          {% block object-tools-items %}
+            <li>
+              <a href="{% url update-list %}" class="link">
+                {% trans "Update list" %}
+              </a>
+            </li>
+            <li>
+              <a href="{% url active-machines %}" class="link">
+                {% trans "Active machines" %}
+              </a>
+            </li>
+            <li>
+              <a href="{% url admin:inventory_machine_changelist %}">
+                {% trans "Machines" %}
+              </a>
+            </li>
+          {% endblock %}
+        </ul>
+    {% endblock %}
+    <div id="changelist" class="module">
+    {% block changelist %}
+    {% endblock %}
+    </div>
+</div>
+{% endblock %}

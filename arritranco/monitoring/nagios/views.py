@@ -1,10 +1,19 @@
 from inventory.models import Machine, OperatingSystem
-from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask
+from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask, BackupTask
 from django.shortcuts import render_to_response
-from models import NagiosCheck, NagiosCheckOpts, NagiosNetworkParent
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from helpers.processors import mco2dict
+from django.contrib import messages
+from django.utils.translation import ugettext_lazy as _
+
+import logging
+logger = logging.getLogger(__name__)
+
+from nsca import NSCA
+from models import NagiosCheck, NagiosCheckOpts, NagiosNetworkParent, HUMAN_TO_NAGIOS
+from scheduler.models import TaskStatus, TaskCheck
+from templatetags.nagios_filters import nagios_safe
 
 def hosts(request):
     '''
@@ -93,3 +102,25 @@ def backup_checks(request):
         response = render_to_response(template, context, mimetype="text/plain")
     return response
 
+def refresh_nagios_status(request):
+    logger.debug('Refreshing nagios status')
+    nsca = NSCA()
+    for bt in BackupTask.objects.filter(active = True, machine__up = True):
+        try:
+            tch = TaskCheck.objects.filter(task = bt).order_by('-task_time')[0]
+        except IndexError:
+            logger.debug('There is no TaskCheck for %s', bt)
+            continue
+        status = tch.get_status()
+        if isinstance(status, TaskStatus):
+            logger.debug('Last status for %s: %s is %s (%s)', bt, bt.description, status, status.check_time)
+            nsca.add_custom_status(
+                    bt.machine.fqdn,
+                    nagios_safe(bt.description),
+                    HUMAN_TO_NAGIOS[status.status],
+                    status.comment
+                )
+    nsca.send()
+    logger.debug('Nagios status updated for %s', bt)
+
+    return HttpResponse("Nagios up to date")

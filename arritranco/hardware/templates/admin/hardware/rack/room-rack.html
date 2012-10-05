@@ -1,0 +1,160 @@
+{% extends "admin/base_site.html" %}
+{% load adminmedia admin_list i18n %}
+{% block title %}Room Rack{% endblock %}
+{% block extrastyle %}
+<style type="text/css">
+body {
+    color: #5B80B2;
+    background-color: white;
+}
+
+.rack {
+    border: 1px solid black;
+    width: 300px;
+    float:left;
+    position:relative;
+    background-color: #C3C3C3;
+}
+
+.server {
+    font-size: 10px;
+    color: white;
+    background-color: #737373;
+    border-top: 1px solid #565656;
+    border-bottom: 1px solid #565656;
+    position:absolute;
+    width:100%
+}
+
+.chasis {
+    font-size: 10px;
+    color: white;
+    background-color: #656565;
+    border-top: 2px solid #303030;
+    border-bottom: 2px solid #303030;
+    position:absolute;
+}
+
+.chasis_label {
+    padding-top: 4px;
+    padding-bottom:3px;
+    border-bottom:1px solid #303030;
+    margin-left:1em;
+    font-size: 12px;
+}
+.blade {
+    border-bottom:1px solid #303030;
+    float: left;
+    width:50%;
+    height:1.4em
+}
+.blade:hover,.server:hover {
+    background-color: #F4F379;
+    color: #417690;
+}
+
+.chasis:hover {
+    background-color: #3E6564;
+}
+
+.slot_number {
+    background-color: black;
+    float:left;
+    width:14px;
+    height:100%;
+}
+
+#tooltip,#title {
+    display: none;
+}
+
+</style>
+{% endblock extrastyle %}
+{% block extrahead %}
+<link type="text/css" rel="stylesheet" href="/static/js/jquery.qtip.min.css" />
+
+<!--JavaScript-->
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.qtip.min.js"></script>
+<script type="text/javascript">
+        // Create the tooltips only on document load
+        $(document).ready(function() {
+            var args = {
+                    content: {
+                            text: function(api) {
+                                return $(this).find('#tooltip').html();
+                            },
+                            title: {
+                                text: function(api) { return $(this).find('span:first').text(); },
+                                button: true
+                            }
+                    },
+                    style: {
+                        classes: 'ui-tooltip-shadow ui-tooltip-dark'
+                    },
+                    position: {
+                        my: 'bottom center',
+                        target: 'mouse',
+                        viewprot: $(window),
+                        at: 'top center',
+                        adjust: {
+                            x: 0,  y: -10
+                        }
+
+                    },
+                    events: {
+                        hidden: function(event, api) {
+                                $(this).qtip('api').set('hide.event', 'mouseleave');
+                                $(this).qtip('api').set('position.target', 'mouse');
+                        }
+                    }
+                };
+
+            function set_fixed() {
+                $(this).qtip('api').set('hide.event', 'click');
+                $(this).qtip('api').set('position.target', $(this));
+            };
+
+            $('.server').qtip(args);
+            $('.chasis_label').qtip(args);
+            $('.blade').qtip(args);
+            $('.server').click(set_fixed);
+            $('.chasis_label').click(set_fixed);
+            $('.blade').click(set_fixed);
+        });
+</script>
+
+{% endblock %}
+
+{% if not is_popup %}
+  {% block breadcrumbs %}
+    <div class="breadcrumbs">
+      <a href="../../">
+        {% trans "Home" %}
+      </a>
+       &rsaquo;
+       <a href="../">Hardware</a>
+      &rsaquo;
+      {% trans "Room Rack" %}
+    </div>
+  {% endblock %}
+{% endif %}
+
+{% block content %}
+{% for r in rooms %}
+{% if r.rack_set.all.count %}
+<div class="room" style="clear:both;padding-top: 2em; margin-top:2em;">
+<h1><a href="{% url room-rack-view r.slug %}">{{ r.name }} - {{ r.building }}</a></h1>
+    {% for rack in r.rack_set.all %}
+        {% if rack_slug %}
+            {% ifequal rack_slug rack.slug %}
+                {% include "admin/hardware/rack/_rack_view.html" %}
+            {% endifequal %}
+        {% else %}
+            {% include "admin/hardware/rack/_rack_view.html" %}
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endfor %}
+{% endblock content %}

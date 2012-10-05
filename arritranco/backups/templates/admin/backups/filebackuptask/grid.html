@@ -1,6 +1,7 @@
-<html>
-    <head><title>Backup grid</title>
-<link type="text/css" rel="stylesheet" href="/static/js/jquery.qtip.min.css" />
+{% extends "admin/base_site.html" %}
+{% load adminmedia admin_list i18n %}
+{% block title %}Backup grid{% endblock %}
+{% block extrastyle %}
 <style type="text/css">
 body {
     color: #5B80B2;
@@ -86,6 +87,10 @@ body {
 }
 
 </style>
+{% endblock extrastyle %}
+{% block extrahead %}
+<link type="text/css" rel="stylesheet" href="/static/js/jquery.qtip.min.css" />
+
 <!--JavaScript-->
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script type="text/javascript" src="/static/js/jquery.qtip.min.js"></script>
@@ -152,29 +157,55 @@ body {
                 });
         });
 </script>
+{% endblock extrahead %}
 
-    </head>
-    <body>
-        <div class="grid" id="grid">
-            {% for fqdn,fbts in list_of_tasks.items %}
-            <div class="day {% cycle 'odd' 'even' %}">
-                <div class="block machine" id='fqdn'><div>{{ fqdn }}</div></div>
-                {% for t in fbts %}
-                    <div id='{{ t.id }}' class="block backup" style="left:{{t.offset }}px;width:{{ t.width }}px;">&nbsp;
-                        <div id='info-{{ t.id }}' class="info">
-                            <ul>
-                            <li><strong>Time:</strong> {{ t.time }}</li>
-                            <li><strong>Descripcion:</strong> {{ t.description }}</li>
-                            <li><strong>Duration:</strong> {{ t.duration|time:"H" }} horas {{ t.duration|time:"i" }} minutos.</li>
-                            </ul>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
+
+{% if not is_popup %}
+  {% block breadcrumbs %}
+    <div class="breadcrumbs">
+      <a href="../../">
+        {% trans "Home" %}
+      </a>
+       &rsaquo;
+       <a href="../">Backups</a>
+      &rsaquo;
+      {% trans "Backup grid" %}
+    </div>
+  {% endblock %}
+{% endif %}
+
+{% block content %}
+<h1>{% trans "Backup grid" %}</h1>
+<div id="content-main">
+        <ul class="object-tools">
+          {% block object-tools-items %}
+            {% for checker in checker_list %}
+            <li>
+              <a href=".?checker={{ checker }}" class="link">{{ checker }}</a>
+            </li>
             {% endfor %}
-        </div>
-        <div id="rule"></div>
-        <div id="time"></div>
-        <div id="colisiones"></div>
-    </body>
-</html>
+          {% endblock %}
+        </ul>
+<div class="grid" id="grid">
+    {% for fqdn,fbts in list_of_tasks.items %}
+    <div class="day {% cycle 'odd' 'even' %}">
+        <div class="block machine" id='fqdn'><div>{{ fqdn }}</div></div>
+        {% for t in fbts %}
+            <div id='{{ t.id }}' class="block backup" style="left:{{t.offset }}px;width:{{ t.width }}px;">&nbsp;
+                <div id='info-{{ t.id }}' class="info">
+                    <ul>
+                    <li><strong>Time:</strong> {{ t.time }}</li>
+                    <li><strong>Descripcion:</strong> {{ t.description }}</li>
+                    <li><strong>Duration:</strong> {{ t.duration|time:"H" }} horas {{ t.duration|time:"i" }} minutos.</li>
+                    </ul>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+<div id="rule"></div>
+<div id="time"></div>
+<div id="colisiones"></div>
+</div>
+{% endblock content %}

@@ -1,0 +1,13 @@
+{% load i18n %} 
+
+<div class="module" style="width: 400px" id="backups-today">
+<h2>{% trans "Last 24h backups:" %} {{ number_of_tasks }}</h2>
+<ul class="actionlist">
+{% for fqdn, l in list_of_tasks.items %}
+        <li>{{ fqdn }}<ul>
+        {% for t in l %}
+            <li class="changelink"><a href="{% url admin:backups_filebackuptask_change t.task.id %}">{{ t.time|date:"y/m/d h:m:s" }} {{ t.task.description }}</a></li>
+        {% endfor %}</ul></li>
+{% endfor %}
+</ul>
+</div>

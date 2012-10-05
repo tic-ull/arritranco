@@ -20,7 +20,7 @@
 
 import re
 import datetime
-
+from calendar import monthrange
 
 class SimpleCrontabEntry(object):
     """Contrab-like parser.
@@ -49,7 +49,7 @@ class SimpleCrontabEntry(object):
             "weekday": fields[4],
             }
         if not self._is_valid():
-            raise ValueError("Bad Entry")
+            raise ValueError("Bad Entry: %s" % entry)
 
     #### HERE BEGINS THE CODE BORROWED FROM gnome-schedule ###
     def __setup_timespec(self):
@@ -212,7 +212,9 @@ class SimpleCrontabEntry(object):
 
     def __next_time(self, time_list, time_now):
         """Little helper function to find next element on the list"""
+#        print "__next_time", time_list, time_now
         tmp = [x for x in time_list if x >= time_now]
+#        print "tmp", tmp
         carry = False
         if len(tmp) == 0:
             carry = True
@@ -244,7 +246,7 @@ class SimpleCrontabEntry(object):
         """Find next month of execution given the month arg. If month
         is different than current calls all the other __next_*
         functions to set up the time."""
-        
+       
         sol['month'], carry = self.__next_time(self.fields['month'], month)
         if carry :
             sol['year'] += 1
@@ -266,8 +268,9 @@ class SimpleCrontabEntry(object):
         """Find next hour of execution given the hour arg. If hour is
         different than current calls the __next_hour function to set
         up the minute """
-        
+#        print "__next_hour", hour, sol
         sol['hour'], carry = self.__next_time(self.fields['hour'], hour)
+#        print "sol['hour']", sol['hour'], "carry", carry
         if carry:
             self.__next_day(sol['day']+1, sol)
         if sol['hour'] != hour:
@@ -287,7 +290,10 @@ class SimpleCrontabEntry(object):
                 now = datetime.date(sol['year'], sol['month'], day)
                 # first calculate day
                 day_tmp, day_carry = self.__next_time(self.fields['day'], day)
+#                print "day_tmp", day_tmp
+#                print "day_carry", day_carry
                 day_diff = datetime.date(sol['year'], sol['month'], day_tmp) - now
+#                print "day_diff", day_diff
                 break
             except ValueError:
                 self.__next_month(sol['month']+1, sol)
@@ -300,6 +306,7 @@ class SimpleCrontabEntry(object):
         # if we have all days but we don't have all weekdays we need to
         # perform different
         if len(self.fields['day']) == 31 and len(self.fields['weekday']) != 8:
+#            print "Entra el colega por aqui ...."
             weekday_tmp, weekday_carry = self.__next_time(self.fields['weekday'], weekday)
             # Both 0 and 7 represent sunday
             weekday_tmp -= 1
@@ -308,18 +315,28 @@ class SimpleCrontabEntry(object):
             if weekday_carry :
                 weekday_diff += datetime.timedelta(weeks=1)
             weekday_next_month = (now + weekday_diff).month != now.month
+#            print "weekday_next_month", weekday_next_month
             # If next weekday is not on the next month
-            if not weekday_next_month :
+            if not weekday_next_month:
+#                print "weekday_diff", weekday_diff
+#                print "now", now
                 sol['day'] = (now + weekday_diff).day
+#                print "sol['day']", sol['day'], "day", day
+#                print "sol['month']", sol['month'], "day", day
                 if sol['day'] != day :
                     self.__next_hour(0,sol)
                     self.__next_minute(0, sol)
                     return False
                 return True
-            else :
+            else:
                 flag = self.__next_month(sol['month']+1, sol)
                 if flag :
-                    return self.__next_day(0, sol)
+#                    print "flag!"
+                    #return self.__next_day(1, sol)
+                    self.__next_day(1, sol)
+                    self.__next_hour(0,sol)
+                    self.__next_minute(0, sol)
+                    #return False
                 return False
 
         # if we don't have all the weekdays means that we need to use
@@ -381,6 +398,7 @@ class SimpleCrontabEntry(object):
     def prev_run(self, time = datetime.datetime.now()):
         """Calculates when the previous execution was."""
         base = self.next_run(time)
+#        print "Ya se ha calculado la siguente vez: %s" % base
         # minute
         prev_minute, carry = self.__prev_time(self.fields['minute'], base.minute)
         min_diff = datetime.timedelta(minutes=(base.minute - prev_minute))
@@ -401,11 +419,26 @@ class SimpleCrontabEntry(object):
             # day
             while True:
                 try:
+#                    print "__prev_time day"
                     prev_day, carry_day = self.__prev_time(self.fields['day'], tmp_base.day)
+#                    print "prev_day", prev_day
+#                    print "carry_day", carry_day
                     break
                 except ValueError:
                     tmp_base -= datetime.timedelta(days = 1)
-            day_diff = datetime.timedelta(days=(base.day - prev_day))
+#            print "base.day", base.day
+#            print "prev_day", prev_day
+#            print "carry_day", carry_day
+            if carry_day:
+                if base.month < 11:
+                    no_days = monthrange(base.year, base.month + 1)[1]
+                else:
+                    no_days = monthrange(base.year + 1, 1)[1]
+#                print "dias de diferencia:", no_days - prev_day + base.day
+                day_diff = datetime.timedelta(days=(no_days - prev_day + base.day))
+            else:
+                day_diff = datetime.timedelta(days=(base.day - prev_day))
+#            print "day_diff", day_diff
             
             prev_weekday, carry_weekday = self.__prev_time(self.fields['weekday'], base.weekday()+1)
 #            print "prev_weekday: %s" % prev_weekday
@@ -459,7 +492,11 @@ class SimpleCrontabEntry(object):
             else :
                 carry = carry_day
 
+#            print "day_diff", day_diff
+#            print "base", base
             base -= day_diff
+#            print "base", base
+#            print "carry", carry
             if not carry :
                 return base
 
@@ -468,6 +505,7 @@ class SimpleCrontabEntry(object):
                 if not previous_months:
 #                    print "Mes anterior cuidado -----------------------------------------------------"
 #                    print "base: %s    base.month: %s" % (base, base.month)
+#                    print "tmp_base: %s    tmp_base.month: %s" % (tmp_base, tmp_base.month)
                     prev_month, carry = self.__prev_time(self.fields['month'], tmp_base.month)
 #                    print "prev_month: %s   carry: %s" % (prev_month, carry)
                     month_diff = datetime.date(base.year, base.month, base.day) - \
@@ -504,7 +542,6 @@ class SimpleCrontabEntry(object):
         return True
 
 if __name__ == "__main__" :
-    print "Inicio del test de los jueves y viernes"
     cron_job_list = '''00 03 * * 2,5
 00 02 * * 1,6
 00 01 * * 1,2,3,4,5
@@ -523,8 +560,12 @@ if __name__ == "__main__" :
 58 02 * * 1,2,3,4,5,6
 00 03 30 * *
 00 16 * * 7'''
-#    cron_job_list = '''
+    cron_job_list = '''00 03 * * 6'''
+    cron_job_list = '''30 01 15 * *'''
+    cron_job_list = '''30 01 * * *'''
+    cron_job_list = '''00 03 2 * *'''
     d = datetime.datetime(2012, 4, 1)
+    d = datetime.datetime.now()
     for cron_job_def in cron_job_list.split('\n'):
         print "--------------------------- %s -----------------------------" % cron_job_def
         sce = SimpleCrontabEntry(cron_job_def)

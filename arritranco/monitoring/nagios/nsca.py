@@ -66,7 +66,7 @@ class NSCA:
     def get_nagios_status(self):
         out = ""
         for host, service, status, message in self.nagios_status:
-            result = u'%s\t%s\t%s\t%s\n' % (host, service, status, message)
+            result = u'%s\t%s\t%s\t%s\n' % (host, service, status, message.replace('\n', ' '))
             out += result
         return out.encode('utf-8')
 

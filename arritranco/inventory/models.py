@@ -40,12 +40,15 @@ EPO_LEVELS = (
     (30, _(u'Service Lost. CRITICAL service')),
 )
 
-HYPERVISOR_HOSTS = (
-    (0, _(u'Undefined')),
-    (1, _(u'VM Ware')),
-    (2, _(u'Kernel Virtual Machine')), 
-)
+UNDEF_HYPERVISOR = 0
+VMWARE_HYPERVISOR = 1
 KVM_HYPERVISOR = 2
+
+HYPERVISOR_HOSTS = (
+    (UNDEF_HYPERVISOR, _(u'Undefined')),
+    (VMWARE_HYPERVISOR, _(u'VM Ware')),
+    (KVM_HYPERVISOR, _(u'Kernel Virtual Machine')), 
+)
 
 UPS_CHOICES = (
     (0, 'Sin UPS'),
@@ -108,7 +111,7 @@ class Machine(models.Model):
     os = models.ForeignKey(OperatingSystem, blank = True, null = True)
     start_up = models.DateField(_(u'start up'), blank = True, null = True)
     update_priority = models.IntegerField(_(u'Update priority'), choices = UPDATE_PRIORITY, default = 30)
-#   fecha_ultima_actualizacion = models.DateField('Actualizada', blank=True, null=True)
+    up_to_date_date = models.DateField(_(u'update date'), blank=True, null=True)
     epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 0)    
     networks = models.ManyToManyField(Network, help_text = _(u'Networks where machine is coneccted through his interfaces'), through = 'Interface')
 
@@ -162,8 +165,13 @@ class Machine(models.Model):
     @staticmethod
     def get_by_addr(addr):
         try:
-            return Machine.objects.get(fqdn = socket.getfqdn(addr))
+            return Machine.objects.get(interface__ip = addr, up = True)
         except Machine.DoesNotExist:
+            try:
+                return Machine.objects.get(fqdn = socket.getfqdn(addr))
+            except Machine.DoesNotExist:
+                return None
+        except Machine.MultipleObjectsReturned:
             return None
     
     def responsibles(self):
@@ -231,16 +239,15 @@ class Interface(models.Model):
 
     def save(self, *args, **kwargs):
         """ Assigning the net to which this interface belongs to. """
-        
+        logger.debug("Calling Interface Save method")
         ip = IPy.IP(self.ip).int()
         nets =  Network.objects.filter(first_ip_int__lte = ip, last_ip_int__gte = ip).order_by('size')
         if nets:
-            logger.debug("Hay net y la asignamos %s" % nets[0])
+            logger.debug("There is net and assign: %s" % nets[0])
             self.network = nets[0]
-            logger.debug("Ahora self network: %s" % self.network)
+            logger.debug("Result of asignation is: %s" % self.network)
         super(Interface,self).save(*args,**kwargs)
-        logger.debug("SAVE DE INTERFACE DATOS: %d - %s" % (self.id,self))
-        logger.debug("Despues del super self network: %s" % self.network)
+        logger.debug("Saved Interface: %d - %s" % (self.id,self))
 
 
 class VirtualMachine(Machine):

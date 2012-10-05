@@ -41,6 +41,30 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
+# Static media lives
+STATIC_URL = '/static/'
+
+# Static filesystem path
+STATIC_ROOT = os.path.join(os.path.dirname(__file__), 'deployed-static')
+
+# List of finder classes that know how to find static files in
+# various locations.
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+)
+
+# Additional locations of static files
+STATICFILES_DIRS = (
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    os.path.join(os.path.dirname(__file__), 'arritranco-static'),
+)
+
+
+
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
 MEDIA_ROOT = PROJECT_ROOT + '/media/'
@@ -53,7 +77,7 @@ MEDIA_URL = ''
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '9u)uyfcmr*p9m6d=km@r@(0bzvoi*nt^_9*yy)-h)+-o&$6z=5'
@@ -72,7 +96,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
@@ -89,23 +113,24 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.messages',
     'django_extensions',
     'south',
+#    'debug_toolbar',
+    'djangorestframework',
+    'monitoring.nagios',
+    'monitoring.cacti',
+    'monitoring',
     'location',
     'hardware',
-    'debug_toolbar',
     'scheduler',
     'inventory',
     'hardware_model',
     'network',
     'backups',
-    'djangorestframework',
-    'monitoring.nagios',
-    'monitoring.cacti',
-    'monitoring',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
@@ -129,6 +154,7 @@ FILE_BACKUP_CHECKERS = (
 # If None or False no default parent will set.
 DEFAULT_NAGIOS_HOST_PARENT = None
 DEFAULT_NAGIOS_CG = 'grupo-sistemas'
+DEFAULT_NAGIOS_CG = 'Sistemas'
 PROPAGATE_STATUS_TO_NAGIOS = False
 SEND_NSCA_BIN = '/usr/sbin/send_nsca'
 NSCA_DAEMON_HOSTNAME = 'nagios.fully.qualified.domain.name'
@@ -183,6 +209,12 @@ LOGGING = {
         },
     }
 }
+
+UPS_ROOM_NAMES = ('cpd',)
+
+MAX_COMPRESS_GB = 400
+
+PX_FOR_UNITS=15
 
 try:
     from settings_local import *

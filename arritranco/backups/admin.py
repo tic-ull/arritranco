@@ -22,10 +22,22 @@ class FileBackupTaskAdmin(admin.ModelAdmin):
     search_fields = ['machine__fqdn', 'directory', 'checker_fqdn', 'description']
     inlines = [FileBackupProductInline, ]  
 
+class BackupFileAdmin(admin.ModelAdmin):
+    list_display = ('original_file_name', 'original_date', 'original_file_size_display', 'machine', 'checker', 'deletion_date')
+    search_fields = ['original_file_name', 'compressed_file_name', 'file_backup_product__file_backup_task__machine__fqdn']
+    raw_id_fields = ('file_backup_product', 'task_check')
+
+class FileNamePatternAdmin(admin.ModelAdmin):
+    search_fields = ['pattern', ]
+
+class TSMBackupTaskAdmin(admin.ModelAdmin):
+    list_display = ('machine', 'description', 'tsm_server', )
+    list_filter = ('bckp_type', 'tsm_server')
+    list_editable = ('tsm_server', )
+    search_fields = ['machine__fqdn', 'tsm_server', 'description']
+
 admin.site.register(FileBackupTask, FileBackupTaskAdmin)
-admin.site.register(FileNamePattern)
+admin.site.register(TSMBackupTask, TSMBackupTaskAdmin)
+admin.site.register(FileNamePattern, FileNamePatternAdmin)
 admin.site.register(R1BackupTask)
-admin.site.register(TSMBackupTask)
-#admin.site.register(FileBackupProduct, FileBackupProductAdmin)
-admin.site.register(BackupFile)
-#admin.site.register(BackupTask)
+admin.site.register(BackupFile, BackupFileAdmin)
