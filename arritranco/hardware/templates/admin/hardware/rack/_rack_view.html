@@ -1,9 +1,9 @@
 {% if rack.rackserver_set.count or rack.chassis_set.count %}
-<div class="rack" style="height: {{ rack.get_render_height}}px;">
+<div class="rack" style="height: {{ rack.get_render_height }}px;">
     <h3><a href="{% url room-rack-view r.slug rack.slug %}">{{ rack.name }}</a></h3>
 
     {% for s in rack.rackserver_set.all %}
-        <div class="server" style="height: {{s.model.rackablemodel.get_render_height }}px; bottom: {{ s.get_render_offset}}px;" >
+        <div class="server" style="height: {{ s.model.rackablemodel.get_render_height }}px; bottom: {{ s.get_render_offset }}px;" >
         {% include "admin/hardware/rack/_server_tooltip.html" with obj=s type='server'%}
         {% if s.get_running_machine %}{{ s.get_running_machine }}{% else %}{{ s.serial_number }}{% endif %}
         </div>

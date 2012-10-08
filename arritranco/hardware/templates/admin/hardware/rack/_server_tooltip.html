@@ -1,3 +1,4 @@
+{% load i18n %}
 <span id="title">{{ obj.serial_number }}
 {% ifequal type 'chasis' %}
 {% endifequal %}
@@ -13,7 +14,7 @@
     {% if type == 'server' or type == 'bladeserver' %}
     <b>Serial number:</b> <a href="{% if type == 'server' %}{% url admin:hardware_rackserver_change obj.id %}{% else %}{% url admin:hardware_bladeserver_change obj.id %}{% endif %}">{{ obj.serial_number }}</a></br>
     {% if obj.get_running_machine %}
-        <b>Machine:</b> <a href="{% url admin:inventory_physicalmachine_change obj.get_running_machine.id %}">{{ obj.get_running_machine }}</a></br>
+        <b>{% trans "Machine" %}:</b> <a href="{% url admin:inventory_physicalmachine_change obj.get_running_machine.id %}">{{ obj.get_running_machine }}</a></br>
         <b>OS:</b> {{ obj.get_running_machine.os }}</br>
     {% endif %}
     {% endif %}

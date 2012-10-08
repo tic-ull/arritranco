@@ -37,7 +37,7 @@ class RackServerAdmin(RackableAdmin):
 
 class BladeServerAdmin(HwAdmin):
     list_display = HwAdmin.list_display  + ('chassis', ) + SERVER_LIST_DISPLAY
-    list_filter = HwAdmin.list_filter + ('chassis', 'chassis__rack__room__building' )
+    list_filter = ('model__name', 'chassis', 'chassis__rack__room__building' )
     inlines = [HardDiskInline, ]  
 
 class ChasisAdmin(RackableAdmin):

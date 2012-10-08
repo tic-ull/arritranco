@@ -108,6 +108,7 @@ class VirtualMachineAdmin(MachineAdmin):
     list_filter = ('hypervisor', 'up', 'os', 'update_priority', 'epo_level', 'networks')
     list_editable = ('hypervisor',)
 
+
 class InterfaceAdmin(admin.ModelAdmin):
     list_display = ('ip', 'visible', 'machine', 'network')
     list_filter = ('visible','machine','network')
@@ -124,3 +125,4 @@ admin.site.register(OperatingSystem, OperatingSystemAdmin)
 admin.site.register(OperatingSystemType)
 admin.site.register(Interface, InterfaceAdmin)
 admin.site.register(Machine, MachineAdmin)
+
