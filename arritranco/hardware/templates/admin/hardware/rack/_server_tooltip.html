@@ -16,6 +16,7 @@
     {% if obj.get_running_machine %}
         <b>{% trans "Machine" %}:</b> <a href="{% url admin:inventory_physicalmachine_change obj.get_running_machine.id %}">{{ obj.get_running_machine }}</a></br>
         <b>OS:</b> {{ obj.get_running_machine.os }}</br>
+        <b>EPO:</b> {{ obj.get_running_machine.get_epo_level_display }}</br>
     {% endif %}
     {% endif %}
     {% if type == 'chasis' %}
