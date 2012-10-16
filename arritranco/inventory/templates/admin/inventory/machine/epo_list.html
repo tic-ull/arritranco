@@ -1,0 +1,45 @@
+{% extends "admin/inventory/machine/custom_machine_list.html" %}
+{% load adminmedia admin_list i18n %}
+
+{% block changelist %}
+<div class="results">
+    <form id="changelist-form" method="post" action="">
+    <table id="result_list">
+        <thead>
+            <tr>
+                <th scope="col" style="width: 1em;">{% trans "Nº" %}</th>
+                <th scope="col">{% trans "FQDN" %}</th>
+                <th scope="col">{% trans "OS" %}</th>
+                <th scope="col">{% trans "Service IP" %}</th>
+                <th scope="col">{% trans "EPO" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in object_list %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ forloop.counter }}</td>
+                <th>{% if m.physicalmachine %}
+                        <a href="{% url admin:inventory_physicalmachine_change m.id %}">
+                    {% endif %}
+                    {% if m.virtualmachine %}
+                        <a href="{% url admin:inventory_virtualmachine_change m.id %}">
+                    {% endif %}
+                    {{ m.fqdn }}</a>
+                </th>
+                <td>{{ m.os }}</td>
+                <td>
+                    {% if m.os.type.name == 'Linux' %}
+                        <a href="ssh://adminsis@{{ m.fqdn }}/{{ m.fqdn }}">{{ m.get_service_ip }}</a>
+                    {% endif %}
+                    {% if m.os.type.name == 'Windows' %}
+                        <a href="rdesktop://adminsis@{{ m.fqdn }}/{{ m.fqdn }}">{{ m.get_service_ip }}</a>
+                    {% endif %}
+                </td>
+                <td>{{ m.get_epo_level_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </form>
+</div>
+{% endblock %}

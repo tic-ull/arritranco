@@ -70,6 +70,7 @@ class NagiosCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ('check__name','machine__fqdn')
     list_filter = ('contact_groups','check',)
 
+
 class NagiosContactGroupAdmin(admin.ModelAdmin):
     actions = ['delete_contact',]
 
@@ -88,6 +89,7 @@ class NagiosContactGroupAdmin(admin.ModelAdmin):
                 messages.warning(request, _(u'Contact %s can not be deleted while having check notifications active' % contact))
                     
     delete_contact.verbose_name = _(u'Delete selected contacts')
+
 
 class NagiosNetworkParentAdmin(admin.ModelAdmin):
     list_display = ('network','parent')
