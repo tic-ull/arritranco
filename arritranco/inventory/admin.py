@@ -35,7 +35,7 @@ class InterfacesInline(admin.TabularInline):
 
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('fqdn', 'up', 'os', 'start_up', 'update_priority', 'epo_level', 'network_names')
-    list_filter = ('up', 'os', 'update_priority', 'epo_level', 'networks')
+    list_filter = ('up', 'os', 'update_priority', 'epo_level')
     date_hierarchy = 'start_up'
     search_fields = ('fqdn', 'os__name', 'networks__desc', 'networks__ip')
     inlines = [InterfacesInline, NagiosCheckOptsInline,]
