@@ -427,13 +427,16 @@ class SimpleCrontabEntry(object):
                 except ValueError:
                     tmp_base -= datetime.timedelta(days = 1)
 #            print "base.day", base.day
+#            print "base.month", base.month
 #            print "prev_day", prev_day
 #            print "carry_day", carry_day
             if carry_day:
-                if base.month < 11:
-                    no_days = monthrange(base.year, base.month + 1)[1]
-                else:
-                    no_days = monthrange(base.year + 1, 1)[1]
+#                if base.month <= 11:
+#                    no_days = monthrange(base.year, base.month + 1)[1]
+#                else:
+#                    no_days = monthrange(base.year + 1, 1)[1]
+                no_days = monthrange(base.year, base.month - 1)[1]
+#                print "no_days", no_days
 #                print "dias de diferencia:", no_days - prev_day + base.day
                 day_diff = datetime.timedelta(days=(no_days - prev_day + base.day))
             else:
@@ -564,6 +567,7 @@ if __name__ == "__main__" :
     cron_job_list = '''30 01 15 * *'''
     cron_job_list = '''30 01 * * *'''
     cron_job_list = '''00 03 2 * *'''
+    cron_job_list = '''30 01 4 * *'''
     d = datetime.datetime(2012, 4, 1)
     d = datetime.datetime.now()
     for cron_job_def in cron_job_list.split('\n'):
