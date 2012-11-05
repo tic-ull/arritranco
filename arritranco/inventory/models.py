@@ -194,7 +194,6 @@ class Machine(models.Model):
         except Machine.DoesNotExist:
             return None
     
-    
     def responsibles(self):
         """ String with all responsibles for notification on nagios """
         groups = set()

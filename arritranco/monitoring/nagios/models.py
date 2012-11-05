@@ -41,6 +41,7 @@ class NagiosCheck(models.Model):
         """ Returns all NagiosCheckOpts items which contains machine and options for the NagiosCheck """
         return self.nagioscheckopts_set.filter(machine__up = True).order_by('-machine__os__type__name', 'machine__fqdn')
 
+
 class NagiosCheckOpts(models.Model):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
     check = models.ForeignKey(NagiosCheck)
@@ -60,6 +61,7 @@ class NagiosCheckOpts(models.Model):
         return ", ".join([x.ngcontact for x in self.contact_groups.all()])
     get_ngcontact_groups.short_description = _(u'Contact groups assigned')
     get_ngcontact_groups.admin_order_field = 'contact_groups'
+
 
 class NagiosContactGroup(Responsible):
     """ A nagios concatc group to recieve alerts """
@@ -99,6 +101,7 @@ class NagiosNetworkParent(models.Model):
         if not nagios_parents:
             return settings.DEFAULT_NAGIOS_HOST_PARENT
         return ', '.join(nagios_parents)
+
 
 def propagate_status(sender, **kwargs):
     if not settings.PROPAGATE_STATUS_TO_NAGIOS:
