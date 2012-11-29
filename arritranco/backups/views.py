@@ -222,7 +222,10 @@ class FilesToCompressView(ResponseMixin, View):
     renderers = DEFAULT_RENDERERS
 
     def get(self, request):
-        machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+        if request.GET.has_key('checker'):
+            machine = Machine.get_by_addr(request.GET['checker'])
+        else:
+            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
         if not machine:
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
@@ -261,7 +264,10 @@ class FilesToDeleteView(ResponseMixin, View):
                  )
 
     def post(self, request):
-        machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+        if request.GET.has_key('checker'):
+            machine = Machine.get_by_addr(request.GET['checker'])
+        else:
+            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
         if not machine:
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
