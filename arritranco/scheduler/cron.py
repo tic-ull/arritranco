@@ -435,7 +435,11 @@ class SimpleCrontabEntry(object):
 #                    no_days = monthrange(base.year, base.month + 1)[1]
 #                else:
 #                    no_days = monthrange(base.year + 1, 1)[1]
-                no_days = monthrange(base.year, base.month - 1)[1]
+                if (base.month == 1):
+                    no_days = monthrange(base.year - 1, 12)[1]
+                    carry_day = False
+                else:
+                    no_days = monthrange(base.year, base.month - 1)[1]
 #                print "no_days", no_days
 #                print "dias de diferencia:", no_days - prev_day + base.day
                 day_diff = datetime.timedelta(days=(no_days - prev_day + base.day))
@@ -568,6 +572,7 @@ if __name__ == "__main__" :
     cron_job_list = '''30 01 * * *'''
     cron_job_list = '''00 03 2 * *'''
     cron_job_list = '''30 01 4 * *'''
+    cron_job_list = '''17 4 3 * *'''
     d = datetime.datetime(2012, 4, 1)
     d = datetime.datetime.now()
     for cron_job_def in cron_job_list.split('\n'):
