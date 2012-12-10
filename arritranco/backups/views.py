@@ -53,7 +53,7 @@ class BackupFileCheckerView(ResponseMixin, View):
                 }
             for product in FileBackupProduct.objects.filter(file_backup_task = fbt):
                 task['files'].append({
-                    'pattern':product.file_pattern.pattern,
+                    'pattern':product.file_pattern.pattern.strip(),
                     'start_seq':product.start_seq,
                     'end_seq':product.end_seq,
                     'variable_percentage':product.variable_percentage,
