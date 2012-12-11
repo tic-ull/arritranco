@@ -363,7 +363,7 @@ class Command(BaseCommand):
                 # Añadir todos los chequeos de nagios correspondientes
                 for n in NagiosCheck.objects.filter(default = True):
                     nco = NagiosCheckOpts.objects.create(machine = new_obj, check = n)
-                    nco.contactgoups.add(NagiosContactGroup.objects.get(pk=1))
+                    nco.contact_groups.add(NagiosContactGroup.objects.get(pk=1))
                     nco.save()
             self._update_ref(planificaciones, 'maquina', pk, new_obj)
 

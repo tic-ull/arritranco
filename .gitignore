@@ -8,4 +8,7 @@ arritranco/.pydevproject
 arritranco/dev.db
 arritranco/dev.db-journal
 arritranco/settings_local.py
+arritranco/import_data.sh
+arritranco/scheduler/test.py
+arritranco/static/
 virtualenv/
