@@ -72,7 +72,7 @@ class MachineAdmin(admin.ModelAdmin):
                 fqdn_iface.save()
                 messages.info(request, _(u'The iface %s has been renamed to default service interface' % machine.get_service_iface()))    
 
-    class CopyMachine(forms.Form):
+    class CopyMachineForm(forms.Form):
         _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
 
     # First approach, this is a TODO
@@ -83,7 +83,7 @@ class MachineAdmin(admin.ModelAdmin):
             messages.info(request, _(u'The action has been applied'))
             return HttpResponseRedirect(request.get_full_path())
         if not form: # first call render the form to ask for diferent parametters
-            form = self.ConfirmDeleteForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+            form = self.CopyMachineForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
         return render_to_response('admin/copy_machine.html', {'machines': queryset,
                                                          'copy_form': form,
                                                         }, context_instance = RequestContext(request))

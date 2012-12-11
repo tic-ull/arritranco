@@ -2,19 +2,23 @@ from django.db import models
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
+from validators import validate_day_of_month, validate_day_of_week, validate_hour, validate_minute, validate_month
+
 import datetime
 from cron import *
+from croniter import croniter
+
 
 
 class Task(models.Model):
     """
         This model define a simple task. You shoud extend it to personalize as much as you wish.
     """
-    minute = models.CharField(max_length = 10, help_text = _('Minute (Cron like syntax)'), default = '*')
-    hour = models.CharField(max_length = 10, help_text = _('Hour (Cron like syntax)'), default = '*')
-    monthday = models.CharField(max_length = 10, help_text = _('Day of moth (Cron like syntax)'), default = '*')
-    month = models.CharField(max_length = 10, help_text = _('Month (Cron like syntax)'), default = '*')
-    weekday = models.CharField(max_length = 40, help_text = _('Day of week (Cron like syntax)'), default = '*')
+    minute = models.CharField(max_length = 10, help_text = _('Minute (Cron like syntax)'), default = '*', validators=[validate_minute])
+    hour = models.CharField(max_length = 10, help_text = _('Hour (Cron like syntax)'), default = '*', validators=[validate_hour])
+    monthday = models.CharField(max_length = 10, help_text = _('Day of moth (Cron like syntax)'), default = '*', validators=[validate_day_of_month])
+    month = models.CharField(max_length = 10, help_text = _('Month (Cron like syntax)'), default = '*', validators=[validate_month])
+    weekday = models.CharField(max_length = 40, help_text = _('Day of week (Cron like syntax)'), default = '*', validators=[validate_day_of_week])
     description = models.TextField(help_text = _('Task description'))
     active = models.BooleanField(help_text = _('Is this task active?'), default = True)
 
@@ -24,18 +28,21 @@ class Task(models.Model):
     def __unicode__(self):
         return "%s: %s" % (self.cron_syntax(), self.description)
 
+    def _get_croniter_entry(self,start_time):
+        return croniter(self.cron_syntax(),start_time)
     def _get_crontab_entry(self):
         return SimpleCrontabEntry(self.cron_syntax())
-
     def next_run(self, start_time = None):
         if not start_time:
             start_time = datetime.datetime.now()
-        return self._get_crontab_entry().next_run(start_time)
+        #return self._get_crontab_entry().next_run(start_time)
+        return self._get_croniter_entry(start_time).get_next(datetime.datetime)
 
     def last_run(self, start_time = None):
         if not start_time:
             start_time = datetime.datetime.now()
-        return self._get_crontab_entry().prev_run(start_time)
+        #return self._get_crontab_entry().prev_run(start_time)
+        return self._get_croniter_entry(start_time).get_prev(datetime.datetime)
 
     @staticmethod
     def todo(start_time = None, end_time = None, queryset = None):
