@@ -104,6 +104,9 @@ def add_backup_file(request, machine = False, windows = False):
         logger.debug('Unix file')
         try:
             filedate = datetime.datetime.fromtimestamp(float(request.GET['filedate']))
+            # Croniter doest not get seconds difference, to ensure last_run is this run we increment 1 min to filetime
+            filedate = filedate + datetime.timedelta(minutes=1)
+
         except ValueError, e:
             logger.error(e)
             return HttpResponse(e)
