@@ -261,7 +261,7 @@ class Interface(models.Model):
 
     def save(self, *args, **kwargs):
         """ Assigning the net to which this interface belongs to. """
-        logger.debug("Calling Interface Save method")
+        logger.debug("Calling Interface Save method IP: %s", self.ip)
         ip = IPy.IP(self.ip).int()
         nets =  Network.objects.filter(first_ip_int__lte = ip, last_ip_int__gte = ip).order_by('size')
         if nets:

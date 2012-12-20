@@ -1,6 +1,10 @@
 {% extends "admin/inventory/machine/custom_machine_list.html" %}
 {% load adminmedia admin_list i18n %}
 
+{% block breadcrumb_list_description %}{% trans "EPO list" %}{% endblock %}
+
+{% block list_title %}{% trans "EPO list" %}{% endblock %}
+
 {% block changelist %}
 <div class="results">
     <form id="changelist-form" method="post" action="">

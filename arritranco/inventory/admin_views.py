@@ -8,6 +8,9 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 import datetime
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class ActiveMachinesView(TemplateView):
     template_name = "admin/inventory/machine/active-machines.html"
@@ -36,6 +39,7 @@ def filter_by_room(machines, room):
     """
         Returns a qs of machines in a room
     """
+    logger.debug("Filtering machines in room %s" % room)
     filtered_machines = []
     for m in machines:
         try:
@@ -56,8 +60,8 @@ def filter_by_room(machines, room):
             if bs.chassis.rack.room.slug == room:
                 filtered_machines.append(m)
         except ObjectDoesNotExist, e:
-            # It is a physical server but neither rack server nor blade server 
             # This shouldn't happen
+            logger.warning('%s is a physical server but neither rack server nor blade server' % m)
             pass
     return filtered_machines
             
