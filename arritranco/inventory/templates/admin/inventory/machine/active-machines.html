@@ -18,6 +18,8 @@
             <th scope="col">{% trans "Service IP" %}</th>
             <th scope="col">{% trans "EPO" %}</th>
             <th scope="col">{% trans "Location" %}</th>
+            <th scope="col">{% trans "Drac IP" %}</th>
+            <th scope="col">{% trans "Garantia" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -67,6 +69,14 @@
                 </a>
                 {% else %}
                     {% trans "Virtual machine" %}
+                {% endif %}
+            </td>
+            <td>{% if m.physicalmachine %}
+                    <a href="http://{{ m.physicalmachine.server.management_ip }}">{{ m.physicalmachine.server.management_ip }}</a>
+                {% endif %}
+            </td>
+            <td>{% if m.physicalmachine %}
+                    {{ m.physicalmachine.server.warranty_expires }}
                 {% endif %}
             </td>
         </tr>

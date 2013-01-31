@@ -44,6 +44,9 @@ class HwModel(models.Model):
     def __unicode__(self):
         return u"%s -- %s (%s)" % (self.manufacturer, self.name, self.type)
     
+    class Meta:
+        ordering = ['name', ]
+
 class RackableModel(HwModel):
     units = models.IntegerField()
     

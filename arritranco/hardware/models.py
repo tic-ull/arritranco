@@ -26,6 +26,9 @@ class HwBase(models.Model):
     warranty_expires = models.DateField(blank=True, null=True)
     buy_date = models.DateField(blank=True, null=True)
     
+    class Meta:
+        ordering = ['model', 'serial_number']
+
     def __unicode__(self):
         return u"%s" % self.model.name
 
@@ -108,6 +111,7 @@ class Server(HwBase):
             return self.physicalmachine_set.get(up = True)
         except ObjectDoesNotExist:
             return None
+
 
 class Chassis(HwBase, RackPlace):
     """A chassis is a hardware where we can plug servers, network cards, etc.

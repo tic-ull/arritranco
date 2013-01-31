@@ -223,7 +223,8 @@ class Machine(models.Model):
         if vm.hypervisor == KVM_HYPERVISOR:
             return True
 
-        return not (vm.epo_level in [20,30])
+        # VMware
+        return False
 
     def build_service_interface(self):
         """Returns an Interface with the values of the default service interface for de machine instance.
