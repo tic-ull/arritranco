@@ -1,13 +1,18 @@
 {% extends "admin/base_site.html" %}
 
+{% block extrahead %}
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" ></script>
+{% endblock%}
+
 {% block content %}
 
-<p>Confirmaci&oacute;n del borrado:</p>
+
+<p>Confirmaci&oacute;n de datos:</p>
 
 <form action="" method="post">
     {% csrf_token %}
-
-    {{ confirm_form }}
+asdfasdfasdf
+    {{ copy_form.as_p }}
 
     {% if machines %}
     Hay machine {{ machines }}

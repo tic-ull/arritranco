@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 MACHINE_NOT_FOUND_ERROR = 'Machine object not found'
 
+
 class BackupFileCheckerView(ResponseMixin, View):
     """An example view using Django 1.3's class based views.
     Uses djangorestframework's RendererMixin to provide support for multiple output formats."""
