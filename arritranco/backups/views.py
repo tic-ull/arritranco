@@ -2,7 +2,6 @@
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.views.generic import TemplateView
 from djangorestframework.compat import View
 from djangorestframework.mixins import ResponseMixin
 from djangorestframework.renderers import DEFAULT_RENDERERS
@@ -84,7 +83,7 @@ def add_backup_file(request, machine = False, windows = False):
     if not request.GET.has_key ('filedate'):
         logger.error('No file date in request')
         raise Http404("Filedate")
-
+    #FIXME: check if windows part is necesary.
     if windows and not request.GET.has_key ('filetime'):
         logger.error('No file time in request')
         raise Http404("Filetime")
@@ -99,7 +98,7 @@ def add_backup_file(request, machine = False, windows = False):
         logger.debug('Windows file')
         filedate = map(int, request.GET['filedate'].split ('/'))
         filetime = map (int, request.GET['filetime'].split (':'))
-        filedate = datetime.datetime.now (filedate[2], filedate[1], filedate[0], filetime[0], filetime[1], filetime[2])
+        filedate = datetime.datetime(filedate[2], filedate[1], filedate[0], filetime[0], filetime[1], filetime[2])
         filesize = 0
     else:
         logger.debug('Unix file')
@@ -146,9 +145,7 @@ def add_backup_file(request, machine = False, windows = False):
     return HttpResponse("Ok")
 
 def register_file_from_checker(request):
-    """
-        Asocia un fichero con su planificación partiendo del repositorio de copias.
-    """
+    """Associate a file with his schedule from the copies repo."""
     if not request.GET.has_key('host'):
         logger.warning("Host missing calling register_file_from_checker")
         raise Http404("Host missing")
@@ -161,9 +158,7 @@ def register_file_from_checker(request):
     return add_backup_file(request, machine)
 
 def add_compressed_backup_file (request):
-    """
-        Asocia un fichero comprimido a una su fichero de backup.
-    """
+    """Compressed file tied with original backup file."""
     id = directory = compressedmd5 = originalmd5 = None
 
     if request.GET.has_key('checker'):

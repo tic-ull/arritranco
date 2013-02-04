@@ -1,4 +1,3 @@
-# coding: utf-8
 
 from django.db import models
 from hardware.models import Server
@@ -112,7 +111,7 @@ class Machine(models.Model):
     start_up = models.DateField(_(u'start up'), blank = True, null = True)
     update_priority = models.IntegerField(_(u'Update priority'), choices = UPDATE_PRIORITY, default = 30)
     up_to_date_date = models.DateField(_(u'update date'), blank=True, null=True)
-    epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 0)    
+    epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 1)
     networks = models.ManyToManyField(Network, help_text = _(u'Networks where machine is coneccted through his interfaces'), through = 'Interface')
 
     class Meta:
@@ -139,7 +138,7 @@ class Machine(models.Model):
             # The fqdn is not in the DNS
             ip = None
         except Exception as e:
-            logger.exception("Unknown error resolving DNS name for '%s': %s" % (fqdn, e)) 
+            logger.exception("Unknown error resolving DNS name for '%s': %s" % (self.fqdn, e))
             ip = None
         return ip
 
@@ -165,13 +164,19 @@ class Machine(models.Model):
         return service_ip
 
     @staticmethod
-    def get_by_addr(addr):
+    def get_by_addr(addr, filter_up = False):
         """
-            Returns a machine by a IP or a DNS name
+            Returns a machine by a IP or a DNS name.
+
+            addr: addrees or FQDN of the machine.
+            filter_up: decide either yes or not wer want only up machines on results.
         """
         try:
             # Search by IP
-            return Machine.objects.get(interface__ip = addr, up = True)
+            if filter_up:
+                return Machine.objects.get(interface__ip = addr, up = True)
+            else:
+                return Machine.objects.get(interface__ip = addr)
         except Machine.DoesNotExist:
             # It's ok, we'll try searching by name
             pass
@@ -181,7 +186,10 @@ class Machine(models.Model):
 
         try:
             # Search by Name
-            return Machine.objects.get(fqdn = addr, up = True)
+            if filter_up:
+                return Machine.objects.get(fqdn = addr, up = True)
+            else:
+                return Machine.objects.get(fqdn = addr)
         except Machine.DoesNotExist:
             # It's ok too, our last try will be a reverse DNS search
             pass

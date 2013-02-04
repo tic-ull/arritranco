@@ -1,11 +1,11 @@
+# -*- coding: utf-8 -*-
 from django.db import models
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save
 from django.conf import settings
 from scheduler.models import TaskStatus
 from nsca import NSCA
 
 from django.utils.translation import ugettext_lazy as _
-from django.contrib import messages
 from inventory.models import Machine, PhysicalMachine, VirtualMachine
 from network.models import Network
 from monitoring.models import Responsible
@@ -75,8 +75,8 @@ class NagiosContactGroup(Responsible):
             super(NagiosContactGroup, self).delete(*args, **kwargs)
             return True
 
-    def __unicode(self):
-        return u"%s (%s)" % (self.name, self.ng_contact)
+    def __unicode__(self):
+        return u"%s (nagios: %s)" % (self.name, self.ngcontact)
 
 
 class NagiosNetworkParent(models.Model):

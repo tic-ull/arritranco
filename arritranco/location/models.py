@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
@@ -33,4 +34,3 @@ class Room(models.Model):
 
     def __unicode__(self):
         return u'%s (%s)' % (self.name , self.building.name)
- 
