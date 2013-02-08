@@ -78,9 +78,9 @@ class FileBackupTask(BackupTask):
         help_text=_(u"Machine fqdn where this backups shoud be checked."))
     directory = models.CharField(max_length=255,
         help_text=_(u'Directory where files shoud be.'))
-    days_in_hard_drive = models.IntegerField(blank=False, null=False, default=90,
+    days_in_hard_drive = models.IntegerField(blank=False, null=False, default=180,
         help_text=_(u'Number of days that this backup shoud be on disk at most.'))
-    max_backup_month = models.IntegerField(blank=False, null=False, default=60,
+    max_backup_month = models.IntegerField(blank=False, null=False, default=7,
         help_text=_(u'Number of backups that shoud to be on disk after a month.'))
 
     @staticmethod
