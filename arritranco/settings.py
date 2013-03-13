@@ -159,7 +159,7 @@ SEND_NSCA_BIN = '/usr/sbin/send_nsca'
 NSCA_DAEMON_HOSTNAME = 'nagios.fully.qualified.domain.name'
 SEND_NSCA_CFG = '/etc/send_nsca.cfg'
 
-# Configuracion del logging
+# Logging configuration
 LOG_FILENAME = os.path.join(PROJECT_ROOT, 'logs/arritranco.log')
 
 LOGGING = {
@@ -214,6 +214,11 @@ UPS_ROOM_NAMES = ('cpd',)
 MAX_COMPRESS_GB = 400
 
 PX_FOR_UNITS=15
+
+# Network settings
+SWITCH_LEVEL_SNMP_COMMUNITY_1 = ''
+BACKUP_METHOD_SFTP_USER = ''
+BACKUP_METHOD_SFTP_PASSWORD = ''
 
 try:
     from settings_local import *
