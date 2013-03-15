@@ -44,9 +44,9 @@ VMWARE_HYPERVISOR = 1
 KVM_HYPERVISOR = 2
 
 HYPERVISOR_HOSTS = (
-    (UNDEF_HYPERVISOR, _(u'Undefined')),
-    (VMWARE_HYPERVISOR, _(u'VMWare')),
-    (KVM_HYPERVISOR, _(u'KVM')), 
+    (UNDEF_HYPERVISOR, 'Undefined'),
+    (VMWARE_HYPERVISOR, 'VMWare'),
+    (KVM_HYPERVISOR, 'KVM'), 
 )
 
 UPS_CHOICES = (
