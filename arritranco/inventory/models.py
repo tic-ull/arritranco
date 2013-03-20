@@ -2,6 +2,8 @@
 from django.db import models
 from hardware.models import Server
 from network.models import Network
+from hardware.models import RackServer, Rack
+from location.models import Room
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
@@ -252,6 +254,7 @@ class Machine(models.Model):
         return 'Router_ccti1'
 
 
+
 class Interface(models.Model):
     """ Model to represent a machine network interface """
     machine = models.ForeignKey(Machine)
@@ -301,4 +304,21 @@ class PhysicalMachine(Machine):
     class Meta:
         verbose_name = _('Physical machine')
         verbose_name_plural = _('Physical machines')
+
+    def get_location(self):
+        """ returns location (physical) """
+        try:
+            server = RackServer.objects.filter(id=self.server.id)[0]
+            room   = Room.objects.filter(id=server.rack.room.id)[0]
+            location = {}
+            location['fqdn']      = self.fqdn
+            location['rack']      = server.rack.name
+            location['room']      = room.name
+            location['base_unit'] = server.base_unit
+
+            return location
+        except:
+            return None
+
+        return None
     
