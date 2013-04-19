@@ -1,0 +1,126 @@
+{% extends "admin/base_site.html" %}
+{% load adminmedia admin_list i18n %}
+{% block title %}{% trans "Backups grid" %}{% endblock %}
+{% block extrastyle %}
+<style type="text/css">
+body {
+    color: #5B80B2;
+    background-color: white;
+}
+
+.grid {
+    width: 1250px;
+    border-bottom: 1px solid #CDCDCD;
+    border-right: 1px solid #CDCDCD;
+    border-left: 1px solid #CDCDCD;
+}
+
+td {
+    width: 120px;
+}
+
+.day {
+    width:100%;
+    height: 45px;
+    border-top: 1px solid #CDCDCD;
+    clear: both;
+}
+
+.block {
+    height:45px;
+    float:left;
+}
+
+.backup {
+    border-left: 1px solid #EFEFEF;
+    border-right: 1px solid #EFEFEF;
+    background-color: #999999;
+    position:absolute;
+}
+
+.odd {
+    background-color: white;
+}
+
+.even {
+    background-color: #EDF3FE;
+}
+
+.machine {
+    width:200px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 14px;
+    background-color: #eeeeee;
+    border-right: 1px solid #CDCDCD;A
+}
+
+.machine div {
+    padding-top: 1em;
+}
+
+.info {
+    display:none;
+}
+
+#time {
+    position: absolute;
+    border: 1px solid #CDBA39;
+    background-color: #F1E987;
+    padding: 5px;
+    display:none;
+}
+
+#rule {
+    width: 1px;
+    border-left: 2px solid #CDBA39;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#colisiones {
+    display:none;
+    border: 1px solid red;
+    background-color: #FFBCBD;
+    padding: 1em;
+    color: red;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+#OK {
+     background-color: #bbbbbb;
+}
+
+#NOT_OK {
+     background-color: #FF3333;
+}
+
+</style>
+{% endblock extrastyle %}
+
+
+{% block content %}
+
+    {% block object-tools-items %}
+        <table border=1>
+          <tr><td>Fqdn</td><td>system</td><td>data</td><td>database</td><td>R1Soft</td><td>TSM</td></tr>
+    	{% for fqdn,lst_values in list_of_backups.items %}
+	  <tr>
+        	<td> 
+                {{  fqdn }} 
+        	</td>
+        	<td id="{{  lst_values.Sistemas}}">     </td>
+        	<td id="{{  lst_values.Datos}}">   	</td>
+        	<td id="{{  lst_values.Databases}}">	</td>
+        	<td id="{{  lst_values.R1Soft}}">	</td>
+        	<td id="{{  lst_values.TSM }}">		</td>
+          </tr>
+	{% endfor %}	
+        </table>
+
+
+    {% endblock object-tools-items %}
+{% endblock content %}
