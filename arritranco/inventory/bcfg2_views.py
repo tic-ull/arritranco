@@ -46,7 +46,7 @@ class MachinesUPSAssoc(ResponseMixin, View):
             realhyp = hypervisor[1]
             if (realhyp != 'Undefined'):
                 epo_list[realhyp] = []
-                for m in VirtualMachine.objects.filter(hypervisor = hypervisor[0]):
+                for m in VirtualMachine.objects.filter(hypervisor = hypervisor[0], up=True):
                     epo_list[realhyp].append({m.fqdn:m.get_epo_level_display()})
 
         response = Response(200, epo_list)

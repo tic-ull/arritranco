@@ -31,7 +31,7 @@ class RackableAdmin(HwAdmin):
     list_filter = HwAdmin.list_filter + ('rack__room__building', 'model')
 
 class RackServerAdmin(RackableAdmin):
-    list_display = HwAdmin.list_display  + SERVER_LIST_DISPLAY
+    list_display = HwAdmin.list_display  + SERVER_LIST_DISPLAY 
     inlines = [HardDiskInline, NetworPortInline]  
     raw_id_fields = ('model',)
 
@@ -44,8 +44,9 @@ class ChasisAdmin(RackableAdmin):
     list_display = RackableAdmin.list_display + ('slots', 'name')
 
 class ServerAdmin(HwAdmin):
-    list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY
+    list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY 
     inlines = [HardDiskInline, NetworPortInline]  
+
 
 class RackAdmin(admin.ModelAdmin):
     list_display = ('name', 'room', 'units_number')
