@@ -22,7 +22,7 @@ Some interesting things:
 How to build your development environment:
 ------------------------------------------
 
-   - git clone https://github.com/stic-ull/arritranco.git
+   - git clone https://github.com/tic-ull/arritranco.git
    - virtualenv virtualenv
    - . ./virtualenv/bin/activate
    - pip install -r requirements.txt

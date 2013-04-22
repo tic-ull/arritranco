@@ -14,6 +14,7 @@ urlpatterns = patterns('',
 
     # FIXME: This url shoud be in backup app
     url(r'^admin/backups/grid/', BackupGrid.as_view(), name='backup-grid'),
+    url(r'^admin/backups/grid-list/', BackupGridList.as_view(), name='backup-grid-list'),
     url(r'^admin/hardware/', include('hardware.admin_urls')),
     url(r'^admin/inventory/', include('inventory.admin_urls')),
     # Uncomment the next line to enable the admin:
@@ -25,6 +26,7 @@ urlpatterns = patterns('',
     (r'^bcfg2/inventory/', include('inventory.bcfg2_urls')),    
     (r'^rest/scheduler/', include('scheduler.urls')),    
     (r'^monitoring/nagios/', include('monitoring.nagios.urls')),    
+    (r'^maps/', include('inventory.maps_urls')),    
 )
 
 if settings.DEBUG:

@@ -6,7 +6,7 @@ Created on 23/12/2010
 from django.contrib import admin
 from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer, UserDevice, NetworkPort
 
-SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number')
+SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number', 'management_ip')
 
 class HardDiskInline(admin.TabularInline):
     model = HardDisk

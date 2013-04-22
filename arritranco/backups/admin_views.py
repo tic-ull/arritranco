@@ -2,9 +2,47 @@
 from django.http import Http404
 from django.views.generic import TemplateView
 from models import FileBackupTask
+from models import TSMBackupTask
+from models import R1BackupTask
+from inventory.models import Machine
 from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 import datetime
+
+class BackupGridList(TemplateView):
+    template_name = "admin/backups/filebackuptask/grid_list.html"
+
+
+    def get_context_data(self):
+    	list_of_backups = {}
+    	for mchn in Machine.objects.filter( up = True ):
+ 		list_of_backups[mchn.fqdn] = {}
+   		list_of_backups[mchn.fqdn]['fqdn'] = mchn.fqdn
+                list_of_backups[mchn.fqdn]['R1Soft'] = ''
+                list_of_backups[mchn.fqdn]['TSM'] = ''
+                list_of_backups[mchn.fqdn]['Sistemas'] = 'NOT_OK'
+                list_of_backups[mchn.fqdn]['Datos'] = ''
+                list_of_backups[mchn.fqdn]['Databases'] = ''
+     		for fbt in FileBackupTask.objects.filter( active = True, machine=mchn.id):
+   	           if fbt.machine.fqdn == mchn.fqdn:
+			if fbt.bckp_type == 1:
+   		          list_of_backups[mchn.fqdn]['Datos'] = 'OK'
+			if fbt.bckp_type == 2:
+   		          list_of_backups[mchn.fqdn]['Databases'] = 'OK'
+			if fbt.bckp_type == 3:
+   		          list_of_backups[mchn.fqdn]['Sistemas'] = 'OK'
+   
+                   if TSMBackupTask.objects.filter(machine=mchn.id):
+                        list_of_backups[mchn.fqdn]['TSM'] = 'OK'
+   
+                   if R1BackupTask.objects.filter(machine=mchn.id):
+                        list_of_backups[mchn.fqdn]['R1Soft'] = 'OK'
+			
+				
+	return {'list_of_backups':list_of_backups}
+ 	
+
+
 
 class BackupGrid(TemplateView):
     template_name = "admin/backups/filebackuptask/grid.html"
@@ -25,7 +63,7 @@ class BackupGrid(TemplateView):
         list_of_tasks = {}
         f = {}
         if 'checker' in self.request.GET:
-            f = {'checker_fqdn':self.request.GET['checker']}
+            f = {'checker_':self.request.GET['checker']}
         if 'date' in self.request.GET:
             try:
                 today = datetime.datetime.strptime(self.request.GET['date'], '%Y/%m/%d').date()
