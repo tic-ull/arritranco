@@ -107,7 +107,7 @@ class MachineAdmin(admin.ModelAdmin):
 
 
 class PysicalMachineAdmin(MachineAdmin):
-    list_display = ('fqdn', 'server', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
+    list_display = ('fqdn', 'server', 'get_warranty_expires','up', 'os', 'start_up', 'update_priority', 'epo_level')
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
 
 

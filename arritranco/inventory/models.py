@@ -305,6 +305,9 @@ class PhysicalMachine(Machine):
         verbose_name = _('Physical machine')
         verbose_name_plural = _('Physical machines')
 
+    def get_warranty_expires(self):
+	return self.server.warranty_expires
+
     def get_location(self):
         """ returns location (physical) """
         try:
