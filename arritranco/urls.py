@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 
 from backups.admin_views import BackupGrid
+from backups.admin_views import BackupGridList
 
 admin.autodiscover()
 
