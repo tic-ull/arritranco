@@ -1,12 +1,12 @@
-from inventory.models import Machine, OperatingSystem
+from inventory.models import Machine, OperatingSystem, BalancedService
 from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask, BackupTask
 from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from helpers.processors import mco2dict
+from helpers.processors import mco2dict, mco2dict_balanced
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-
+import os.path
 import logging
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,16 @@ def hosts(request):
     template = 'nagios/hosts.cfg'
     context = {}
     context['machines'] = []
+
+    for m in BalancedService.objects.filter(up = True).order_by('fqdn'):
+        i = m.machine.all()[0]
+	context['machines'].append({
+            'fqdn': m.fqdn,
+            'service_ip': m.ip,
+            'contact_groups': i.responsibles(),
+            'parents': NagiosNetworkParent.get_parents_for_host(i),
+        })
+
     for m in Machine.objects.filter(up = True).order_by('fqdn'):
         context['machines'].append({
             'fqdn': m.fqdn,
@@ -63,6 +73,11 @@ def get_checks(request, name):
         Render all defined checks of "name" for all machines UP.
     '''
     template = 'nagios/' + name + '_checks.cfg'
+    file_path = os.path.dirname(os.path.abspath(__file__)) + '/templates/'+ template
+
+    if not os.path.isfile(file_path):
+        template = 'nagios/default_checks.cfg'
+	
     context = {}
     try:
         check = NagiosCheck.objects.get(slug = name)
@@ -74,7 +89,14 @@ def get_checks(request, name):
     servers = []
     for machine_check_options in check.all_machines(): 
         servers.append(mco2dict(machine_check_options))
+
+    for m in BalancedService.objects.filter(up = True).order_by('fqdn'):
+        m0 = m.machine.all()[0]
+        for c in NagiosCheckOpts.objects.filter(machine=m0, check__name=check.name, balanced=True):
+            servers.append(mco2dict_balanced(c,m))
+ 
     context['servers'] = servers
+    context['check'] = check.name
 
     if 'file' in request.GET:
         filename = name + '_checks.cfg'

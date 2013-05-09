@@ -104,6 +104,7 @@ def clean_ip(value):
     except ValueError:
         raise ValidationError,  _(u'You must provide a valid IPv4 address e.g.: 10.119.70.0')
 
+
 class Machine(models.Model):
     """Software Machine."""
     fqdn = models.CharField( max_length = 255, unique = True)
@@ -254,6 +255,13 @@ class Machine(models.Model):
         return 'Router_ccti1'
 
 
+
+class BalancedService(models.Model):
+    ip = models.IPAddressField(help_text = _(u'Interface IP v4 address'), validators = [clean_ip])
+    up = models.BooleanField('Up', default = False, help_text = _(u'Is this machine up?'))
+    fqdn = models.CharField( max_length = 255, unique = True)
+    description = models.TextField(blank = True, null = True)
+    machine = models.ManyToManyField(Machine)
 
 class Interface(models.Model):
     """ Model to represent a machine network interface """

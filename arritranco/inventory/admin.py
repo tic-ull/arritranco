@@ -6,7 +6,7 @@ Created on 25/03/2011
 '''
 
 from django import forms
-from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType, Interface
+from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType, Interface, BalancedService
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render_to_response, HttpResponseRedirect
 from django.template import RequestContext
@@ -117,6 +117,10 @@ class VirtualMachineAdmin(MachineAdmin):
     list_editable = ('hypervisor',)
 
 
+class BalancedServiceAdmin(admin.ModelAdmin):
+    list_display = ('fqdn', 'up')
+    list_filter = ('up',)
+
 class InterfaceAdmin(admin.ModelAdmin):
     list_display = ('ip', 'visible', 'machine', 'network')
     list_filter = ('visible','machine','network')
@@ -129,6 +133,7 @@ class OperatingSystemAdmin(admin.ModelAdmin):
 
 admin.site.register(PhysicalMachine, PysicalMachineAdmin)
 admin.site.register(VirtualMachine, VirtualMachineAdmin)
+admin.site.register(BalancedService, BalancedServiceAdmin)
 admin.site.register(OperatingSystem, OperatingSystemAdmin)
 admin.site.register(OperatingSystemType)
 admin.site.register(Interface, InterfaceAdmin)
