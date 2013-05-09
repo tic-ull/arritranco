@@ -47,6 +47,7 @@ class NagiosCheckOpts(models.Model):
     check = models.ForeignKey(NagiosCheck)
     machine = models.ForeignKey(Machine)
     options = models.CharField(max_length = 500, help_text="Parameter list to a nagios check", null = True, blank = True )
+    balanced = models.BooleanField(help_text="Say if this check is a balanced services")
     contact_groups = models.ManyToManyField('NagiosContactGroup')
     
     def __unicode__(self):
