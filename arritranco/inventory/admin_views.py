@@ -33,7 +33,8 @@ class UpdateListView(ListView):
                 'one_month_ago': one_month_ago,
                 'three_month_ago': one_month_ago - datetime.timedelta(days = 2 * 30),
                 'six_month_ago': one_month_ago - datetime.timedelta(days = 5 * 30),
-                'object_list': object_list.filter(Q(up_to_date_date__lte = one_month_ago) | Q(up_to_date_date__isnull = True))
+                #'object_list': object_list.filter(Q(up_to_date_date__lte = one_week_ago) | Q(up_to_date_date__isnull = True))
+                'object_list': object_list
                 }
 
 
