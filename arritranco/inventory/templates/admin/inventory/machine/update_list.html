@@ -15,7 +15,6 @@
                 <th scope="col">{% trans "FQDN" %}</th>
                 <th scope="col">{% trans "OS" %}</th>
                 <th scope="col">{% trans "Service IP" %}</th>
-                <th scope="col">{% trans "EPO" %}</th>
                 <th scope="col">{% trans "Update priority" %}</th>
                 <th scope="col">{% trans "Last update" %}</th>
             </tr>
@@ -41,7 +40,6 @@
                         <a href="rdesktop://adminsis@{{ m.fqdn }}/{{ m.fqdn }}">{{ m.get_service_ip }}</a>
                     {% endif %}
                 </td>
-                <td>{{ m.get_epo_level_display }}</td>
                 <td>{{ m.get_update_priority_display }}</td>
                 <td>
                     <a style="color: {% if not m.up_to_date_date %}#FF0000{% elif m.up_to_date_date < three_month_ago %}#FF0000{% elif m.up_to_date_date < one_week_ago %}#FF9900{% else %}#33CC33{% endif %}" href="{% url update_update_date m.id %}">{% if not m.up_to_date_date %}{% trans "Never" %}{% else %}{{ m.up_to_date_date|date:'Y-m-d' }}{% endif %}</a>
