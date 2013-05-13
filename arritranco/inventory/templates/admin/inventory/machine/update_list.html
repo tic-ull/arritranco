@@ -44,7 +44,7 @@
                 <td>{{ m.get_epo_level_display }}</td>
                 <td>{{ m.get_update_priority_display }}</td>
                 <td>
-                    <a style="color: {% if not m.up_to_date_date %}#FF0000{% elif m.up_to_date_date < three_month_ago %}#FF0000{% elif m.up_to_date_date < one_month_ago %}#FF9900{% else %}#33CC33{% endif %}" href="{% url update_update_date m.id %}">{% if not m.up_to_date_date %}{% trans "Never" %}{% else %}{{ m.up_to_date_date|date:'Y-m-d' }}{% endif %}</a>
+                    <a style="color: {% if not m.up_to_date_date %}#FF0000{% elif m.up_to_date_date < three_month_ago %}#FF0000{% elif m.up_to_date_date < one_week_ago %}#FF9900{% else %}#33CC33{% endif %}" href="{% url update_update_date m.id %}">{% if not m.up_to_date_date %}{% trans "Never" %}{% else %}{{ m.up_to_date_date|date:'Y-m-d' }}{% endif %}</a>
                 </td>
             </tr>
             {% endfor %}
