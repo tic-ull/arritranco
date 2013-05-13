@@ -28,6 +28,7 @@ urlpatterns = patterns('',
     (r'^rest/scheduler/', include('scheduler.urls')),    
     (r'^monitoring/nagios/', include('monitoring.nagios.urls')),    
     (r'^maps/', include('inventory.maps_urls')),    
+    (r'^inventory/', include('inventory.urls')),    
 )
 
 if settings.DEBUG:

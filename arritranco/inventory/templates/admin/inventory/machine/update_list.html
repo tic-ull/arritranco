@@ -43,7 +43,7 @@
                 </td>
                 <td>{{ m.get_epo_level_display }}</td>
                 <td>{{ m.get_update_priority_display }}</td>
-                <td style="background-color: {% if m.up_to_date_date < three_month_ago %}#FF0000{% elif m.up_to_date_date < one_month_ago %}#FFFF00{% elif m.up_to_date_date < one_week_ago %}#33CC33{% else %}#FF0000{% endif %}">
+                <td style="background-color: {% if not m.up_to_date_date %}#FF0000{% elif m.up_to_date_date < three_month_ago %}#FF0000{% elif m.up_to_date_date < one_month_ago %}#FFFF00{% else %}#33CC33{% endif %}">
                     <a href="{% url update_update_date m.id %}">{{ m.up_to_date_date|date:'Y-m-d' }}</a>
                 </td>
             </tr>
