@@ -121,7 +121,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'south',
 #    'debug_toolbar',
-    'djangorestframework',
+    'rest_framework',
     'monitoring.nagios',
     'monitoring.cacti',
     'monitoring',

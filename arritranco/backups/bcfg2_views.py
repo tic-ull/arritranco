@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
-from djangorestframework.compat import View
-from djangorestframework.mixins import ResponseMixin
-from djangorestframework.response import Response
-from djangorestframework.renderers import DEFAULT_RENDERERS
+try:
+    from djangorestframework.compat import View
+    from djangorestframework.mixins import ResponseMixin
+    from djangorestframework.response import Response
+    from djangorestframework.renderers import DEFAULT_RENDERERS
+except:
+    from rest_framework.generics import
+    pass
 from django.conf import settings
 import datetime
 from models import FileBackupTask
 from inventory.models import Machine
+
 
 
 class BCFG2BackupProperty(ResponseMixin, View):

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -9,6 +10,25 @@ from cron import *
 from croniter import croniter
 
 
+class TaskManager(models.Manager):
+    def todo(self, start_time = None, end_time = None):
+        """List of Tasks to be done in a period of time."""
+
+        if not start_time:
+            start_time = datetime.datetime.now()
+        if not end_time:
+            end_time = datetime.datetime.now() + datetime.timedelta(days = 1)
+        if start_time > end_time:
+            raise ValueError
+        queryset = self.model.objects.filter(active=True)
+
+        todo = []
+        for t in queryset:
+            execution_time = t.next_run(start_time)
+            while execution_time < end_time:
+                todo.append(t)
+                execution_time = t.next_run(execution_time + datetime.timedelta(minutes = 1))
+        return todo
 
 class Task(models.Model):
     """
@@ -21,6 +41,8 @@ class Task(models.Model):
     weekday = models.CharField(max_length = 40, help_text = _('Day of week (Cron like syntax)'), default = '*', validators=[validate_day_of_week])
     description = models.TextField(help_text = _('Task description'))
     active = models.BooleanField(help_text = _('Is this task active?'), default = True)
+
+    objects = TaskManager()
 
     def cron_syntax(self):
         return "%s %s %s %s %s" % (self.minute, self.hour, self.monthday, self.month, self.weekday)
@@ -43,28 +65,6 @@ class Task(models.Model):
             start_time = datetime.datetime.now()
         #return self._get_crontab_entry().prev_run(start_time)
         return self._get_croniter_entry(start_time).get_prev(datetime.datetime)
-
-    @staticmethod
-    def todo(start_time = None, end_time = None, queryset = None):
-        '''
-            Tasks to be done in a period of time.
-        '''
-        if not start_time:
-            start_time = datetime.datetime.now()
-        if not end_time:
-            end_time = datetime.datetime.now() + datetime.timedelta(days = 1)
-        if start_time > end_time:
-            raise ValueError
-        if not queryset:
-            queryset = Task.objects.all()
-
-        todo = []
-        for t in queryset:
-            execution_time = t.next_run(start_time)
-            while execution_time < end_time:
-                todo.append((t, execution_time))
-                execution_time = t.next_run(execution_time + datetime.timedelta(minutes = 1))
-        return todo
 
     def update_status(self, task_time, status, comment = None):
         task_check, created = TaskCheck.objects.get_or_create(task = self, task_time = task_time)
@@ -92,8 +92,9 @@ class TaskCheck(models.Model):
 
     def __unicode__(self):
         status = ''
-        if isinstance(self.get_status(), TaskStatus):
-            status = self.get_status().status
+        tch_status = self.get_status()
+        if isinstance(tch_status, TaskStatus):
+            status = tch_status.status
         return u"%s %s (%s)" % (self.task.description, self.task_time.strftime('%d-%m-%Y'), status)
 
 

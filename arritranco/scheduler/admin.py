@@ -1,14 +1,38 @@
-'''
-Created on 25/12/2010
-
-@author:  rmrodri
-'''
+# -*- coding:utf-8 -*-
 from django.contrib import admin
 from models import Task, TaskCheck, TaskStatus
 from django.db import models
 from django import forms
 from django.conf import settings
 from monitoring.nagios.models import HUMAN_TO_NAGIOS, NAGIOS_OK, NAGIOS_WARNING, NAGIOS_CRITICAL, NAGIOS_UNKNOWN
+from django.contrib.admin import SimpleListFilter
+from django.utils.translation import ugettext as _
+
+class TaskCheckStatusFilter(SimpleListFilter):
+    title = (u'Status')
+
+    parameter_name = 'status'
+
+
+    def lookups(self, request, model_admin):
+        """Returns a list of tuples."""
+
+        return (
+            ('Ok', _('Ok')),
+            ('Critical', _(u'Critical')),
+            ('Warning', _(u'Warning')),
+            ('Unknown', _(u'Unknown')),
+        )
+
+    def queryset(self, request, queryset):
+        """Returns the filtered queryset based on the value provided.
+
+        The value is retrievable via `self.value()`
+        """
+
+        if self.value():
+            checks = [x.id for x in queryset.filter(taskstatus__status=self.value(), taskstatus__isnull=False) if x.get_status().status == self.value()]
+            return queryset.filter(id__in=checks)
 
 class TaskStatusAdminForm(forms.ModelForm):
 #    class Meta:
@@ -33,10 +57,13 @@ class TaskStatusAdmin(admin.StackedInline):
 
 class TaskCheckAdmin(admin.ModelAdmin):
     list_display = ('task', 'task_time', 'num_status', 'get_status', 'info')
+    list_filter = (TaskCheckStatusFilter,)
     inlines = [ TaskStatusAdmin, ]
     readonly_fields = ('task_time', )
     date_hierarchy = 'task_time'
-    search_fields = ['task__description', ]
+    #FIXME: Not all task are backup tasks, so adding __backuptask on search fields could be a bit risky
+    search_fields = ['task__description','task__backuptask__machine__fqdn' ]
+
 
     def info(self, obj):
         if 'backups' in settings.INSTALLED_APPS:

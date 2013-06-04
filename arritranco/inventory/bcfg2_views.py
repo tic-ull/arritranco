@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
-from djangorestframework.compat import View
-from djangorestframework.mixins import ResponseMixin
-from djangorestframework.response import Response
-from djangorestframework.renderers import DEFAULT_RENDERERS
+try:
+    from djangorestframework.compat import View
+    from djangorestframework.mixins import ResponseMixin
+    from djangorestframework.response import Response
+    from djangorestframework.renderers import DEFAULT_RENDERERS
+except:
+    pass
 from django.db.models import Q
 from django.conf import settings
 from inventory.models import PhysicalMachine, VirtualMachine

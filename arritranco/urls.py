@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 
 from backups.admin_views import BackupGrid
+from backups.admin_views import BackupGridList
 
 admin.autodiscover()
 
@@ -19,14 +20,15 @@ urlpatterns = patterns('',
     url(r'^admin/inventory/', include('inventory.admin_urls')),
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
-    # Necessary for Django Task Scheduler
-    #(r'^scheduler/', include('scheduler.urls')),    
-    (r'^rest/backup/', include('backups.urls')),    
-    (r'^bcfg2/backup/', include('backups.bcfg2_urls')),    
-    (r'^bcfg2/inventory/', include('inventory.bcfg2_urls')),    
-    (r'^rest/scheduler/', include('scheduler.urls')),    
-    (r'^monitoring/nagios/', include('monitoring.nagios.urls')),    
-    (r'^maps/', include('inventory.maps_urls')),    
+    (r'^rest/backup/', include('backups.urls')),
+    #FIXME:migrate to new djangorest
+    #(r'^bcfg2/backup/', include('backups.bcfg2_urls')),
+    #FIXME:migrate to new djangorest
+    #(r'^bcfg2/inventory/', include('inventory.bcfg2_urls')),
+    (r'^rest/scheduler/', include('scheduler.urls')),
+    (r'^monitoring/nagios/', include('monitoring.nagios.urls')),
+    #FIXME:migrate to new djangorest
+    #(r'^maps/', include('inventory.maps_urls')),
 )
 
 if settings.DEBUG:
