@@ -1,9 +1,4 @@
 from django.conf.urls.defaults import patterns, url
-try:
-    from djangorestframework.resources import ModelResource
-    from djangorestframework.views import ListOrCreateModelView, InstanceModelView
-except:
-    pass
 
 from models import Task, TaskCheck
 from views import Todo, TaskCheckListCreateView, TaskStatusView, TaskDetailView, TaskListCreateView, TaskCheckDetailView

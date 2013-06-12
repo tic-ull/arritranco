@@ -2,18 +2,12 @@
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-try:
-    from djangorestframework.compat import View
-    from djangorestframework.mixins import ResponseMixin
-    from djangorestframework.renderers import DEFAULT_RENDERERS
-    from djangorestframework.response import Response
-except:
-    from rest_framework.views import APIView
-    from rest_framework.views import  Response
-    from rest_framework import generics
-    from rest_framework import mixins
-    from rest_framework import status as httpstatus
-    from serializers import *
+
+from rest_framework.views import APIView, Response
+from rest_framework import generics
+from rest_framework import mixins
+from rest_framework import status as httpstatus
+from serializers import *
 from django.conf import settings
 from models import FileBackupTask, FileBackupProduct, BackupFile, TSMBackupTask, BackupTask
 from scheduler.models import TaskCheck, TaskStatus

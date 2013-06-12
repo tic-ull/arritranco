@@ -4,7 +4,7 @@ south
 django_debug_toolbar
 paramiko
 pysnmp
-djangorestframework==0.3.3
+djangorestframework==2.2.7
 IPy
 gunicorn
 pil

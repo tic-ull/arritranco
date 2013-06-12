@@ -220,6 +220,16 @@ SWITCH_LEVEL_SNMP_COMMUNITY_1 = ''
 BACKUP_METHOD_SFTP_USER = ''
 BACKUP_METHOD_SFTP_PASSWORD = ''
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.XMLRenderer',
+        'rest_framework.renderers.YAMLRenderer',
+    )
+}
+
 try:
     from settings_local import *
 except ImportError, e:

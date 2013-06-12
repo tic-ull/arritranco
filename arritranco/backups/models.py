@@ -28,7 +28,7 @@ class BackupTask(Task):
 
     machine = models.ForeignKey(Machine)
     duration = models.TimeField(_(u"Duration"), blank=True, null=True)
-    extra_options = models.TextField(help_text = _(u'Extra options for backup jobs'), blank=True, null=True)
+    extra_options = models.TextField(help_text = _(u'Extra options for backup jobs, for now support data=dbengine:dbname '), blank=True, null=True)
     bckp_type = models.IntegerField(blank=True, null=True, choices=BACKUP_TYPE_CHOICES, default = SYSTEM_BACKUP)
     objects = TaskManager() # Include todo query from the task manager
     def __unicode__(self):
