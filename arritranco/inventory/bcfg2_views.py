@@ -22,8 +22,8 @@ class BCFG2UPSProperty(ResponseMixin, View):
                     Q(server__bladeserver__chassis__rack__room = room)
                 ):
                 epo_list[room.name].append({m.fqdn:m.get_epo_level_display()})
-            for m in VirtualMachine.objects.all():
-                epo_list['virtual'].append({m.fqdn:m.get_epo_level_display()})
+        for m in VirtualMachine.objects.all():
+            epo_list['virtual'].append({m.fqdn:m.get_epo_level_display()})
         response = Response(200, epo_list)
         return self.render(response)
 

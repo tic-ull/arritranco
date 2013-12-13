@@ -71,7 +71,7 @@ def add_backup_file(request, machine = False, windows = False):
     logger.debug('Adding backup file')
 
     if not machine:
-        machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+        machine = Machine.get_by_addr(request.META['REMOTE_ADDR'], filter_up = True)
         if not machine:
             logger.error('There is no machine for address: %s' % request.META['REMOTE_ADDR'])
             raise Http404(MACHINE_NOT_FOUND_ERROR)
@@ -112,7 +112,7 @@ def add_backup_file(request, machine = False, windows = False):
         filesize = request.GET['filesize']
     fbp = FileBackupTask.get_fbp(machine, filename)
     if not fbp:
-        msg = "There is no pattern for this file"
+        msg = "There is no pattern for this file: %s" % machine
         logger.error(msg)
         return HttpResponse(msg)
     next_run = fbp.file_backup_task.next_run(filedate)
@@ -301,7 +301,8 @@ class FilesToDeleteView(ResponseMixin, View):
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
 
-        filter = {}
+        filter = {'taskcheck__backupfile__deletion_date__isnull':True,
+                  'taskcheck__backupfile__isnull':False}
         if request.GET.has_key('host'):
             host = Machine.get_by_addr(request.GET['host'])
             filter['machine'] = host
@@ -310,7 +311,7 @@ class FilesToDeleteView(ResponseMixin, View):
         logger.debug('Files to delete in: %s', machine.fqdn)
         today = datetime.date.today()
         task_to_delete = []
-        for task in FileBackupTask.objects.filter(checker_fqdn = machine.fqdn, **filter):
+        for task in FileBackupTask.objects.filter(checker_fqdn = machine.fqdn, **filter).distinct():
             logger.debug('Delete files for task: %s: %s', task, task.description)
             task_to_delete += self.task_checks_older_than_max_days_in_disk(task)
             first_month_day = datetime.datetime(today.year, today.month, 1, 0, 0, 0)
