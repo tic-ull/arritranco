@@ -4,7 +4,7 @@ Created on 23/12/2010
 @author: esauro
 '''
 from django.contrib import admin
-from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer, UserDevice, NetworkPort
+from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer, UserDevice, NetworkPort, ProcessorType
 
 SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number', 'management_ip')
 
@@ -47,10 +47,12 @@ class ServerAdmin(HwAdmin):
     list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY 
     inlines = [HardDiskInline, NetworPortInline]  
 
-
 class RackAdmin(admin.ModelAdmin):
     list_display = ('name', 'room', 'units_number')
     list_filter = ('room__building', )
+
+class ProcessorTypeAdmin(admin.ModelAdmin):
+    list_display = ('manufacturer', 'model')
 
 admin.site.register(Server, ServerAdmin)
 admin.site.register(RackServer, RackServerAdmin)
@@ -59,3 +61,5 @@ admin.site.register(Chassis, ChasisAdmin)
 admin.site.register(BladeServer, BladeServerAdmin)
 admin.site.register(UserDevice)
 admin.site.register(NetworkPort)
+admin.site.register(ProcessorType)
+
