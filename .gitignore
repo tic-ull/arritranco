@@ -3,6 +3,8 @@
 *.swp
 *.mo
 .idea
+*.db
+.idea
 arritranco/.project
 arritranco/.pydevproject
 arritranco/dev.db

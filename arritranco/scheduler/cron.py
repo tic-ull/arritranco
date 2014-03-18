@@ -544,7 +544,7 @@ class SimpleCrontabEntry(object):
         next_end = next_beg + self.expiration
         prev_beg = self.prev_run(time)
         prev_end = prev_beg + self.expiration
-        if (time >= next_beg and time <= next_end) or (time >= prev_beg and time <= prev_end) :
+        if (next_beg <= time <= next_end) or (prev_beg <= time <= prev_end):
             return False
         return True
 

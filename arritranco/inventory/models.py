@@ -310,11 +310,7 @@ class PhysicalMachine(Machine):
         try:
             server = RackServer.objects.filter(id=self.server.id)[0]
             room   = Room.objects.filter(id=server.rack.room.id)[0]
-            location = {}
-            location['fqdn']      = self.fqdn
-            location['rack']      = server.rack.name
-            location['room']      = room.name
-            location['base_unit'] = server.base_unit
+            location = {'fqdn': self.fqdn, 'rack': server.rack.name, 'room': room.name, 'base_unit': server.base_unit}
 
             return location
         except:

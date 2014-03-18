@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 from models import Task, TaskCheck
 from views import Todo, TaskCheckListCreateView, TaskStatusView, TaskDetailView, TaskListCreateView, TaskCheckDetailView

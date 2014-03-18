@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 
 from inventory.admin_views import ActiveMachinesView, UpdateListView, EPOListView
 
