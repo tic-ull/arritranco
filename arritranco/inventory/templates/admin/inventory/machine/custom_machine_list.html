@@ -1,9 +1,9 @@
 {% extends "admin/base_site.html" %}
-{% load adminmedia admin_list i18n %}
+{% load admin_static admin_list i18n %}
 
 {% block extrastyle %}
   {{ block.super }}
-  <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />
+  <link rel="stylesheet" type="text/css" href="{% static 'admin' %}css/changelists.css" />
   <style>
     #changelist table thead th:first-child {width: inherit}
   </style>
@@ -33,17 +33,17 @@
         <ul class="object-tools">
           {% block object-tools-items %}
             <li>
-              <a href="{% url update-list %}" class="link">
+              <a href="{% url "update-list" %}" class="link">
                 {% trans "Update list" %}
               </a>
             </li>
             <li>
-              <a href="{% url active-machines %}" class="link">
+              <a href="{% url "active-machines" %}" class="link">
                 {% trans "Active machines" %}
               </a>
             </li>
             <li>
-              <a href="{% url admin:inventory_machine_changelist %}">
+              <a href="{% url "admin:inventory_machine_changelist" %}">
                 {% trans "Machines" %}
               </a>
             </li>

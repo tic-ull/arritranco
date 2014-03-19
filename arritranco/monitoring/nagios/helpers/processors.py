@@ -15,12 +15,9 @@ def mco2dict(m_chckopts):
         - cg: contact groups to recieve alerts
         - has_upsmon: if its a nut check
     """
-    rdict = {}
-    rdict['ostype'] = m_chckopts.machine.os.type.name
-    rdict['fqdn'] = m_chckopts.machine.fqdn
-    rdict['cg'] = m_chckopts.get_ngcontact_groups() 
-    rdict['options'] = m_chckopts.options
-    rdict['has_upsmon'] = m_chckopts.machine.has_upsmon()
+    rdict = {'ostype': m_chckopts.machine.os.type.name, 'fqdn': m_chckopts.machine.fqdn,
+             'cg': m_chckopts.get_ngcontact_groups(), 'options': m_chckopts.options,
+             'has_upsmon': m_chckopts.machine.has_upsmon()}
     return rdict
 
 def mco2dict_balanced(m_chckopts, m_balanced):

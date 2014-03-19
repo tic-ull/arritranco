@@ -25,17 +25,17 @@ class UpdateListView(ListView):
     template_name = "admin/inventory/machine/update_list.html"
     queryset = Machine.objects.filter(up = True, os__type__slug = 'Linux').order_by('update_priority', 'up_to_date_date')
 
-    def get_context_data(self, object_list):
-        one_week_ago = datetime.date.today() - datetime.timedelta(days = 7)
-        one_month_ago = one_week_ago - datetime.timedelta(days = 23)
-        return {
-                'one_week_ago': one_week_ago,
-                'one_month_ago': one_month_ago,
+    def get_context_data(self, **kwargs):
+        one_month_ago = datetime.date.today() - datetime.timedelta(days = 30)
+        context = super(UpdateListView, self).get_context_data(**kwargs)
+        context.update({
+                'two_month_ago': one_month_ago,
                 'three_month_ago': one_month_ago - datetime.timedelta(days = 2 * 30),
-                'six_month_ago': one_month_ago - datetime.timedelta(days = 5 * 30),
-                #'object_list': object_list.filter(Q(up_to_date_date__lte = one_week_ago) | Q(up_to_date_date__isnull = True))
-                'object_list': object_list
-                }
+                'sisx_month_ago': one_month_ago - datetime.timedelta(days = 5 * 30),
+                'object_list': self.object_list.filter(Q(up_to_date_date__lte = one_month_ago) | Q(up_to_date_date__isnull = True))
+                })
+
+        return context
 
 
 def filter_by_room(machines, room):

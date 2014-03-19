@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
-from djangorestframework.compat import View
-from djangorestframework.mixins import ResponseMixin
-from djangorestframework.response import Response
-from djangorestframework.renderers import DEFAULT_RENDERERS
-from django.conf import settings
-import datetime
+from rest_framework.views import APIView
+from bcfg2_serializers import Bcfg2BackupPropertySerializer
+from rest_framework import status as httpstatus
+from rest_framework.views import Response
+
 from models import FileBackupTask
 from inventory.models import Machine
 
 
-class BCFG2BackupProperty(ResponseMixin, View):
 
-    renderers = DEFAULT_RENDERERS
-
-    def get(self, request):
+class BCFG2BackupProperty(APIView):
+    """Returns BCFG2 properties on desired format(xml,json,yaml..)."""
+    def get(self, request, format=None):
         list_of_tasks = {}
         for m in Machine.objects.filter(up = True):
             task_for_machine = {}
@@ -21,23 +19,8 @@ class BCFG2BackupProperty(ResponseMixin, View):
                 bckp_type = fbt.get_bckp_type_display().lower()
                 if bckp_type not in task_for_machine:
                     task_for_machine[bckp_type] = []
-                data = {
-                        'description':fbt.description,
-                        'minutes':fbt.minute,
-                        'hours':fbt.hour,
-                        'doms': fbt.monthday,
-                        'months':fbt.month,
-                        'dows':fbt.weekday,
-                        'server': fbt.checker_fqdn,
-                        'path': fbt.directory,
-                    }
-                if fbt.extra_options:
-                    for l in fbt.extra_options.split('\n'):
-                        pieces = l.split('=', 2)
-                        if len(pieces) > 1:
-                            data[pieces[0]] = pieces[1]
+                data = Bcfg2BackupPropertySerializer(fbt).data
                 task_for_machine[bckp_type].append(data)
             list_of_tasks[m.fqdn] = task_for_machine
 
-        response = Response(200, list_of_tasks)
-        return self.render(response)
+        return Response(list_of_tasks, httpstatus.HTTP_200_OK)

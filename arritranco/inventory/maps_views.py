@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
-from djangorestframework.compat import View
-from djangorestframework.mixins import ResponseMixin
-from djangorestframework.response import Response
-from djangorestframework.renderers import DEFAULT_RENDERERS
+
+from rest_framework.views import Response, APIView
+from rest_framework import status as httpstatus
+
 from django.db.models import Q
 from django.conf import settings
 from inventory.models import PhysicalMachine, Machine
 from location.models import Room
 
 
-class MapsActiveMachinesProperty(ResponseMixin, View):
-
-    renderers = DEFAULT_RENDERERS
+class MapsActiveMachinesProperty(APIView):
 
     def get(self, request):
         machine_map = {'map':[]}
@@ -20,6 +18,5 @@ class MapsActiveMachinesProperty(ResponseMixin, View):
             if location:
                 machine_map['map'].append(location)
 
-        response = Response(200, machine_map)
-        return self.render(response)
+        return Response(machine_map, httpstatus.HTTP_200_OK)
 

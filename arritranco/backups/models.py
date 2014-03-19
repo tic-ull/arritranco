@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from scheduler.models import Task, TaskCheck
+from scheduler.models import Task, TaskCheck, TaskManager
 from inventory.models import Machine
 from django.conf import settings
 
@@ -10,6 +10,7 @@ import re
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class BackupTask(Task):
     """
@@ -27,10 +28,9 @@ class BackupTask(Task):
 
     machine = models.ForeignKey(Machine)
     duration = models.TimeField(_(u"Duration"), blank=True, null=True)
-    extra_options = models.TextField(help_text = _(u'Extra options for backup jobs'), blank=True, null=True)
-
+    extra_options = models.TextField(help_text = _(u'Extra options for backup jobs, for now support data=dbengine:dbname '), blank=True, null=True)
     bckp_type = models.IntegerField(blank=True, null=True, choices=BACKUP_TYPE_CHOICES, default = SYSTEM_BACKUP)
-
+    objects = TaskManager() # Include todo query from the task manager
     def __unicode__(self):
         return _(u"%(fqdn)s @ %(bckp_type)s/%(cron)s") % {'fqdn': self.machine.fqdn, 'bckp_type': self.get_bckp_type_display(), 'cron': self.cron_syntax()}
 
@@ -70,6 +70,7 @@ class R1BackupTask(BackupTask):
         help_text=_(u"Machine fqdn where this backups shoud be checked."))
 
 
+
 class FileBackupTask(BackupTask):
     """
         File backup task
@@ -83,10 +84,12 @@ class FileBackupTask(BackupTask):
     max_backup_month = models.IntegerField(blank=False, null=False, default=7,
         help_text=_(u'Number of backups that shoud to be on disk after a month.'))
 
+    objects = TaskManager() # Include todo query from the task manager
+
     @staticmethod
     def get_fbp(machine, filename):
         logger.debug('Searching FileBackupProduct for filename %s and machine %s', filename, machine)
-        for fbp in FileBackupProduct.objects.filter(file_backup_task__machine = machine):
+        for fbp in FileBackupProduct.objects.filter(file_backup_task__machine = machine, file_backup_task__active = True):
             if fbp.file_pattern.get_re(machine).match(filename):
                 return fbp
         logger.debug('There is no FileBackupProduct for machine %s', machine)
@@ -196,6 +199,9 @@ class BackupFile(models.Model):
 
     def directory(self):
         return self.file_backup_product.file_backup_task.directory
+
+    def path(self):
+        return os.path.join(self.directory(), self.compressed_filen_name or self.original_file_name)
 
     def checker(self):
         return self.file_backup_product.file_backup_task.checker_fqdn

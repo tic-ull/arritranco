@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from views import hosts, hosts_ext_info, backup_checks, get_checks, refresh_nagios_status
 
 

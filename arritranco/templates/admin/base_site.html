@@ -10,11 +10,11 @@
 {% block nav-global %}
 {% if user.is_authenticated %}
 <div style="padding: 5px">
-<a href="{% url active-machines %}">{% trans "Machines" %}</a> |
-<a href="{% url room-rack-view %}">{% trans "Racks" %}</a> |
-<a href="{% url update-list %}">{% trans "OS updates" %}</a> |
-<a href="{% url backup-grid %}">{% trans "Backups grid" %}</a> |
-<a href="{% url backup-grid-list %}">{% trans "Backups Machine List" %}</a> |
+<a href="{% url "active-machines" %}">{% trans "Machines" %}</a> |
+<a href="{% url "room-rack-view" %}">{% trans "Racks" %}</a> |
+<a href="{% url "update-list" %}">{% trans "OS updates" %}</a> |
+<a href="{% url "backup-grid" %}">{% trans "Backups grid" %}</a> |
+<a href="{% url "backup-grid-list" %}">{% trans "Backups Machine List" %}</a> |
 </div>
 {% endif %}
 {% endblock %}
