@@ -9,18 +9,36 @@ from inventory.models import PhysicalMachine, VirtualMachine
 from location.models import Room
 from models import HYPERVISOR_HOSTS
 
+class BCFG2UPSProperty(ResponseMixin, View):
 
-class MachinesUPSProperty(APIView):
-    """Physical machines ups epo level for bcfg2 properties."""
-    def get(self, request, format=None, up=None):
+    renderers = DEFAULT_RENDERERS
+
+    def get(self, request):
+        epo_list = {'virtual':[]}
+        for room in Room.objects.filter(name__in = settings.UPS_ROOM_NAMES):
+            epo_list[room.name] = []
+            for m in PhysicalMachine.objects.filter(
+                    Q(server__rackserver__rack__room = room)|
+                    Q(server__bladeserver__chassis__rack__room = room)
+                ):
+                epo_list[room.name].append({m.fqdn:m.get_epo_level_display()})
+        for m in VirtualMachine.objects.all():
+            epo_list['virtual'].append({m.fqdn:m.get_epo_level_display()})
+        response = Response(200, epo_list)
+        return self.render(response)
+
+class MachinesUPSAssoc(ResponseMixin, View):
+
+    renderers = DEFAULT_RENDERERS
+
+    def get(self, request):
         epo_list = {}
-        query = {'up':up} if up else {}
         for room in Room.objects.filter(name__in = settings.UPS_ROOM_NAMES):
             epo_list[room.name] = []
             for m in PhysicalMachine.objects.filter(
                     Q(server__rackserver__rack__room = room)|
                     Q(server__bladeserver__chassis__rack__room = room),
-                    **query
+                    up=True
                 ):
                 epo_list[room.name].append({m.fqdn:m.get_epo_level_display()})
 
@@ -31,5 +49,5 @@ class MachinesUPSProperty(APIView):
                 for m in VirtualMachine.objects.filter(hypervisor = hypervisor[0], up=True):
                     epo_list[realhyp].append({m.fqdn:m.get_epo_level_display()})
 
-        return Response(epo_list, httpstatus.HTTP_200_OK)
-
+        response = Response(200, epo_list)
+        return self.render(response)
