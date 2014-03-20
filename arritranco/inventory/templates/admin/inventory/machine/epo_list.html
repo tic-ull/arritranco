@@ -1,5 +1,5 @@
 {% extends "admin/inventory/machine/custom_machine_list.html" %}
-{% load adminmedia admin_list i18n %}
+{% load admin_static admin_list i18n %}
 
 {% block breadcrumb_list_description %}{% trans "EPO list" %}{% endblock %}
 
@@ -23,10 +23,10 @@
             <tr class="{% cycle 'row1' 'row2' %}">
                 <td>{{ forloop.counter }}</td>
                 <th>{% if m.physicalmachine %}
-                        <a href="{% url admin:inventory_physicalmachine_change m.id %}">
+                        <a href="{% url "admin:inventory_physicalmachine_change" m.id %}">
                     {% endif %}
                     {% if m.virtualmachine %}
-                        <a href="{% url admin:inventory_virtualmachine_change m.id %}">
+                        <a href="{% url "admin:inventory_virtualmachine_change" m.id %}">
                     {% endif %}
                     {{ m.fqdn }}</a>
                 </th>

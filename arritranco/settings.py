@@ -1,6 +1,7 @@
 # Django settings for arritranco project.
 
 import os
+
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 DEBUG = True
@@ -15,12 +16,12 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'dev.db',             # Or path to database file if using sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3',      #'django.db.backends.sqlite3',           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',             # Or path to database file if using sqlite3.
         'USER': '',             # Not used with sqlite3.
         'PASSWORD': '',         # Not used with sqlite3.
-        'HOST': '',             # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',             # Set to empty string for default. Not used with sqlite3.
+        'HOST': '',        # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                 # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -121,7 +122,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'south',
 #    'debug_toolbar',
-    'djangorestframework',
+    'rest_framework',
     'monitoring.nagios',
     'monitoring.cacti',
     'monitoring',
@@ -220,7 +221,17 @@ SWITCH_LEVEL_SNMP_COMMUNITY_1 = ''
 BACKUP_METHOD_SFTP_USER = ''
 BACKUP_METHOD_SFTP_PASSWORD = ''
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.XMLRenderer',
+        'rest_framework.renderers.YAMLRenderer',
+    )
+}
+
 try:
     from settings_local import *
-except ImportError, e:
+except ImportError:
     pass

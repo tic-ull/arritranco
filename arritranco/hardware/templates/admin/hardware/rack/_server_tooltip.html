@@ -12,9 +12,9 @@
     <b>Manufacturer:</b> {{ obj.model.manufacturer }}</br>
     <b>Model:</b> {{ obj.model.name }}</br>
     {% if type == 'server' or type == 'bladeserver' %}
-    <b>Serial number:</b> <a href="{% if type == 'server' %}{% url admin:hardware_rackserver_change obj.id %}{% else %}{% url admin:hardware_bladeserver_change obj.id %}{% endif %}">{{ obj.serial_number }}</a></br>
+    <b>Serial number:</b> <a href="{% if type == 'server' %}{% url "admin:hardware_rackserver_change" obj.id %}{% else %}{% url "admin:hardware_bladeserver_change" obj.id %}{% endif %}">{{ obj.serial_number }}</a></br>
     {% if obj.get_running_machine %}
-        <b>{% trans "Machine" %}:</b> <a href="{% url admin:inventory_physicalmachine_change obj.get_running_machine.id %}">{{ obj.get_running_machine }}</a></br>
+        <b>{% trans "Machine" %}:</b> <a href="{% url "admin:inventory_physicalmachine_change" obj.get_running_machine.id %}">{{ obj.get_running_machine }}</a></br>
         <b>OS:</b> {{ obj.get_running_machine.os }}</br>
         <b>EPO:</b> {{ obj.get_running_machine.get_epo_level_display }}</br>
     {% endif %}
