@@ -10,6 +10,7 @@ from inventory.models import Machine, PhysicalMachine, VirtualMachine
 from network.models import Network
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
+from arritranco.hardware.models import UserDevice, Sonda
 
 NAGIOS_OK = 0
 NAGIOS_WARNING = 1
@@ -26,12 +27,62 @@ HUMAN_TO_NAGIOS = {
     'Unknown': NAGIOS_UNKNOWN,
 }
 
+
+class Service(models.Model):
+    name = models.CharField(max_length=255)
+    ip = models.IPAddressField()
+    machines = models.ManyToManyField(Machine)
+
+    def __unicode__(self):
+        return u"%s" % self.name
+
+
+class NagiosServiceCheck(models.Model):
+    name = models.CharField(max_length=255)
+    default = models.BooleanField(help_text="Say if this check is a default check")
+    default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
+
+    def __unicode__(self):
+        return u"%s" % self.name
+
+
+class NagiosServiceCheckOpts(models.Model):
+    check = models.ForeignKey(NagiosServiceCheck)
+    service = models.ForeignKey(Service)
+    options = models.CharField(max_length=500, help_text="Parameter list to a nagios check", null=True, blank=True)
+    contact_groups = models.ManyToManyField(NagiosContactGroup)
+
+    def __unicode__(self):
+        return u"%s on %s" % (self.check.name, self.service.name)
+
+
+class NagiosNrpeCheckOpts(models.Model):
+    check = models.ForeignKey(NagiosServiceCheck)
+    service = models.ForeignKey(Service)
+    options = models.CharField(max_length=500, help_text="Parameter list to a nagios check", null=True, blank=True)
+    contact_groups = models.ManyToManyField(NagiosContactGroup)
+    sonda = models.ManyToManyField(Sonda)
+
+    def __unicode__(self):
+        return u"%s on %s" % (self.check.name, self.service.name)
+
+
+class NagiosUserDeviceCheckOpts(models.Model):
+    check = models.ForeignKey(NagiosServiceCheck)
+    userdevice = models.ForeignKey(UserDevice)
+    options = models.CharField(max_length=500, help_text="Parameter list to a nagios check", null=True, blank=True)
+    contact_groups = models.ManyToManyField(NagiosContactGroup)
+
+    def __unicode__(self):
+        return u"%s on %s" % (self.check.name, self.service.name)
+
+
 class NagiosCheck(models.Model):
     """ This represent a nagios check """
-    name = models.CharField(max_length = 255)
+    name = models.CharField(max_length=255)
     default = models.BooleanField(help_text="Say if this check is a default check")
-    default_params = models.TextField(help_text="Default params for this check",blank = True, null = True)
-    machines = models.ManyToManyField(Machine, through = 'NagiosCheckOpts', blank = True, null = True)
+    default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
+    machines = models.ManyToManyField(Machine, through='NagiosCheckOpts', blank=True, null=True)
     slug = models.SlugField()
    
     def __unicode__(self):
@@ -39,14 +90,14 @@ class NagiosCheck(models.Model):
 
     def all_machines(self):
         """ Returns all NagiosCheckOpts items which contains machine and options for the NagiosCheck """
-        return self.nagioscheckopts_set.filter(machine__up = True).order_by('-machine__os__type__name', 'machine__fqdn')
+        return self.nagioscheckopts_set.filter(machine__up=True).order_by('-machine__os__type__name', 'machine__fqdn')
 
 
 class NagiosCheckOpts(models.Model):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
     check = models.ForeignKey(NagiosCheck)
     machine = models.ForeignKey(Machine)
-    options = models.CharField(max_length = 500, help_text="Parameter list to a nagios check", null = True, blank = True )
+    options = models.CharField(max_length=500, help_text="Parameter list to a nagios check", null=True, blank=True)
     balanced = models.BooleanField(help_text="Say if this check is a balanced services")
     contact_groups = models.ManyToManyField('NagiosContactGroup')
     
@@ -66,7 +117,7 @@ class NagiosCheckOpts(models.Model):
 
 class NagiosContactGroup(Responsible):
     """ A nagios concatc group to recieve alerts """
-    ngcontact = models.CharField(_(u"Group name"),max_length = 100)    
+    ngcontact = models.CharField(_(u"Group name"), max_length=100)
 
     def delete(self, *args, **kwargs):
         """ Check first if there are checks assigned to the contact """
@@ -83,7 +134,7 @@ class NagiosContactGroup(Responsible):
 class NagiosNetworkParent(models.Model):
     """ Find parents for nagios hosts """
     network = models.ForeignKey(Network)
-    parent = models.CharField(max_length = 500, help_text="Parent nagios host for this network", null = False, blank = False)
+    parent = models.CharField(max_length=500, help_text="Parent nagios host for this network", null=False, blank=False)
     
     def __unicode__(self):
         return u"%s is parent for net %s" % (self.parent, self.network)
@@ -121,10 +172,10 @@ def propagate_status(sender, **kwargs):
 
 def assign_default_checks(sender, **kwargs):
     machine = kwargs['instance']
-    contact = NagiosContactGroup.objects.get(name = settings.DEFAULT_NAGIOS_CG)
-    if not NagiosCheckOpts.objects.filter(machine = machine).count():
-        for nch in NagiosCheck.objects.filter(default = True):
-            nchopt = NagiosCheckOpts.objects.create(machine = machine, check = nch)
+    contact = NagiosContactGroup.objects.get(name=settings.DEFAULT_NAGIOS_CG)
+    if not NagiosCheckOpts.objects.filter(machine=machine).count():
+        for nch in NagiosCheck.objects.filter(default=True):
+            nchopt = NagiosCheckOpts.objects.create(machine=machine, check=nch)
             nchopt.contact_groups.add(contact)
             nchopt.save()
 

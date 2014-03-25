@@ -17,6 +17,7 @@ HD_CONN = (
     (3, 'SAS'),
 )
 
+
 class HwBase(models.Model):
     """This class is the base for all other hardware classes. It includes
     only those common attributes for all hardware classes such as serial
@@ -35,6 +36,7 @@ class HwBase(models.Model):
     def get_manufacturer_product_url(self):
         return self.model.manufacturer.get_product_url(self.serial_number)
 
+
 class Rack(models.Model):
     """This represent a rack. It's possible interesting to include info for PDUs"""
     units_number = models.IntegerField()
@@ -52,6 +54,7 @@ class Rack(models.Model):
     def get_render_height(self):
         return settings.PX_FOR_UNITS * self.units_number
 
+
 class RackPlace(models.Model):
     """A place in a rack. This model is not intented to be used directly but as a
     base class for other models"""
@@ -67,37 +70,50 @@ class RackPlace(models.Model):
             return settings.PX_FOR_UNITS * (self.base_unit - 1)
         else:
             return 0
-    
+
+
 class Unrackable(HwBase):
     """It's a non rackable hardware. It must be in a room"""
     room = models.ForeignKey(Room)
-    
+
+
 class NetworkedDevice(models.Model): 
-    main_ip = models.IPAddressField(help_text = _(u'Management or main IP address'))
-    
+    main_ip = models.IPAddressField(help_text=_(u'Management or main IP address'))
+
+
 class NetworkPort(models.Model):
     hw = models.ForeignKey(HwBase)
-    name = models.CharField(max_length = 255)
-    uplink = models.BooleanField(default = False)    
+    name = models.CharField(max_length=255)
+    uplink = models.BooleanField(default=False)
+
 
 class UserDevice(Unrackable, NetworkedDevice):
-    name = models.CharField(max_length = 255)
-    wall_socket = models.CharField(max_length = 255)
+    name = models.CharField(max_length=255)
+    wall_socket = models.CharField(max_length=255)
     port = models.ForeignKey("NetworkPort")
     place_in_building = models.TextField()
     comments = models.TextField()
-    
+
+
+class Sonda(UserDevice):
+    fqdn = models.CharField(max_length=250)
+
+    def __unicode__(self):
+        return u"%s" % self.name
+
+
 class Phone(UserDevice):
-    extension = models.CharField(max_length = 4)
-    
+    extension = models.CharField(max_length=4)
+
+
 class Server(HwBase):
     """A generic server"""
-    memory = models.DecimalField(max_digits = 15, decimal_places = 3, blank = True, null = True, help_text =_('Installed memory in GB'))
-    management_ip = models.IPAddressField(help_text = _(u'Management or DRAC/iLO IP address'), blank = True, null = True)
-    processor_type = models.ForeignKey("ProcessorType", blank = True, null=True)
-    processor_clock = models.DecimalField(_(u"GHz"), max_digits = 15, decimal_places = 3, blank = True, null = True)
+    memory = models.DecimalField(max_digits=15, decimal_places=3, blank=True, null=True, help_text=_('Installed memory in GB'))
+    management_ip = models.IPAddressField(help_text=_(u'Management or DRAC/iLO IP address'), blank=True, null=True)
+    processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
+    processor_clock = models.DecimalField(_(u"GHz"), max_digits=15, decimal_places=3, blank=True, null=True)
     # Multi CPU servers has the same CPU type
-    processor_number = models.IntegerField(_(u'Number of processors'), help_text = _('Processors number'), default = 1)
+    processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Processors number'), default=1)
     
     class Meta:
         verbose_name = _('Server')
@@ -126,7 +142,8 @@ class Chassis(HwBase, RackPlace):
 
     def __unicode__(self):
         return u"Chasis (%s)" % (self.name)    
-    
+
+
 class BladeServer(Server):
     """A server to be plugged in a chassis"""
     slot_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots number used by this server'))
@@ -158,7 +175,8 @@ class HardDisk(models.Model):
 
     def __unicode__(self):
         return u'%s Gb %s' % (self.size, self.get_conn_display())
-    
+
+
 class ProcessorType(models.Model):
     """
         Type of processor
