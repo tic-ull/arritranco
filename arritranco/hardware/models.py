@@ -95,13 +95,6 @@ class UserDevice(Unrackable, NetworkedDevice):
     comments = models.TextField()
 
 
-class Sonda(UserDevice):
-    fqdn = models.CharField(max_length=250)
-
-    def __unicode__(self):
-        return u"%s" % self.name
-
-
 class Phone(UserDevice):
     extension = models.CharField(max_length=4)
 

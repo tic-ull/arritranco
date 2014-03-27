@@ -2,7 +2,8 @@
 
 import os
 
-PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
+PROJECT_ROOT = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
+#PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -133,6 +134,8 @@ INSTALLED_APPS = (
     'hardware_model',
     'network',
     'backups',
+    'sondas',
+    'fabric',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],

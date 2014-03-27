@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 
-from models import NagiosCheck, NagiosCheckOpts, NagiosContactGroup, NagiosNetworkParent
+from models import NagiosCheck, NagiosCheckOpts, NagiosContactGroup, NagiosNetworkParent, NagiosServiceCheckOpts, NagiosUserDeviceCheckOpts, Service
 from inventory.models import Machine
 # Try to import the default nagios contact group
 try:
@@ -93,7 +93,28 @@ class NagiosContactGroupAdmin(admin.ModelAdmin):
 class NagiosNetworkParentAdmin(admin.ModelAdmin):
     list_display = ('network','parent')
 
+
+class NagiosServiceCheckOptsAdmin(admin.ModelAdmin):
+    search_fields = ['service_name', 'check_name']
+    list_display = ('service_name', 'check_name')
+
+
+class NagiosUserdeviceCheckOptsAdmin(admin.ModelAdmin):
+    search_fields = ['userdevice_name', 'check_name']
+    list_display = ('userdevice_name', 'check_name')
+
+
+class ServiceAdmin(admin.ModelAdmin):
+    search_fields = ['name', 'machines_names', 'ip']
+    list_display = ('name', 'machines_names', 'ip')
+
+
 admin.site.register(NagiosCheckOpts, NagiosCheckOptsAdmin)
 admin.site.register(NagiosCheck, NagiosCheckAdmin)
 admin.site.register(NagiosContactGroup, NagiosContactGroupAdmin)
 admin.site.register(NagiosNetworkParent, NagiosNetworkParentAdmin)
+admin.site.register(NagiosServiceCheckOpts, NagiosServiceCheckOptsAdmin)
+admin.site.register(NagiosUserDeviceCheckOpts, NagiosUserdeviceCheckOptsAdmin)
+admin.site.register(Service, ServiceAdmin)
+
+

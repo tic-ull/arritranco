@@ -5,6 +5,7 @@
 .idea
 *.db
 .idea
+arritranco/arritranco/settings_local.py
 arritranco/.project
 arritranco/.pydevproject
 arritranco/dev.db

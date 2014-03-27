@@ -5,8 +5,8 @@ from rest_framework import status as httpstatus
 
 from django.db.models import Q
 from django.conf import settings
-from arritranco.inventory.models import PhysicalMachine, VirtualMachine
-from arritranco.location.models import Room
+from inventory.models import PhysicalMachine, VirtualMachine
+from location.models import Room
 from models import HYPERVISOR_HOSTS
 
 
