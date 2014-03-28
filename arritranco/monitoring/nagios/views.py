@@ -1,4 +1,4 @@
-from inventory.models import Machine, OperatingSystem, BalancedService
+from inventory.models import Machine, OperatingSystem
 from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask, BackupTask
 from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from nsca import NSCA
-from models import NagiosCheck, NagiosCheckOpts, NagiosNetworkParent, HUMAN_TO_NAGIOS
+from models import NagiosCheck, NagiosMachineCheckOpts, NagiosNetworkParent, HUMAN_TO_NAGIOS
 from scheduler.models import TaskStatus, TaskCheck
 from templatetags.nagios_filters import nagios_safe
 
@@ -22,14 +22,6 @@ def hosts(request):
     template = 'nagios/hosts.cfg'
 
     context = {'machines': []}
-    for m in BalancedService.objects.filter(up = True).order_by('fqdn'):
-        i = m.machine.all()[0]
-	context['machines'].append({
-            'fqdn': m.fqdn,
-            'service_ip': m.ip,
-            'contact_groups': i.responsibles(),
-            'parents': NagiosNetworkParent.get_parents_for_host(i),
-        })
     for m in Machine.objects.filter(up = True).order_by('fqdn'):
         context['machines'].append({
             'fqdn': m.fqdn,
@@ -90,7 +82,7 @@ def get_checks(request, name):
 
     for m in BalancedService.objects.filter(up = True).order_by('fqdn'):
         m0 = m.machine.all()[0]
-        for c in NagiosCheckOpts.objects.filter(machine=m0, check__name=check.name, balanced=True):
+        for c in NagiosMachineCheckOpts.objects.filter(machine=m0, check__name=check.name, balanced=True):
             servers.append(mco2dict_balanced(c,m))
  
     context['servers'] = servers

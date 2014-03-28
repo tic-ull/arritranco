@@ -6,7 +6,7 @@ from scheduler.models import TaskStatus
 from nsca import NSCA
 
 from django.utils.translation import ugettext_lazy as _
-from inventory.models import Machine, PhysicalMachine, VirtualMachine
+from inventory.models import Machine, PhysicalMachine, VirtualMachine, IP
 from network.models import Network
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
@@ -31,8 +31,9 @@ HUMAN_TO_NAGIOS = {
 
 class Service(models.Model):
     name = models.CharField(max_length=255)
-    ip = models.IPAddressField()
+    ip = models.ForeignKey(IP)
     machines = models.ManyToManyField(Machine)
+    date = models.DateField()
 
     def __unicode__(self):
         return u"%s" % self.name
@@ -48,9 +49,10 @@ class NagiosCheck(models.Model):
     """ This represent a nagios check """
     name = models.CharField(max_length=255)
     command = models.CharField(max_length=255)
+    options = models.CharField(max_length=400)
     default = models.BooleanField(help_text="Say if this check is a default check")
     default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
-    machines = models.ManyToManyField(Machine, through='NagiosCheckOpts', blank=True, null=True)
+    machines = models.ManyToManyField(Machine, through='NagiosMachineCheckOpts', blank=True, null=True)
     services = models.ManyToManyField(Service, through='NagiosServiceCheckOpts', blank=True, null=True)
     nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True, related_name="nrpeservice")
     userdevices = models.ManyToManyField(UserDevice, through='NagiosUserDeviceCheckOpts', blank=True, null=True)
@@ -84,10 +86,9 @@ class NagiosOpts(models.Model):
     get_ngcontact_groups.admin_order_field = 'contact_groups'
 
 
-class NagiosCheckOpts(NagiosOpts):
+class NagiosMachineCheckOpts(NagiosOpts):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
     machine = models.ForeignKey(Machine)
-    balanced = models.BooleanField(help_text="Say if this check is a balanced services")
 
     def __unicode__(self):
         return u"%s on machine %s" % (self.check.name, self.machine.fqdn)

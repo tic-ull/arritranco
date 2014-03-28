@@ -134,7 +134,7 @@ INSTALLED_APPS = (
     'hardware_model',
     'network',
     'backups',
-    'sondas',
+    'monitoring.sondas',
     'fabric',
 )
 

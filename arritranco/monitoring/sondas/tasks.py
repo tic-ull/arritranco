@@ -4,7 +4,7 @@ from celery import shared_task
 from fabric.api import env, run, put
 from fabric.contrib.files import exists
 from django.conf import settings
-from sondas.models import Sonda, SondaTasksLog, SondaTask, SondaTaskStatus, NagiosNrpeCheckOpts
+from monitoring.sondas.models import Sonda, SondaTasksLog, SondaTask, SondaTaskStatus, NagiosNrpeCheckOpts
 import sys
 import datetime
 from django.template import Template, Context

@@ -7,6 +7,7 @@ from hardware_model.models import HwModel, Manufacturer
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class Unrackable(HwBase):
 
 
 class NetworkedDevice(models.Model): 
-    main_ip = models.IPAddressField(help_text=_(u'Management or main IP address'))
+    main_ip = models.ForeignKey("inventory.IP")
 
 
 class NetworkPort(models.Model):
@@ -87,12 +88,35 @@ class NetworkPort(models.Model):
     uplink = models.BooleanField(default=False)
 
 
+class UserDeviceType(models.Model):
+    name = models.CharField(max_length=250)
+
+
+class UserDeviceModel(models.Model):
+    name = models.CharField(max_length=250)
+    type = models.ForeignKey(UserDeviceType)
+
+
 class UserDevice(Unrackable, NetworkedDevice):
+    model = models.ForeignKey(UserDeviceModel)
     name = models.CharField(max_length=255)
     wall_socket = models.CharField(max_length=255)
     port = models.ForeignKey("NetworkPort")
+    switch = models.ForeignKey("network.Switch")
     place_in_building = models.TextField()
     comments = models.TextField()
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    ip = models.ForeignKey("inventory.IP")
+
+    def __unicode__(self):
+        return u"%s, %s , %s" % (self.name, self.model.type.name, self.model.name)
+
+    def model_name(self):
+        return self.model.name
+
+    def type_name(self):
+        return self.model.type.name
 
 
 class Phone(UserDevice):

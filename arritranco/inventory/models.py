@@ -1,6 +1,5 @@
 
 from django.db import models
-from hardware.models import Server
 from network.models import Network
 from hardware.models import RackServer, Rack
 from location.models import Room
@@ -115,7 +114,7 @@ class Machine(models.Model):
     update_priority = models.IntegerField(_(u'Update priority'), choices = UPDATE_PRIORITY, default = 30)
     up_to_date_date = models.DateField(_(u'update date'), blank=True, null=True)
     epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 5)
-    networks = models.ManyToManyField(Network, help_text = _(u'Networks where machine is coneccted through his interfaces'), through = 'Interface')
+
 
     class Meta:
         ordering = ['fqdn']
@@ -255,41 +254,40 @@ class Machine(models.Model):
         return 'Router_ccti1'
 
 
+class IP(models.Model):
+    addr = models.IPAddressField(help_text=_(u'IP v4 address'), validators=[clean_ip])
+    network = models.ForeignKey(Network, null=True, blank=True, editable=False, related_name="network_from_ip")
 
-class BalancedService(models.Model):
-    ip = models.IPAddressField(help_text = _(u'Interface IP v4 address'), validators = [clean_ip])
-    up = models.BooleanField('Up', default = False, help_text = _(u'Is this machine up?'))
-    fqdn = models.CharField( max_length = 255, unique = True)
-    description = models.TextField(blank = True, null = True)
-    machine = models.ManyToManyField(Machine)
+    def save(self, *args, **kwargs):
+        """ Assigning the net to which this interface belongs to. """
+        logger.debug("Calling IP Save method IP: %s", self.addr)
+        addr = IPy.IP(self.addr).int()
+        nets = Network.objects.filter(first_ip_int__lte=addr, last_ip_int__gte=addr).order_by('size')
+        if nets:
+            logger.debug("There is net and assign: %s" % nets[0])
+            self.network = nets[0]
+            logger.debug("Result of asignation is: %s" % self.network)
+        super(IP, self).save(*args, **kwargs)
+        logger.debug("Saved IP: %d - %s" % (self.id, self))
+
 
 class Interface(models.Model):
     """ Model to represent a machine network interface """
     machine = models.ForeignKey(Machine)
     name = models.CharField(help_text = _(u'Itentified name for the interface'), max_length = 50)
-    ip = models.IPAddressField(help_text = _(u'Interface IP v4 address'), validators = [clean_ip])
     hwaddr = models.CharField(help_text = _(u'Mac / Hardware address of the interface'), max_length = 17, validators = [clean_hwaddr])
     visible = models.BooleanField(help_text = _(u'Whether the interface and IP are visible through the network'), default = False)
-    network = models.ForeignKey(Network, null = True, blank = True,editable = False)
+    ip = models.ForeignKey(IP)
 
     class Meta:
         verbose_name = _('Interface')
         verbose_name_plural = _('Interfaces')
     
     def __unicode__(self):
-        return u"%s (%s)  <%s>" % (self.name, self.ip, "UP" if self.visible else "DOWN")
+        return u"%s (%s)  <%s>" % (self.name, self.ip.addr, "UP" if self.visible else "DOWN")
 
-    def save(self, *args, **kwargs):
-        """ Assigning the net to which this interface belongs to. """
-        logger.debug("Calling Interface Save method IP: %s", self.ip)
-        ip = IPy.IP(self.ip).int()
-        nets =  Network.objects.filter(first_ip_int__lte = ip, last_ip_int__gte = ip).order_by('size')
-        if nets:
-            logger.debug("There is net and assign: %s" % nets[0])
-            self.network = nets[0]
-            logger.debug("Result of asignation is: %s" % self.network)
-        super(Interface,self).save(*args,**kwargs)
-        logger.debug("Saved Interface: %d - %s" % (self.id,self))
+    def network(self):
+        return self.ip.network.ip
 
 
 class VirtualMachine(Machine):
@@ -306,7 +304,7 @@ class VirtualMachine(Machine):
 
 class PhysicalMachine(Machine):
     """ Machine with real hardware """
-    server = models.ForeignKey(Server, verbose_name=_(u'Server'))
+    server = models.ForeignKey("hardware.Server", verbose_name=_(u'Server'))
     ups = models.IntegerField(blank=False, help_text=_('Connected UPS'), choices=UPS_CHOICES, default=0)
 
     class Meta:

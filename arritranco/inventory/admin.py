@@ -6,7 +6,7 @@ Created on 25/03/2011
 '''
 
 from django import forms
-from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType, Interface, BalancedService
+from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType, Interface
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render_to_response, HttpResponseRedirect
 from django.template import RequestContext
@@ -15,7 +15,7 @@ from django.contrib import admin, messages
 from django.utils.translation import ugettext_lazy as _
 
 # This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
-from monitoring.nagios.admin import NagiosCheckOptsInline
+from monitoring.nagios.admin import NagiosMachineCheckOptsInline
 import datetime
 
 import logging
@@ -30,7 +30,6 @@ except ImportError:
 
 class InterfacesInline(admin.TabularInline):
     model = Interface
-    readonly_fields = ('network', )
 
 
 class MachineAdmin(admin.ModelAdmin):
@@ -38,7 +37,7 @@ class MachineAdmin(admin.ModelAdmin):
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
     date_hierarchy = 'start_up'
     search_fields = ('fqdn', 'os__name', 'networks__desc', 'networks__ip')
-    inlines = [InterfacesInline, NagiosCheckOptsInline,]
+    inlines = [InterfacesInline, NagiosMachineCheckOptsInline,]
     actions = ['copy_machine', 'update_machine']
 
     def save_related(self, request, form, formsets, change):
@@ -113,17 +112,13 @@ class PysicalMachineAdmin(MachineAdmin):
 
 class VirtualMachineAdmin(MachineAdmin):
     list_display = ('fqdn', 'hypervisor', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
-    list_filter = ('hypervisor', 'up', 'os', 'update_priority', 'epo_level', 'networks')
+    list_filter = ('hypervisor', 'up', 'os', 'update_priority', 'epo_level')
     list_editable = ('hypervisor',)
 
 
-class BalancedServiceAdmin(admin.ModelAdmin):
-    list_display = ('fqdn', 'up')
-    list_filter = ('up',)
-
 class InterfaceAdmin(admin.ModelAdmin):
     list_display = ('ip', 'visible', 'machine', 'network')
-    list_filter = ('visible','machine','network')
+    list_filter = ('visible', 'machine')
 
 
 class OperatingSystemAdmin(admin.ModelAdmin):
@@ -133,7 +128,6 @@ class OperatingSystemAdmin(admin.ModelAdmin):
 
 admin.site.register(PhysicalMachine, PysicalMachineAdmin)
 admin.site.register(VirtualMachine, VirtualMachineAdmin)
-admin.site.register(BalancedService, BalancedServiceAdmin)
 admin.site.register(OperatingSystem, OperatingSystemAdmin)
 admin.site.register(OperatingSystemType)
 admin.site.register(Interface, InterfaceAdmin)
