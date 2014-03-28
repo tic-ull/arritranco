@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from scheduler.models import Task, TaskCheck, TaskManager
+from arritranco.scheduler.models import Task, TaskCheck, TaskManager
 from inventory.models import Machine
 from django.conf import settings
 
