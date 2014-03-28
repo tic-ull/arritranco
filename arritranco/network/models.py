@@ -10,7 +10,7 @@ from hardware.models import RackPlace, NetworkedDevice, NetworkPort
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from hardware.managementutils import sftpGet 
+from hardware.managementutils import sftpGet
 from django.conf import settings
 
 SWITCH_LEVEL = (
@@ -84,13 +84,13 @@ class Network(models.Model):
     ip = models.CharField(help_text = _(u'Network ip address in CIDR notation e.g.: 10.119.70.0/24'), max_length = 18, validators = [clean_netip])
     first_ip = models.IPAddressField(help_text = _(u'First Host IP on network range'), editable = False)
     last_ip =  models.IPAddressField(help_text = _(u'Last Host IP on network range'), editable = False)
-    first_ip_int = models.IPAddressField(help_text = _(u'First Host IP on network range'), editable = False)
-    last_ip_int =  models.IPAddressField(help_text = _(u'Last Host IP on network range'), editable = False)
+    first_ip_int = models.IntegerField(help_text = _(u'First Host IP on network range'), editable = False)
+    last_ip_int =  models.IntegerField(help_text = _(u'Last Host IP on network range'), editable = False)
     size = models.IntegerField(help_text = _(u'Number of Hosts in this network'), editable = False)
-     
+
     def __unicode__(self):
         return u'Red %s (%s) - [%d Hosts]' % (self.ip, self.desc, self.size)
-    
+
     def get_admin_url(self):
         return reverse('admin:network_network_change',args=(self.id,))
 
@@ -142,38 +142,38 @@ class ManagementInfo(models.Model):
     oid = models.CharField(max_length = 255,
             help_text = _(u'The string returned by this kind of hw when snmp queried about model')
             )
-    
+
     def __unicode__(self):
-        return u'%s' % self.name  
+        return u'%s' % self.name
 
 class Switch(RackPlace, NetworkedDevice):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     ports = models.PositiveIntegerField()
     level = models.IntegerField(choices = SWITCH_LEVEL)
-    managementinfo = models.ForeignKey(ManagementInfo) 
+    managementinfo = models.ForeignKey(ManagementInfo)
 
     def __unicode__(self):
-        return u'%s' % self.name        
+        return u'%s' % self.name
 
-    #Backups switch configuration to the specified file 
-    #Returns 
-    #  False, "" : if no backup method defined for this switch     
-    #  True, None : If backup succeeded    
-    #  True, ErrorDescription : If backup failed  
+    #Backups switch configuration to the specified file
+    #Returns
+    #  False, "" : if no backup method defined for this switch
+    #  True, None : If backup succeeded
+    #  True, ErrorDescription : If backup failed
     def backup_config_to_file(self, destinationfile):
         mgt = self.managementinfo
         if mgt.backupmethod == BACKUP_METHOD_SFTP :
             errorDesc = sftpGet(hostname = self.main_ip, username = mgt.backupusername, password = mgt.backuppassword, \
                                  sourcefile = mgt.backupconfigfile, destfile = destinationfile)
-            return True, errorDesc  
+            return True, errorDesc
         return False, None
-       
+
 class MACsHistory(models.Model):
     port = models.ManyToManyField(NetworkPort)
     captured = models.DateTimeField()
-    mac = models.CharField(max_length=12) 
-  
+    mac = models.CharField(max_length=12)
+
 class RoutingZone(models.Model):
     """
         A model to represent a zone or group of buildings with common routing characteristics
@@ -184,18 +184,18 @@ class RoutingZone(models.Model):
     public_nets = models.CharField(max_length=255,
       help_text = _(u"A list of public networks"))
     cajacanarias_nets = models.CharField(max_length=255,
-      help_text = _(u"A list of CajaCanarias networks"))  
+      help_text = _(u"A list of CajaCanarias networks"))
     slug = models.SlugField()
 
     def __unicode__(self):
-        return u'[%04d] %s - %s' % (int(self.bluevlan_prefix), self.prefix, self.name)    
-    
+        return u'[%04d] %s - %s' % (int(self.bluevlan_prefix), self.prefix, self.name)
+
 class NetworkedBuilding(Building):
     """
-        A model to represent a Building with networking (with a routing zone) 
+        A model to represent a Building with networking (with a routing zone)
     """
     routingzone = models.ForeignKey(RoutingZone)
-    
-    
-    
-    
+
+
+
+

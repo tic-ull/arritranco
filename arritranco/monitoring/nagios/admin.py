@@ -9,8 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 
 from models import NagiosCheck, NagiosCheckOpts, NagiosContactGroup, NagiosNetworkParent
-from arritranco.inventory.models import Machine
-
+from inventory.models import Machine
 # Try to import the default nagios contact group
 try:
     from settings import DEFAULT_NAGIOS_CG

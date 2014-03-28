@@ -2,13 +2,16 @@
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from djangorestframework.compat import View
-from djangorestframework.mixins import ResponseMixin
-from djangorestframework.renderers import DEFAULT_RENDERERS
-from djangorestframework.response import Response
+
+from rest_framework.views import APIView, Response
+from rest_framework import generics
+from rest_framework import mixins
+from rest_framework import status as httpstatus
+from serializers import *
 from django.conf import settings
-from models import FileBackupTask, FileBackupProduct, BackupFile, TSMBackupTask
+from models import FileBackupTask, FileBackupProduct, BackupFile, TSMBackupTask, BackupTask
 from scheduler.models import TaskCheck, TaskStatus
+from scheduler.views import Todo
 from inventory.models import Machine
 import datetime
 import math
@@ -19,14 +22,12 @@ logger = logging.getLogger(__name__)
 MACHINE_NOT_FOUND_ERROR = 'Machine object not found'
 
 
-class BackupFileCheckerView(ResponseMixin, View):
-    """An example view using Django 1.3's class based views.
-    Uses djangorestframework's RendererMixin to provide support for multiple output formats."""
+class BackupFileCheckerView(APIView):
+    """List all non Ok tasks  """
 
-    renderers = DEFAULT_RENDERERS
-
-    def get(self, request):
+    def get(self, request, format=None):
         list_of_tasks = {}
+        tasks = []
         f = {}
         if 'checker' in request.GET:
             f = {'checker_fqdn':request.GET['checker']}
@@ -39,35 +40,16 @@ class BackupFileCheckerView(ResponseMixin, View):
                     continue
             except TaskCheck.DoesNotExist:
                 pass
-            previous_run = fbt.last_run(last_run)
+
             if fbt.machine.fqdn not in list_of_tasks:
                 list_of_tasks[fbt.machine.fqdn] = []
-            task = {
-                    'id':fbt.id,
-                    'description':fbt.description,
-                    'checker':fbt.checker_fqdn,
-                    'directory':fbt.directory,
-                    'last_run': last_run,
-                    'previous_run':previous_run,
-                    'files':[],
-                }
-            for product in FileBackupProduct.objects.filter(file_backup_task = fbt):
-                task['files'].append({
-                    'pattern':product.file_pattern.pattern.strip(),
-                    'start_seq':product.start_seq,
-                    'end_seq':product.end_seq,
-                    'variable_percentage':product.variable_percentage,
-                    })
-            list_of_tasks[fbt.machine.fqdn].append(task)
+            list_of_tasks[fbt.machine.fqdn].append(FileBackupTaskSerializer(fbt).data)
 
-        response = Response(200, list_of_tasks)
-        return self.render(response)
+        return Response(list_of_tasks, status=httpstatus.HTTP_200_OK)
 
 def add_backup_file(request, machine = False, windows = False):
-    """
-        Asocia un fichero a una planificación de una máquina.
-    """
-    # Hay que saber desde qué máquina nos están consultando.
+    """Add a file to a backup task."""
+    # We have to know from what host we are being called.
     logger.debug('Adding backup file')
 
     if not machine:
@@ -128,9 +110,9 @@ def add_backup_file(request, machine = False, windows = False):
             task_time = tch_time
         )
     if created:
-        logger.debug('TaskCheck created')
+        logger.debug('TaskCheck created %s' % tch)
     else:
-        logger.debug('TaskCheck already exists')
+        logger.debug('TaskCheck already exists %s' % tch)
     bf, created = BackupFile.objects.get_or_create (
             file_backup_product = fbp,
             task_check = tch,
@@ -139,9 +121,9 @@ def add_backup_file(request, machine = False, windows = False):
             original_file_size = filesize
         )
     if created:
-        logger.debug('BackupFile created')
+        logger.debug('BackupFile created %s' % bf)
     else:
-        logger.debug('BackupFile already exists')
+        logger.debug('BackupFile already exists %s' % bf)
     return HttpResponse("Ok")
 
 def register_file_from_checker(request):
@@ -213,11 +195,24 @@ def add_compressed_backup_file (request):
     backup_file.save ()
     return HttpResponse("Ok")
 
+class BackupTaskView(generics.RetrieveAPIView):
+    """Detail of BackupTask."""
+    queryset = BackupTask.objects.all()
+    serializer_class = BackupTaskSerializer
 
-class FilesToCompressView(ResponseMixin, View):
+class BackupTaskListCreateView(generics.ListCreateAPIView):
+    """List or create BackupTask instances."""
+    queryset = BackupTask.objects.all()
+    serializer_class = BackupTaskSerializer
+    paginate_by = 50
+    paginate_by_param = 'page_size'
+
+class FileBackupsTodo(Todo):
+    model = FileBackupTask
+    serializer = FileBackupTaskSerializer
+
+class FilesToCompressView(APIView):
     """Returns a json with the list of files to be compressed"""
-
-    renderers = DEFAULT_RENDERERS
 
     def get(self, request):
         if request.GET.has_key('checker'):
@@ -234,24 +229,17 @@ class FilesToCompressView(ResponseMixin, View):
         for bf in BackupFile.objects.filter(
                 compressed_file_name = '', deletion_date__isnull = True,
                 file_backup_product__file_backup_task__checker_fqdn = machine.fqdn).order_by('-original_date'):
-            tocompress.append (
-                [
-                    bf.id,
-                    os.path.join(bf.file_backup_product.file_backup_task.directory, bf.original_file_name)
-                ])
+            tocompress.append(BackupFileSerializer(bf).data)
             totalsize += bf.original_file_size
             if (totalsize > settings.MAX_COMPRESS_GB * 1024**3):
                 logger.debug('Total size max reached: %s', totalsize)
                 break
         logger.debug('Total files: %s', len(tocompress))
-        response = Response(200, tocompress)
-        return self.render(response)
+        return Response(tocompress, status=httpstatus.HTTP_200_OK)
 
 
-class FilesToDeleteView(ResponseMixin, View):
+class FilesToDeleteView(APIView):
     """Returns a json with the list of files to be deleted"""
-
-    renderers = DEFAULT_RENDERERS
 
     def task_checks_older_than_max_days_in_disk(self, task):
         return list(TaskCheck.objects.filter(
@@ -289,7 +277,7 @@ class FilesToDeleteView(ResponseMixin, View):
                 logger.debug('Deleted')
             else:
                 logger.debug('Already deleted, nothing to do')
-        response = Response(200, response)
+        response = Response(response, httpstatus.HTTP_200_OK)
         return self.render(response)
 
     def get(self, request):
@@ -301,13 +289,12 @@ class FilesToDeleteView(ResponseMixin, View):
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
 
-        filter = {'taskcheck__backupfile__deletion_date__isnull':True,
-                  'taskcheck__backupfile__isnull':False}
+        filter = {'taskcheck__backupfile__deletion_date__isnull':True, # isnull matches checks without backups
+                  'taskcheck__backupfile__isnull':False}               # so we check that there are 1+ backupfiles
         if request.GET.has_key('host'):
             host = Machine.get_by_addr(request.GET['host'])
             filter['machine'] = host
 
-        task_to_delete = []
         logger.debug('Files to delete in: %s', machine.fqdn)
         today = datetime.date.today()
         task_to_delete = []
@@ -316,17 +303,20 @@ class FilesToDeleteView(ResponseMixin, View):
             task_to_delete += self.task_checks_older_than_max_days_in_disk(task)
             first_month_day = datetime.datetime(today.year, today.month, 1, 0, 0, 0)
 #            first_month_day = datetime.datetime(last_month_day.year, last_month_day.month, 1, 0, 0, 0)
+
             for m in range(1, 12):
                 last_month_day = first_month_day
                 tmp_day = last_month_day -  datetime.timedelta(minutes = 1)
                 first_month_day = datetime.datetime(tmp_day.year, tmp_day.month, 1, 0, 0, 0)
                 logger.debug('first month day: %s, Last month day: %s', first_month_day, last_month_day)
                 tchs = []
+
                 for tch in TaskCheck.objects.filter(
                         task = task,
                         task_time__gte = first_month_day,
-                        task_time__lte = last_month_day).order_by('task_time'):
-#                    backupfile__deletion_date__isnull = True).order_by('task_time'):
+                        task_time__lte = last_month_day,
+                        backupfile__deletion_date__isnull = True,
+                        backupfile__original_date__isnull = False).select_related('task').distinct().order_by('task_time'):
                     if tch.backupfile_set.filter(deletion_date__isnull = True).count():
                         tchs.append(tch)
                 logger.debug('len tash checks: %s, max_backup_month: %s', len(tchs), task.max_backup_month)
@@ -348,17 +338,14 @@ class FilesToDeleteView(ResponseMixin, View):
             directory = tch.task.backuptask.filebackuptask.directory
             logger.debug('Deleting files of task: [%d] %s %s', tch.id, tch, tch.task_time)
             for bf in tch.backupfile_set.filter(deletion_date__isnull = True):
-                path = os.path.join(directory, bf.compressed_file_name or bf.original_file_name)
-                files_to_delete.append({'path':path, 'pk':bf.id})
-                logger.debug('Adding: %s', path)
+                files_to_delete.append(BackupFileToDeleteSerializer(bf).data)
+                logger.debug('Adding: %s', bf.path)
         logger.debug("End filling files_to_delete")
+        return Response(files_to_delete, httpstatus.HTTP_200_OK)
 
-        response = Response(200, files_to_delete)
-        return self.render(response)
- 
 
-class GetBackupFileInfo(ResponseMixin, View):
-    renderers = DEFAULT_RENDERERS
+class GetBackupFileInfo(APIView):
+    """Returns json with info about a file matching with filename."""
 
     def get(self, request):
         if not request.GET.has_key('file_name'):
@@ -391,25 +378,11 @@ class GetBackupFileInfo(ResponseMixin, View):
         if file_info.count() == 0:
             logger.debug('File not found in DB')
             raise Http404('There is no such file in database')
-        info = {
-            'original_file_name': file_info[0].original_file_name,
-            'original_date': file_info[0].original_date,
-            'original_file_size': file_info[0].original_file_size,
-            'original_md5': file_info[0].original_md5,
-            'compressed_file_name': file_info[0].compressed_file_name,
-            'compressed_date': file_info[0].compressed_date,
-            'compressed_file_size': file_info[0].compressed_file_size,
-            'compressed_md5': file_info[0].compressed_md5,
-            'id': file_info[0].id,
-        }
-        response = Response(200, info)
-        return self.render(response)
+        info = BackupFileInfoSerializer(file_info[0]).data
+        return Response(info, httpstatus.HTTP_200_OK)
 
-
-class TSMHostsView(ResponseMixin, View):
+class TSMHostsView(APIView):
     """Lists of hosts baked up with tsm"""
-
-    renderers = DEFAULT_RENDERERS
 
     def get(self, request):
         if request.GET.has_key('checker'):
@@ -428,12 +401,11 @@ class TSMHostsView(ResponseMixin, View):
         totalsize = 0
         tsm_hosts = []
         for bt in qs:
-            tsm_hosts.append({
-                'fqdn':bt.machine.fqdn,
-                'tsm_server':bt.tsm_server,
-                'ipaddress':bt.machine.get_service_ip(),
-                })
+            tsm_hosts.append(HostTSMBackupTaskSerializer(bt).data)
+            # tsm_hosts.append({
+            #     'fqdn':bt.machine.fqdn,
+            #     'tsm_server':bt.tsm_server,
+            #     'ipaddress':bt.machine.get_service_ip(),
+            #     })
         logger.debug('Total hosts: %s', len(tsm_hosts))
-        response = Response(200, tsm_hosts)
-        return self.render(response)
-
+        return Response(tsm_hosts, httpstatus.HTTP_200_OK)

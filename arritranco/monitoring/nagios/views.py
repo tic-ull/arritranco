@@ -20,9 +20,8 @@ def hosts(request):
         Nagios hosts config file.
     '''
     template = 'nagios/hosts.cfg'
-    context = {}
-    context['machines'] = []
 
+    context = {'machines': []}
     for m in BalancedService.objects.filter(up = True).order_by('fqdn'):
         i = m.machine.all()[0]
 	context['machines'].append({
@@ -31,7 +30,6 @@ def hosts(request):
             'contact_groups': i.responsibles(),
             'parents': NagiosNetworkParent.get_parents_for_host(i),
         })
-
     for m in Machine.objects.filter(up = True).order_by('fqdn'):
         context['machines'].append({
             'fqdn': m.fqdn,
@@ -113,10 +111,10 @@ def backup_checks(request):
         Backup checks
     '''
     template = 'nagios/backup_checks.cfg'
-    context = {}
-    context['backup_file_tasks'] = FileBackupTask.objects.filter(machine__up=True).filter(active=True).order_by('machine__fqdn')
-    context['r1soft_tasks'] = R1BackupTask.objects.filter(machine__up=True).filter(active=True).order_by('machine__fqdn')
-    context['TSM_tasks'] = TSMBackupTask.objects.filter(machine__up=True).filter(active=True).order_by('machine__fqdn')
+    context = {
+    'backup_file_tasks': FileBackupTask.objects.filter(machine__up=True).filter(active=True).order_by('machine__fqdn'),
+    'r1soft_tasks': R1BackupTask.objects.filter(machine__up=True).filter(active=True).order_by('machine__fqdn'),
+    'TSM_tasks': TSMBackupTask.objects.filter(machine__up=True).filter(active=True).order_by('machine__fqdn')}
     if 'file' in request.GET:
         response = render_to_response(template, context, mimetype="text/plain")
         response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file'] 

@@ -440,8 +440,7 @@ class TSMClient:
         self.run_TSM_CSV_Command(query, parser.parse)
         backups = []
         for backup in parser.data:
-            bckp = {}
-            bckp['start time'] = backup[0]
+            bckp = {'start time': backup[0]}
             log_msg = backup[1].split()
             session_no = int(log_msg[-1][:-1])
             bckp['session'] = session_no
