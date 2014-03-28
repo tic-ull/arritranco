@@ -97,7 +97,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-#    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
@@ -121,7 +120,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django_extensions',
     'south',
-#    'debug_toolbar',
     'rest_framework',
     'monitoring.nagios',
     'monitoring.cacti',
@@ -140,10 +138,6 @@ AREA_CHOICES = [[1, 'La Laguna'],
                ]
 
 INTERNAL_IPS = ('127.0.0.1',)
-
-DEBUG_TOOLBAR_CONFIG = {
-    'INTERCEPT_REDIRECTS': False,
-    }
 
 FILE_BACKUP_CHECKERS = (
         ('bckpsrv01.example.com', 'backup server1'),
