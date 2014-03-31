@@ -6,7 +6,7 @@ Created on 13/05/2011
 import IPy
 from django.db import models
 from location.models import Building
-from hardware.models import RackPlace, NetworkedDevice, NetworkPort
+from hardware.models import RackPlace, NetworkedDevice
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
@@ -169,10 +169,6 @@ class Switch(RackPlace, NetworkedDevice):
             return True, errorDesc
         return False, None
 
-class MACsHistory(models.Model):
-    port = models.ManyToManyField(NetworkPort)
-    captured = models.DateTimeField()
-    mac = models.CharField(max_length=12)
 
 class RoutingZone(models.Model):
     """

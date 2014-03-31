@@ -270,6 +270,14 @@ class IP(models.Model):
         super(IP, self).save(*args, **kwargs)
         logger.debug("Saved IP: %d - %s" % (self.id, self))
 
+    def network_addr(self):
+        if self.network is None:
+            return "No Network"
+        else:
+            return self.network.ip
+
+    def __unicode__(self):
+        return self.addr
 
 class Interface(models.Model):
     """ Model to represent a machine network interface """
@@ -277,7 +285,7 @@ class Interface(models.Model):
     name = models.CharField(help_text = _(u'Itentified name for the interface'), max_length = 50)
     hwaddr = models.CharField(help_text = _(u'Mac / Hardware address of the interface'), max_length = 17, validators = [clean_hwaddr])
     visible = models.BooleanField(help_text = _(u'Whether the interface and IP are visible through the network'), default = False)
-    ip = models.ForeignKey(IP)
+    ip = models.OneToOneField(IP)
 
     class Meta:
         verbose_name = _('Interface')

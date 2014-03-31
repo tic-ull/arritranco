@@ -1,6 +1,6 @@
 from django.db import models
 from monitoring.nagios.models import NagiosOpts
-from hardware.models import UserDevice
+from hardware.models import UnrackableNetworkedDevice
 from inventory.models import Machine
 
 
@@ -21,9 +21,9 @@ class NagiosNrpeCheckOpts(NagiosOpts):
         return str(self.check.name)
 
 
-class Sonda(Machine):
+class Sonda(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    userdevice = models.ForeignKey(UserDevice)
+    unrackable_networked_device = models.ForeignKey(UnrackableNetworkedDevice)
     ssh = models.BooleanField(default=False)
     dir_checks = models.CharField(default="/usr/lib/nagios/plugins", max_length=500, verbose_name="Directorio de plugings nagios")
     servidor_nagios = models.CharField(default="193.145.118.253", max_length=400)

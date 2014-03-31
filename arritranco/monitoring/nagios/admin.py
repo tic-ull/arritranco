@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 
-from models import NagiosCheck, NagiosMachineCheckOpts, NagiosContactGroup, NagiosNetworkParent, NagiosServiceCheckOpts, NagiosUserDeviceCheckOpts, Service
+from models import NagiosCheck, NagiosMachineCheckOpts, NagiosContactGroup, NagiosNetworkParent, NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, Service
 from inventory.models import Machine
 # Try to import the default nagios contact group
 try:
@@ -21,10 +21,7 @@ class NagiosMachineCheckOptsInline(admin.TabularInline):
 
 class NagiosCheckAdmin(admin.ModelAdmin):
     prepopulated_fields = { "slug": ("name",)}
-    list_display = ('name', 'default', 'default_params')
-    list_filter = ('default',)
-    filter_horizontal = ('machines',)
-    list_editable = ('default',)
+    list_display = ('name', 'default_params')
     search_fields = ('name',)
     actions = ['set_def_checks']
     
@@ -102,8 +99,8 @@ class NagiosServiceCheckOptsAdmin(admin.ModelAdmin):
 
 
 class NagiosUserdeviceCheckOptsAdmin(admin.ModelAdmin):
-    search_fields = ['userdevice_name', 'check_name']
-    list_display = ('userdevice_name', 'check_name')
+    search_fields = ['unrackable_networked_device_name', 'check_name']
+    list_display = ('unrackable_networked_device_name', 'check_name')
 
 
 class ServiceAdmin(admin.ModelAdmin):
@@ -116,7 +113,7 @@ admin.site.register(NagiosCheck, NagiosCheckAdmin)
 admin.site.register(NagiosContactGroup, NagiosContactGroupAdmin)
 admin.site.register(NagiosNetworkParent, NagiosNetworkParentAdmin)
 admin.site.register(NagiosServiceCheckOpts, NagiosServiceCheckOptsAdmin)
-admin.site.register(NagiosUserDeviceCheckOpts, NagiosUserdeviceCheckOptsAdmin)
+admin.site.register(NagiosUnrackableNetworkedDeviceCheckOpts, NagiosUserdeviceCheckOptsAdmin)
 admin.site.register(Service, ServiceAdmin)
 
 

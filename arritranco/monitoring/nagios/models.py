@@ -10,7 +10,7 @@ from inventory.models import Machine, PhysicalMachine, VirtualMachine, IP
 from network.models import Network
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
-from hardware.models import UserDevice
+from hardware.models import UnrackableNetworkedDevice
 
 
 NAGIOS_OK = 0
@@ -50,12 +50,11 @@ class NagiosCheck(models.Model):
     name = models.CharField(max_length=255)
     command = models.CharField(max_length=255)
     options = models.CharField(max_length=400)
-    default = models.BooleanField(help_text="Say if this check is a default check")
     default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
     machines = models.ManyToManyField(Machine, through='NagiosMachineCheckOpts', blank=True, null=True)
     services = models.ManyToManyField(Service, through='NagiosServiceCheckOpts', blank=True, null=True)
     nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True, related_name="nrpeservice")
-    userdevices = models.ManyToManyField(UserDevice, through='NagiosUserDeviceCheckOpts', blank=True, null=True)
+    unrackable_networked_devices = models.ManyToManyField(UnrackableNetworkedDevice, through='NagiosUnrackableNetworkedDeviceCheckOpts', blank=True, null=True)
     slug = models.SlugField()
    
     def __unicode__(self):
@@ -64,6 +63,11 @@ class NagiosCheck(models.Model):
     def all_machines(self):
         """ Returns all NagiosCheckOpts items which contains machine and options for the NagiosCheck """
         return self.nagioscheckopts_set.filter(machine__up=True).order_by('-machine__os__type__name', 'machine__fqdn')
+
+
+class NagiosMachineCheckDefaults(models.Model):
+    nagioscheck = models.ForeignKey(NagiosCheck)
+    options = models.CharField(max_length=400)
 
 
 class NagiosOpts(models.Model):
@@ -107,14 +111,14 @@ class NagiosServiceCheckOpts(NagiosOpts):
         return str(self.check.name)
 
 
-class NagiosUserDeviceCheckOpts(NagiosOpts):
-    userdevice = models.ForeignKey(UserDevice)
+class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
+    unrackable_networked_device = models.ForeignKey(UnrackableNetworkedDevice)
 
     def __unicode__(self):
-        return u"%s on %s" % (self.check.name, self.userdevice.name)
+        return u"%s on %s" % (self.check.name, self.unrackable_networked_device.name)
 
-    def userdevice_name(self):
-        return str(self.userdevice.name)
+    def unrackable_networked_device_name(self):
+        return str(self.unrackable_networked_device.name)
 
     def check_name(self):
         return str(self.check.name)
@@ -126,7 +130,7 @@ class NagiosContactGroup(Responsible):
 
     def delete(self, *args, **kwargs):
         """ Check first if there are checks assigned to the contact """
-        if NagiosCheckOpts.objects.filter(contact_groups__in=(self,)):
+        if NagiosMachineCheckOpts.objects.filter(contact_groups__in=(self,)):
             return False
         else:
             super(NagiosContactGroup, self).delete(*args, **kwargs)

@@ -17,3 +17,4 @@ arritranco/import_data.sh
 arritranco/scheduler/test.py
 arritranco/static/
 virtualenv/
+devdb

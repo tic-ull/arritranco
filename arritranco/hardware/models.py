@@ -82,44 +82,20 @@ class NetworkedDevice(models.Model):
     main_ip = models.ForeignKey("inventory.IP")
 
 
-class NetworkPort(models.Model):
-    hw = models.ForeignKey(HwBase)
-    name = models.CharField(max_length=255)
-    uplink = models.BooleanField(default=False)
-
-
-class UserDeviceType(models.Model):
-    name = models.CharField(max_length=250)
-
-
-class UserDeviceModel(models.Model):
-    name = models.CharField(max_length=250)
-    type = models.ForeignKey(UserDeviceType)
-
-
-class UserDevice(Unrackable, NetworkedDevice):
-    model = models.ForeignKey(UserDeviceModel)
+class UnrackableNetworkedDevice(Unrackable, NetworkedDevice):
     name = models.CharField(max_length=255)
     wall_socket = models.CharField(max_length=255)
-    port = models.ForeignKey("NetworkPort")
     switch = models.ForeignKey("network.Switch")
     place_in_building = models.TextField()
     comments = models.TextField()
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-    ip = models.ForeignKey("inventory.IP")
 
     def __unicode__(self):
-        return u"%s, %s , %s" % (self.name, self.model.type.name, self.model.name)
-
-    def model_name(self):
-        return self.model.name
-
-    def type_name(self):
-        return self.model.type.name
+        return u"%s" % self.name
 
 
-class Phone(UserDevice):
+class Phone(UnrackableNetworkedDevice):
     extension = models.CharField(max_length=4)
 
 

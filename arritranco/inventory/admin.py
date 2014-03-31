@@ -6,7 +6,7 @@ Created on 25/03/2011
 '''
 
 from django import forms
-from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType, Interface
+from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType, Interface, IP
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render_to_response, HttpResponseRedirect
 from django.template import RequestContext
@@ -125,6 +125,9 @@ class OperatingSystemAdmin(admin.ModelAdmin):
     list_display = ('name', 'type', )
     list_filter = ('type', )
 
+class IPAdmin(admin.ModelAdmin):
+    list_display = ('addr', 'network_addr', )
+    list_filter = ('addr', )
 
 admin.site.register(PhysicalMachine, PysicalMachineAdmin)
 admin.site.register(VirtualMachine, VirtualMachineAdmin)
@@ -132,4 +135,5 @@ admin.site.register(OperatingSystem, OperatingSystemAdmin)
 admin.site.register(OperatingSystemType)
 admin.site.register(Interface, InterfaceAdmin)
 admin.site.register(Machine, MachineAdmin)
+admin.site.register(IP, IPAdmin)
 

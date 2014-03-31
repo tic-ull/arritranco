@@ -4,18 +4,13 @@ Created on 23/12/2010
 @author: esauro
 '''
 from django.contrib import admin
-from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer, UserDevice, NetworkPort, ProcessorType, UserDevice
+from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer, UnrackableNetworkedDevice, ProcessorType, UnrackableNetworkedDevice
 
 SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number', 'management_ip')
 
 
 class HardDiskInline(admin.TabularInline):
     model = HardDisk
-    extra = 2
-
-
-class NetworPortInline(admin.TabularInline):
-    model = NetworkPort
     extra = 2
 
 
@@ -37,7 +32,7 @@ class RackableAdmin(HwAdmin):
 
 class RackServerAdmin(RackableAdmin):
     list_display = HwAdmin.list_display  + SERVER_LIST_DISPLAY 
-    inlines = [HardDiskInline, NetworPortInline]  
+    inlines = [HardDiskInline,]
     raw_id_fields = ('model',)
 
 
@@ -53,7 +48,7 @@ class ChasisAdmin(RackableAdmin):
 
 class ServerAdmin(HwAdmin):
     list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY 
-    inlines = [HardDiskInline, NetworPortInline]  
+    inlines = [HardDiskInline,]
 
 
 class RackAdmin(admin.ModelAdmin):
@@ -65,8 +60,8 @@ class ProcessorTypeAdmin(admin.ModelAdmin):
     list_display = ('manufacturer', 'model')
 
 
-class UserDeviceAdmin(admin.ModelAdmin):
-    list_display = ("name", 'type_name', 'model_name')
+class UnrackableNetworkedDeviceAdmin(admin.ModelAdmin):
+    list_display = ("name",)
 
 
 admin.site.register(Server, ServerAdmin)
@@ -74,7 +69,6 @@ admin.site.register(RackServer, RackServerAdmin)
 admin.site.register(Rack, RackAdmin)
 admin.site.register(Chassis, ChasisAdmin)
 admin.site.register(BladeServer, BladeServerAdmin)
-admin.site.register(NetworkPort)
 admin.site.register(ProcessorType)
-admin.site.register(UserDevice, UserDeviceAdmin)
+admin.site.register(UnrackableNetworkedDevice, UnrackableNetworkedDeviceAdmin)
 

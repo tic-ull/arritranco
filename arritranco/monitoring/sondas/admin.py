@@ -19,8 +19,8 @@ class NagiosNrpeCheckOptsAdmin(admin.ModelAdmin):
 
 
 class SondaAdmin(admin.ModelAdmin):
-    search_fields = ['name', 'fqdn']
-    list_display = ('name', 'fqdn')
+    search_fields = ['name', ]
+    list_display = ('name', )
     actions = ['ssh_key']
     readonly_fields = ["ssh", ]
     inlines = [InterfacesInline, ]
