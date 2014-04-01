@@ -135,6 +135,7 @@ INSTALLED_APPS = (
     'network',
     'backups',
     'monitoring.sondas',
+    'security',
     'fabric',
 )
 

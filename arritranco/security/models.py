@@ -1,6 +1,6 @@
 from django.db import models
-from hardware import UnrackableNetworkedDevice
-from monitoring.nagios import NagiosCheck
+from monitoring.nagios.models import NagiosCheck
+from hardware.models import UnrackableNetworkedDevice
 
 
 class SecurityDevice(UnrackableNetworkedDevice):
