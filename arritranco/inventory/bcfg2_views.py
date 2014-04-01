@@ -9,12 +9,15 @@ from inventory.models import PhysicalMachine, VirtualMachine
 from location.models import Room
 from models import HYPERVISOR_HOSTS
 
+import logging
+logger = logging.getLogger(__name__)
 
 class MachinesUPSProperty(APIView):
     """Physical machines ups epo level for bcfg2 properties."""
     def get(self, request, format=None, up=None):
         epo_list = {}
-        query = {'up':up} if up else {}
+        query = {'up': up} if up else {}
+        logger.debug("Querying UPS association to machines (filter: %s)" % query)
         for room in Room.objects.filter(name__in = settings.UPS_ROOM_NAMES):
             epo_list[room.name] = []
             for m in PhysicalMachine.objects.filter(
@@ -28,7 +31,7 @@ class MachinesUPSProperty(APIView):
             realhyp = hypervisor[1]
             if (realhyp != 'Undefined'):
                 epo_list[realhyp] = []
-                for m in VirtualMachine.objects.filter(hypervisor = hypervisor[0]):
+                for m in VirtualMachine.objects.filter(hypervisor = hypervisor[0], **query):
                     epo_list[realhyp].append({m.fqdn:m.get_epo_level_display()})
 
         return Response(epo_list, httpstatus.HTTP_200_OK)

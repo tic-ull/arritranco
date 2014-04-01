@@ -12,6 +12,7 @@ class Bcfg2BackupPropertySerializer(serializers.ModelSerializer):
     months = serializers.Field(source='month')
     dows = serializers.Field(source='weekday')
     extra = serializers.SerializerMethodField('get_extra')
+    server = serializers.Field(source='checker_fqdn')
 
     class Meta:
         model = FileBackupTask
