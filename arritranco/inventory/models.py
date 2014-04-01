@@ -10,12 +10,13 @@ import socket
 import re
 import IPy
 
+
 import logging
 logger = logging.getLogger(__name__)
 
 # Try to import the default name for service interface of a machine
 try:
-    from settings import DEFAULT_SVC_IFACE_NAME
+    from arritranco.settings import DEFAULT_SVC_IFACE_NAME
 except ImportError:
     DEFAULT_SVC_IFACE_NAME = None
 
@@ -136,13 +137,17 @@ class Machine(models.Model):
         """ Return DNS ip for the fqdn if it is resoluble """
         try:
             ip = socket.gethostbyname(self.fqdn)
+            myip = IP()
+            myip.addr = ip
+            myip.save()
         except socket.gaierror:
             # The fqdn is not in the DNS
-            ip = None
+            myip = None
         except Exception as e:
             logger.exception("Unknown error resolving DNS name for '%s': %s" % (self.fqdn, e))
-            ip = None
-        return ip
+            myip = None
+
+        return myip
 
     def get_num_ifaces(self):
         """ Returns the count of interfaces asociated to a machine instance """

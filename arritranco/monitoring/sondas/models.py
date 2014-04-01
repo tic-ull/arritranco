@@ -9,10 +9,13 @@ class NagiosNrpeCheckOpts(NagiosOpts):
     sonda = models.ManyToManyField("Sonda")
 
     def __unicode__(self):
-        return u"%s on %s by %s" % (self.check.name, self.service.name, self.sonda.name)
+        return u"%s on %s" % (self.check.name, self.service.name)
 
     def sonda_name(self):
-        return str(self.sonda.name)
+        sondas_str = ""
+        for sonda_ in self.sonda.all():
+            sondas_str = sondas_str + str(sonda_.name) + ","
+        return sondas_str
 
     def service_name(self):
         return str(self.service.name)

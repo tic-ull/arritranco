@@ -18,3 +18,4 @@ arritranco/scheduler/test.py
 arritranco/static/
 virtualenv/
 devdb
+keys/*

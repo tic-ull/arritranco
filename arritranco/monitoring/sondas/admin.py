@@ -9,8 +9,7 @@ from os import path, system
 import sys
 from tasks import ssh_key_send_task, send_nrpecfg
 from monitoring.nagios.models import Service
-from django.conf import settings
-from inventory.admin import InterfacesInline
+from arritranco import settings
 
 
 class NagiosNrpeCheckOptsAdmin(admin.ModelAdmin):
@@ -23,7 +22,6 @@ class SondaAdmin(admin.ModelAdmin):
     list_display = ('name', )
     actions = ['ssh_key']
     readonly_fields = ["ssh", ]
-    inlines = [InterfacesInline, ]
 
     class SshForm(forms.Form):
         _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)

@@ -182,9 +182,9 @@ def propagate_status(sender, **kwargs):
 def assign_default_checks(sender, **kwargs):
     machine = kwargs['instance']
     contact = NagiosContactGroup.objects.get(name=settings.DEFAULT_NAGIOS_CG)
-    if not NagiosCheckOpts.objects.filter(machine=machine).count():
-        for nch in NagiosCheck.objects.filter(default=True):
-            nchopt = NagiosCheckOpts.objects.create(machine=machine, check=nch)
+    if not NagiosMachineCheckOpts.objects.filter(machine=machine).count():
+        for nch in NagiosMachineCheckDefaults.objects.all():
+            nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=nch.nagioscheck)
             nchopt.contact_groups.add(contact)
             nchopt.save()
 
