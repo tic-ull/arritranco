@@ -3,12 +3,12 @@ from setuptools import setup
 # At this time it just install location app
 
 setup(
-    name = "Arritranco",
-    version = "0.1",
-    packages = ["location", "hardware", "things",],
-    author = "STIC-ULL",
-    author_mail = "sistemas@ull.es",
-    description = "This is an inventory tool for IT resource",
-    license = "AGPL",
-    keywords = "inventory, stock"
+    name="Arritranco",
+    version="0.1",
+    packages=["location", "hardware", "things", ],
+    author="STIC-ULL",
+    author_mail="sistemas@ull.es",
+    description="This is an inventory tool for IT resource",
+    license="AGPL",
+    keywords="inventory, stock"
 )

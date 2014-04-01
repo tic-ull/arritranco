@@ -7,8 +7,8 @@ from hardware_model.models import HwModel, Manufacturer
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 HD_CONN = (
@@ -23,11 +23,11 @@ class HwBase(models.Model):
     """This class is the base for all other hardware classes. It includes
     only those common attributes for all hardware classes such as serial
     numbers. Any particular attribute goes in the closer model"""
-    model = models.ForeignKey(HwModel, help_text = _('Hardware Model'))
-    serial_number = models.CharField(max_length = 255, help_text = _(u'Hardware Serial Number'))
+    model = models.ForeignKey(HwModel, help_text=_('Hardware Model'))
+    serial_number = models.CharField(max_length=255, help_text=_(u'Hardware Serial Number'))
     warranty_expires = models.DateField(blank=True, null=True)
     buy_date = models.DateField(blank=True, null=True)
-    
+
     class Meta:
         ordering = ['model', 'serial_number']
 
@@ -42,15 +42,15 @@ class Rack(models.Model):
     """This represent a rack. It's possible interesting to include info for PDUs"""
     units_number = models.IntegerField()
     room = models.ForeignKey(Room)
-    name = models.CharField(max_length = 255)
+    name = models.CharField(max_length=255)
     slug = models.SlugField()
-    
+
     class Meta:
         verbose_name = _('Rack')
         verbose_name_plural = _('Racks')
 
     def __unicode__(self):
-        return u"%s (%s)" % (self.name, self.room.name)    
+        return u"%s (%s)" % (self.name, self.room.name)
 
     def get_render_height(self):
         return settings.PX_FOR_UNITS * self.units_number
@@ -78,7 +78,7 @@ class Unrackable(HwBase):
     room = models.ForeignKey(Room)
 
 
-class NetworkedDevice(models.Model): 
+class NetworkedDevice(models.Model):
     main_ip = models.ForeignKey("inventory.IP")
 
 
@@ -101,13 +101,14 @@ class Phone(UnrackableNetworkedDevice):
 
 class Server(HwBase):
     """A generic server"""
-    memory = models.DecimalField(max_digits=15, decimal_places=3, blank=True, null=True, help_text=_('Installed memory in GB'))
+    memory = models.DecimalField(max_digits=15, decimal_places=3, blank=True, null=True,
+                                 help_text=_('Installed memory in GB'))
     management_ip = models.IPAddressField(help_text=_(u'Management or DRAC/iLO IP address'), blank=True, null=True)
     processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
     processor_clock = models.DecimalField(_(u"GHz"), max_digits=15, decimal_places=3, blank=True, null=True)
     # Multi CPU servers has the same CPU type
     processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Processors number'), default=1)
-    
+
     class Meta:
         verbose_name = _('Server')
         verbose_name_plural = _('Servers')
@@ -117,7 +118,7 @@ class Server(HwBase):
 
     def get_running_machine(self):
         try:
-            return self.physicalmachine_set.get(up = True)
+            return self.physicalmachine_set.get(up=True)
         except ObjectDoesNotExist:
             return None
 
@@ -125,21 +126,21 @@ class Server(HwBase):
 class Chassis(HwBase, RackPlace):
     """A chassis is a hardware where we can plug servers, network cards, etc.
     Some samples: blade enclosures, modular switches, etc."""
-    name = models.CharField(max_length = 255)
+    name = models.CharField(max_length=255)
     slug = models.SlugField()
-    slots = models.IntegerField(help_text = _(u'Number of available slots'))
+    slots = models.IntegerField(help_text=_(u'Number of available slots'))
 
     class Meta:
         verbose_name = _('Chassis')
         verbose_name_plural = _('Chassis')
 
     def __unicode__(self):
-        return u"Chasis (%s)" % (self.name)    
+        return u"Chasis (%s)" % (self.name)
 
 
 class BladeServer(Server):
     """A server to be plugged in a chassis"""
-    slot_number = models.CommaSeparatedIntegerField(max_length = 50, help_text=_(u'Slots number used by this server'))
+    slot_number = models.CommaSeparatedIntegerField(max_length=50, help_text=_(u'Slots number used by this server'))
     chassis = models.ForeignKey(Chassis)
 
     class Meta:
@@ -174,7 +175,7 @@ class ProcessorType(models.Model):
     """
         Type of processor
     """
-    manufacturer = models.ForeignKey(Manufacturer) 
+    manufacturer = models.ForeignKey(Manufacturer)
     model = models.CharField(max_length=255)
 
     def __unicode__(self):

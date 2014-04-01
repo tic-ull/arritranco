@@ -17,12 +17,13 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',      #'django.db.backends.sqlite3',           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',             # Or path to database file if using sqlite3.
-        'USER': '',             # Not used with sqlite3.
-        'PASSWORD': '',         # Not used with sqlite3.
-        'HOST': '',        # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                 # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3',
+        #'django.db.backends.sqlite3',           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',  # Or path to database file if using sqlite3.
+        'USER': '',  # Not used with sqlite3.
+        'PASSWORD': '',  # Not used with sqlite3.
+        'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',  # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -66,7 +67,6 @@ STATICFILES_DIRS = (
 )
 
 
-
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
 MEDIA_ROOT = PROJECT_ROOT + '/media/'
@@ -88,7 +88,7 @@ SECRET_KEY = '9u)uyfcmr*p9m6d=km@r@(0bzvoi*nt^_9*yy)-h)+-o&$6z=5'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.load_template_source',
+    #     'django.template.loaders.eggs.load_template_source',
 )
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
@@ -139,16 +139,16 @@ INSTALLED_APPS = (
 
 AREA_CHOICES = [[1, 'La Laguna'],
                 [2, 'Santa Cruz'],
-               ]
+]
 
 INTERNAL_IPS = ('127.0.0.1',)
 
 FILE_BACKUP_CHECKERS = (
-        ('bckpsrv01.example.com', 'backup server1'),
-        ('bckpsrv02.example.com', 'backup server2'),
-        ('bckpsrv03.example.com', 'backup server3'),
-        ('bckpsrv04.example.com', 'backup server4'),
-    )
+    ('bckpsrv01.example.com', 'backup server1'),
+    ('bckpsrv02.example.com', 'backup server2'),
+    ('bckpsrv03.example.com', 'backup server3'),
+    ('bckpsrv04.example.com', 'backup server4'),
+)
 
 # If None or False no default parent will set.
 DEFAULT_NAGIOS_HOST_PARENT = None
@@ -174,12 +174,12 @@ LOGGING = {
     },
     'handlers': {
         'null': {
-            'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
         },
-        'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
         'mail_admins': {
@@ -200,10 +200,10 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
-        '': { # catch_all logger
-            'handlers': ['fichero_rotado',],
-            'level': 'DEBUG',
-            'propagate': True,
+        '': {  # catch_all logger
+               'handlers': ['fichero_rotado', ],
+               'level': 'DEBUG',
+               'propagate': True,
         },
     }
 }
@@ -212,13 +212,12 @@ UPS_ROOM_NAMES = ('cpd',)
 
 MAX_COMPRESS_GB = 400
 
-PX_FOR_UNITS=15
+PX_FOR_UNITS = 15
 
 # Network settings
 SWITCH_LEVEL_SNMP_COMMUNITY_1 = ''
 BACKUP_METHOD_SFTP_USER = ''
 BACKUP_METHOD_SFTP_PASSWORD = ''
-
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (

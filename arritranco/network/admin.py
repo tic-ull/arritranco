@@ -13,7 +13,7 @@ class SwitchAdmin(admin.ModelAdmin):
 
 
 class NetworkAdmin(admin.ModelAdmin):
-    list_display = ('desc','ip','first_ip','last_ip','netmask')
+    list_display = ('desc', 'ip', 'first_ip', 'last_ip', 'netmask')
     search_fields = ['desc', 'ip', 'first_ip', 'last_ip']
 
 admin.site.register(Switch, SwitchAdmin)

@@ -28,7 +28,8 @@ class Sonda(models.Model):
     name = models.CharField(max_length=200, unique=True)
     unrackable_networked_device = models.ForeignKey(UnrackableNetworkedDevice)
     ssh = models.BooleanField(default=False)
-    dir_checks = models.CharField(default="/usr/lib/nagios/plugins", max_length=500, verbose_name="Directorio de plugings nagios")
+    dir_checks = models.CharField(default="/usr/lib/nagios/plugins", max_length=500,
+                                  verbose_name="Directorio de plugings nagios")
     servidor_nagios = models.CharField(default="193.145.118.253", max_length=400)
     nrpe_service_name = models.CharField(default="nagios-nrpe-server", max_length=400)
     script_inicio = models.TextField(blank=True)

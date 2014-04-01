@@ -1,13 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os, sys
+import os
+import sys
 import urllib2
 import urllib
 import simplejson as json
 import datetime
 import getopt
 import getpass
+
 import socket
 import os.path
 import fnmatch
@@ -30,10 +32,10 @@ CRITICAL = 2
 UNKNOWN = 3
 
 STATE_TO_HUMAN = {
-    OK:'Ok',
-    WARNING:'Warning',
-    CRITICAL:'Critical',
-    UNKNOWN:'Unknown',
+    OK: 'Ok',
+    WARNING: 'Warning',
+    CRITICAL: 'Critical',
+    UNKNOWN: 'Unknown',
 }
 
 URLBASE = 'https://inventario.stic.ull.es/rest/backup/backupfilechecker/?checker=xxxx'
@@ -56,8 +58,8 @@ LOGGING = {
         },
     },
     'handlers': {
-        'syslog':{
-            'level':'INFO',
+        'syslog': {
+            'level': 'INFO',
             'class': 'logging.handlers.SysLogHandler',
             'formatter': 'verbose',
             'address': '/dev/log',
@@ -74,8 +76,8 @@ LOGGING = {
     },
     'loggers': {
         '__main__': {
-            'handlers':['log_file'],
-            'level':'DEBUG',
+            'handlers': ['log_file'],
+            'level': 'DEBUG',
             'propagate': True,
         },
     },
@@ -83,14 +85,15 @@ LOGGING = {
 
 if sys.stdout.isatty():
     LOGGING['handlers']['console'] = {
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-            'level': 'DEBUG',
-            'stream': 'ext://sys.stdout'
-        }
+        'class': 'logging.StreamHandler',
+        'formatter': 'simple',
+        'level': 'DEBUG',
+        'stream': 'ext://sys.stdout'
+    }
     LOGGING['loggers']['__main__']['handlers'].append('console')
 
 # We might want to use a different one, e.g. importlib
+
 
 def resolve(s):
     """
@@ -124,7 +127,7 @@ for f in LOGGING['formatters'].keys():
 handlers = {}
 for h in LOGGING['handlers'].keys():
     config = {}
-    for k,v in LOGGING['handlers'][h].items():
+    for k, v in LOGGING['handlers'][h].items():
         config[k] = v
     factory = resolve(config.pop('class'))
     formatter = config.pop('formatter')
@@ -145,6 +148,7 @@ for l in LOGGING['loggers'].keys():
 
 logger = logging.getLogger(__name__)
 
+
 def usage():
     """
         Prints help
@@ -158,11 +162,13 @@ Usage: check_file_backups.py [options]
  -h  Print this help message
 """
 
+
 def sizeof_fmt(num):
-    for x in ['bytes','KB','MB','GB','TB']:
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
         if num < 1024.0:
             return "%3.1f%s" % (num, x)
         num /= 1024.0
+
 
 def parseOpts():
     """
@@ -193,7 +199,7 @@ def parseOpts():
 
 
 class FileBackupProduct(object):
-    def __init__(self, fbp, directory, host, verbose = False):
+    def __init__(self, fbp, directory, host, verbose=False):
         self.host = host
         self.start_seq = fbp['start_seq']
         self.end_seq = fbp['end_seq']
@@ -212,7 +218,7 @@ class FileBackupProduct(object):
         return [run.strftime(f) for f in filenames]
 
     def check(self, last_run, previous_run):
-        status= []
+        status = []
         if self.start_seq:
             for chunk in range(self.start_seq, self.end_seq + 1):
                 filename = str(self.pattern.replace('#', str(chunk)))
@@ -258,10 +264,10 @@ class FileBackupProduct(object):
             return (CRITICAL, 'No hay ultimo backup (%s)' % last_run)
         elif not previous_run_files:
             return (WARNING, "No hay backup anterior con el que comparar la copia del: %s [%s %s]" % (
-                    last_run,
-                    last_run_files[0],
-                    sizeof_fmt(os.path.getsize(os.path.join(self.directory, last_run_files[0]))))
-                )
+                last_run,
+                last_run_files[0],
+                sizeof_fmt(os.path.getsize(os.path.join(self.directory, last_run_files[0]))))
+            )
         else:
             # We need manage the situation where we have more than one file in time.
             prev_file = os.path.join(self.directory, previous_run_files[0])
@@ -269,14 +275,14 @@ class FileBackupProduct(object):
             file_info = None
             if _is_compressed(last_file) != _is_compressed(prev_file):
                 data = {
-                    'file_name':os.path.basename(prev_file),
-                    'directory':os.path.dirname(prev_file),
-                    }
-                file_info_url = FILE_INFO_URL + '?' +  urllib.urlencode(data)
+                    'file_name': os.path.basename(prev_file),
+                    'directory': os.path.dirname(prev_file),
+                }
+                file_info_url = FILE_INFO_URL + '?' + urllib.urlencode(data)
                 logger.debug("Descargando informacion del inventario para comparar los tamanyos originales")
                 logger.debug("url: %s", file_info_url)
                 try:
-                    request = urllib2.Request(file_info_url, headers ={'Accept': 'application/json'})
+                    request = urllib2.Request(file_info_url, headers={'Accept': 'application/json'})
                     res = urllib2.urlopen(request)
                     file_info = json.load(res)
                 except urllib2.HTTPError, e:
@@ -289,16 +295,17 @@ class FileBackupProduct(object):
                     print e
                     raise e
                 if file_info is None:
-                    return (WARNING, "No se pueden comparar los ficheros, uno esta comprimido y el otro no. (last:%s [%s] Vs previous:%s [%s])" % (
+                    return (WARNING,
+                            "No se pueden comparar los ficheros, uno esta comprimido y el otro no. (last:%s [%s] Vs previous:%s [%s])" % (
                                 last_run_files[0],
                                 sizeof_fmt(os.path.getsize(last_file)),
                                 os.path.basename(prev_file),
                                 sizeof_fmt(os.path.getsize(prev_file))
-                                )
                             )
+                    )
                 else:
                     logger.debug("Informacion obtenida del inventario:")
-                    for k,v in file_info.items():
+                    for k, v in file_info.items():
                         logger.debug("   - %s: %s" % (k, v))
                 size_min = self.variable_percentage / 100 * file_info['original_file_size']
                 size_max = (1 + self.variable_percentage / 100) * file_info['original_file_size']
@@ -312,7 +319,8 @@ class FileBackupProduct(object):
             else:
                 logger.debug("Comparando los siguientes ficheros con el umbral %s%%" % self.variable_percentage)
                 logger.debug("   - ultimo %s (%s)" % (last_run_files[0], sizeof_fmt(os.path.getsize(last_file))))
-                logger.debug("   - anterior segun el inventario %s (%s)" % (file_info['original_file_name'], sizeof_fmt(file_info['original_file_size'])))
+                logger.debug("   - anterior segun el inventario %s (%s)" % (
+                    file_info['original_file_name'], sizeof_fmt(file_info['original_file_size'])))
             logger.debug("  Minimum aceptable size: %s" % size_min)
             logger.debug("  Maximum aceptable size: %s" % size_max)
             logger.debug("  Last backup size: %s" % os.path.getsize(last_file))
@@ -321,15 +329,16 @@ class FileBackupProduct(object):
                 return (OK, "%s (%s)" % (last_run_files[0], sizeof_fmt(os.path.getsize(last_file))))
             logger.debug("  - WARNING")
             return (WARNING, "Error: Los ficheros difieren mas de un %d%% (%s [%s] Vs %s [%s])" % (
-                        self.variable_percentage,
-                        last_run_files[0],
-                        sizeof_fmt(os.path.getsize(last_file)),
-                        previous_run_files[0],
-                        sizeof_fmt(os.path.getsize(prev_file))
-                    ))
+                self.variable_percentage,
+                last_run_files[0],
+                sizeof_fmt(os.path.getsize(last_file)),
+                previous_run_files[0],
+                sizeof_fmt(os.path.getsize(prev_file))
+            ))
+
 
 class FileBackup(object):
-    def __init__(self, backup, host, verbose = False):
+    def __init__(self, backup, host, verbose=False):
         self.host = host
         self.id = int(backup['id'])
         self.last_run = datetime.datetime(*(time.strptime(backup['last_run'], '%Y-%m-%d %H:%M:%S')[0:6]))
@@ -389,10 +398,10 @@ if __name__ == "__main__":
             logger.info(" - Task %s", fbp.description)
             out = fbp.check_products()
             data = {
-                'task':fbp.id,
-                'task_time':fbp.last_run,
-                'status':STATE_TO_HUMAN[out[0]],
-                'comment':out[1]
+                'task': fbp.id,
+                'task_time': fbp.last_run,
+                'status': STATE_TO_HUMAN[out[0]],
+                'comment': out[1]
             }
             logger.info("   * Status information: %s (%s)", data['status'], data['comment'].replace('\n', ''))
             if not dryrun:

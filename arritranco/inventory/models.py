@@ -1,4 +1,3 @@
-
 from django.db import models
 from network.models import Network
 from hardware.models import RackServer, Rack
@@ -10,8 +9,8 @@ import socket
 import re
 import IPy
 
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Try to import the default name for service interface of a machine
@@ -35,9 +34,9 @@ UPDATE_PRIORITY = (
 
 EPO_LEVELS = (
     (0, _(u'Undefined')),
-    (5, _(u'No Service')), 
+    (5, _(u'No Service')),
     (10, _(u'No service lost (Service degradation)')),
-    (20, _(u'Service Lost. No critical service')), 
+    (20, _(u'Service Lost. No critical service')),
     (30, _(u'Service Lost. CRITICAL service')),
 )
 
@@ -48,7 +47,7 @@ KVM_HYPERVISOR = 2
 HYPERVISOR_HOSTS = (
     (UNDEF_HYPERVISOR, 'Undefined'),
     (VMWARE_HYPERVISOR, 'VMWare'),
-    (KVM_HYPERVISOR, 'KVM'), 
+    (KVM_HYPERVISOR, 'KVM'),
 )
 
 UPS_CHOICES = (
@@ -58,7 +57,7 @@ UPS_CHOICES = (
     (3, 'UPS2 Tarj.1'),
     (4, 'UPS2 Tarj.2'),
     (5, 'UPS VMware'),
-    (70,'UPS Etsii'),
+    (70, 'UPS Etsii'),
     (6, 'No se aplica'),
 )
 
@@ -69,6 +68,7 @@ class OperatingSystemType(models.Model):
 
     def __unicode__(self):
         return u"%s" % self.name
+
 
 class OperatingSystem(models.Model):
     """
@@ -83,12 +83,14 @@ class OperatingSystem(models.Model):
     def __unicode__(self):
         return u"%s %s" % (self.name, self.version)
 
+
 def clean_hwaddr(value):
     """ Check the construction of the mac address """
     MAC_RE = r'^([0-9a-fA-F]{2}([:-]?|$)){6}$'
     mac_re = re.compile(MAC_RE)
     if not mac_re.match(value):
         raise ValidationError, _(u'You must enter a valid mac address e.g.: 10:0f:c0:a0:00:b0 or 10-0f-c0-a0-00-b0')
+
 
 def clean_fqdn(value):
     """ Check fqdn hostname is defined on the DNS zone """
@@ -97,24 +99,25 @@ def clean_fqdn(value):
     except:
         raise ValidationError, _(u'The fqdn name u entered is not resoluble, please enter a valid one')
 
+
 def clean_ip(value):
     """ Check valid IPv4 addr """
     try:
         ip = IPy.IP(value)
     except ValueError:
-        raise ValidationError,  _(u'You must provide a valid IPv4 address e.g.: 10.119.70.0')
+        raise ValidationError, _(u'You must provide a valid IPv4 address e.g.: 10.119.70.0')
 
 
 class Machine(models.Model):
     """Software Machine."""
-    fqdn = models.CharField( max_length = 255, unique = True)
-    description = models.TextField(blank = True, null = True)
-    up = models.BooleanField('Up', default = False, help_text = _(u'Is this machine up?'))
-    os = models.ForeignKey(OperatingSystem, blank = True, null = True)
-    start_up = models.DateField(_(u'start up'), blank = True, null = True)
-    update_priority = models.IntegerField(_(u'Update priority'), choices = UPDATE_PRIORITY, default = 30)
+    fqdn = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+    up = models.BooleanField('Up', default=False, help_text=_(u'Is this machine up?'))
+    os = models.ForeignKey(OperatingSystem, blank=True, null=True)
+    start_up = models.DateField(_(u'start up'), blank=True, null=True)
+    update_priority = models.IntegerField(_(u'Update priority'), choices=UPDATE_PRIORITY, default=30)
     up_to_date_date = models.DateField(_(u'update date'), blank=True, null=True)
-    epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 5)
+    epo_level = models.IntegerField(_(u'EPO Level'), choices=EPO_LEVELS, default=5)
 
 
     class Meta:
@@ -131,7 +134,7 @@ class Machine(models.Model):
             clean_fqdn(self.fqdn)
 
     def get_admin_url(self):
-        return reverse('admin:inventory_machine_change',args=(self.id,))
+        return reverse('admin:inventory_machine_change', args=(self.id,))
 
     def resolveip(self):
         """ Return DNS ip for the fqdn if it is resoluble """
@@ -155,7 +158,7 @@ class Machine(models.Model):
 
     def get_service_iface(self):
         """ Returns the interface named DEFAULT_SVC_IFACE_NAME if exists """
-        try: 
+        try:
             svc_iface = self.interface_set.get(name=DEFAULT_SVC_IFACE_NAME)
         except ObjectDoesNotExist:
             svc_iface = None
@@ -171,7 +174,7 @@ class Machine(models.Model):
         return service_ip
 
     @staticmethod
-    def get_by_addr(addr, filter_up = False):
+    def get_by_addr(addr, filter_up=False):
         """
             Returns a machine by a IP or a DNS name.
 
@@ -181,9 +184,9 @@ class Machine(models.Model):
         try:
             # Search by IP
             if filter_up:
-                return Machine.objects.get(interface__ip = addr, up = True)
+                return Machine.objects.get(interface__ip=addr, up=True)
             else:
-                return Machine.objects.get(interface__ip = addr)
+                return Machine.objects.get(interface__ip=addr)
         except Machine.DoesNotExist:
             # It's ok, we'll try searching by name
             pass
@@ -194,9 +197,9 @@ class Machine(models.Model):
         try:
             # Search by Name
             if filter_up:
-                return Machine.objects.get(fqdn = addr, up = True)
+                return Machine.objects.get(fqdn=addr, up=True)
             else:
-                return Machine.objects.get(fqdn = addr)
+                return Machine.objects.get(fqdn=addr)
         except Machine.DoesNotExist:
             # It's ok too, our last try will be a reverse DNS search
             pass
@@ -205,10 +208,10 @@ class Machine(models.Model):
             # FIXME
             # The addr name could have more than one reverse DNS name.
             # In these cases we would iterate by the list of reverse names
-            return Machine.objects.get(fqdn = socket.getfqdn(addr), up = True)
+            return Machine.objects.get(fqdn=socket.getfqdn(addr), up=True)
         except Machine.DoesNotExist:
             return None
-    
+
     def responsibles(self):
         """ String with all responsibles for notification on nagios """
         groups = set()
@@ -219,11 +222,13 @@ class Machine(models.Model):
 
     def network_names(self):
         """ Network names where machine is conected to """
-        networks = []
+        # FIXME
+        """networks = []
         link = '<a href=\"%s\"> %s </a>'
         for net in self.networks.all().distinct():
             networks.append(link % (net.get_admin_url(),net.desc))
-        return ", ".join(networks)
+        return ", ".join(networks)"""
+        return ""
 
     network_names.short_description = _(u'Networks')
     network_names.allow_tags = True
@@ -232,7 +237,7 @@ class Machine(models.Model):
         """Returns if this machine should have upsmon or not."""
         try:
             vm = self.virtualmachine
-        except ObjectDoesNotExist: 
+        except ObjectDoesNotExist:
             return True
 
         if vm.hypervisor == KVM_HYPERVISOR:
@@ -247,12 +252,12 @@ class Machine(models.Model):
            - This function assumes that the fqdn name is resoluble.
         """
         iface = Interface(
-                    machine = self,
-                    ip = self.resolveip(),
-                    hwaddr = '00:00:00:00:00:00',
-                    name = DEFAULT_SVC_IFACE_NAME,
-                    visible = True,
-                    )
+            machine=self,
+            ip=self.resolveip(),
+            hwaddr='00:00:00:00:00:00',
+            name=DEFAULT_SVC_IFACE_NAME,
+            visible=True,
+        )
         return iface
 
     def get_nagios_parents(self):
@@ -284,18 +289,21 @@ class IP(models.Model):
     def __unicode__(self):
         return self.addr
 
+
 class Interface(models.Model):
     """ Model to represent a machine network interface """
     machine = models.ForeignKey(Machine)
-    name = models.CharField(help_text = _(u'Itentified name for the interface'), max_length = 50)
-    hwaddr = models.CharField(help_text = _(u'Mac / Hardware address of the interface'), max_length = 17, validators = [clean_hwaddr])
-    visible = models.BooleanField(help_text = _(u'Whether the interface and IP are visible through the network'), default = False)
+    name = models.CharField(help_text=_(u'Itentified name for the interface'), max_length=50)
+    hwaddr = models.CharField(help_text=_(u'Mac / Hardware address of the interface'), max_length=17,
+                              validators=[clean_hwaddr])
+    visible = models.BooleanField(help_text=_(u'Whether the interface and IP are visible through the network'),
+                                  default=False)
     ip = models.OneToOneField(IP)
 
     class Meta:
         verbose_name = _('Interface')
         verbose_name_plural = _('Interfaces')
-    
+
     def __unicode__(self):
         return u"%s (%s)  <%s>" % (self.name, self.ip.addr, "UP" if self.visible else "DOWN")
 
@@ -305,15 +313,15 @@ class Interface(models.Model):
 
 class VirtualMachine(Machine):
     """ Machine with no real hardware running on a virtual server like VMWare, KVM or whatever """
-    hypervisor = models.IntegerField(_(u'Hypervisor host'), choices = HYPERVISOR_HOSTS, default = 0)    
-    processors = models.IntegerField(_(u"Number of processors"), default = 1)
+    hypervisor = models.IntegerField(_(u'Hypervisor host'), choices=HYPERVISOR_HOSTS, default=0)
+    processors = models.IntegerField(_(u"Number of processors"), default=1)
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
     total_disks_size = models.DecimalField(_(u"GB"), max_digits=15, decimal_places=3, blank=True, null=True)
 
     class Meta:
         verbose_name = _('Virtual machine')
         verbose_name_plural = _('Virtual machines')
-    
+
 
 class PhysicalMachine(Machine):
     """ Machine with real hardware """
@@ -325,18 +333,18 @@ class PhysicalMachine(Machine):
         verbose_name_plural = _('Physical machines')
 
     def get_warranty_expires(self):
-	return self.server.warranty_expires
+        return self.server.warranty_expires
 
     def get_location(self):
         """ returns location (physical) """
         try:
             server = RackServer.objects.filter(id=self.server.id)[0]
-            room   = Room.objects.filter(id=server.rack.room.id)[0]
+            room = Room.objects.filter(id=server.rack.room.id)[0]
             location = {'fqdn': self.fqdn, 'rack': server.rack.name, 'room': room.name, 'base_unit': server.base_unit}
 
             return location
         except:
             return None
 
-        return None
-    
+
+s

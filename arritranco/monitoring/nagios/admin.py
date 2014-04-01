@@ -8,45 +8,48 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 
-from models import NagiosCheck, NagiosMachineCheckOpts, NagiosContactGroup, NagiosNetworkParent, NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, Service
+from models import NagiosCheck, NagiosMachineCheckOpts, NagiosContactGroup, NagiosNetworkParent, \
+    NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, Service
 from inventory.models import Machine
 # Try to import the default nagios contact group
 try:
     from settings import DEFAULT_NAGIOS_CG
 except ImportError:
-    DEFAULT_NAGIOS_CG = None    
+    DEFAULT_NAGIOS_CG = None
+
 
 class NagiosMachineCheckOptsInline(admin.TabularInline):
     model = NagiosMachineCheckOpts
 
+
 class NagiosCheckAdmin(admin.ModelAdmin):
-    prepopulated_fields = { "slug": ("name",)}
+    prepopulated_fields = {"slug": ("name",)}
     list_display = ('name', 'default_params')
     search_fields = ('name',)
     actions = ['set_def_checks']
-    
-
 
 
 class NagiosMachineCheckOptsAdmin(admin.ModelAdmin):
-    list_display = ('check','machine','options','get_ngcontact_groups')
+    list_display = ('check', 'machine', 'options', 'get_ngcontact_groups')
     list_editable = ('options',)
-    search_fields = ('check__name','machine__fqdn')
-    list_filter = ('contact_groups','check',)
-    inlines = [NagiosMachineCheckOptsInline,]
+    search_fields = ('check__name', 'machine__fqdn')
+    list_filter = ('contact_groups', 'check',)
 
     def set_def_checks(self, request, queryset):
         """ Assign default checks to each UP machine we have """
         if not DEFAULT_NAGIOS_CG:
-            messages.error(request, _(u'The default nagios contact group should be defined in settings.py: DEFAULT_NAGIOS_CG'))
+            messages.error(request,
+                           _(u'The default nagios contact group should be defined in settings.py: DEFAULT_NAGIOS_CG'))
         else:
-            def_cg, created = NagiosContactGroup.objects.get_or_create(ngcontact = DEFAULT_NAGIOS_CG, name = 'Default group')
+            def_cg, created = NagiosContactGroup.objects.get_or_create(ngcontact=DEFAULT_NAGIOS_CG,
+                                                                       name='Default group')
             if created:
                 def_cg.save()
             def_checks = queryset
             non_def_checks = def_checks.filter(default=False)
             if non_def_checks:
-                messages.error(request, _(u'There were some non-default checks selected on the queryset e.g.: %s' % non_def_checks))
+                messages.error(request, _(
+                    u'There were some non-default checks selected on the queryset e.g.: %s' % non_def_checks))
             else:
                 up_machines = Machine.objects.filter(up=True)
                 n_checks = 0
@@ -54,23 +57,25 @@ class NagiosMachineCheckOptsAdmin(admin.ModelAdmin):
                 for c in def_checks:
                     for m in up_machines:
                         try:
-                            co = NagiosMachineCheckOpts.objects.get(check = c, machine = m, contact_groups = def_cg)
+                            co = NagiosMachineCheckOpts.objects.get(check=c, machine=m, contact_groups=def_cg)
                         except ObjectDoesNotExist:
                             co = None
                         if co:
                             n_existent_checks += 1
                         else:
-                            co = NagiosMachineCheckOpts(check = c, machine = m)
+                            co = NagiosMachineCheckOpts(check=c, machine=m)
                             co.save()
                             co.contact_groups = (def_cg,)
                             co.save()
                             n_checks += 1
-                messages.info(request, u'Created %d nagios checks on %d  UP! machines (%d checks already exists).' % (n_checks, len(up_machines),n_existent_checks))
+                messages.info(request, u'Created %d nagios checks on %d  UP! machines (%d checks already exists).' % (
+                    n_checks, len(up_machines), n_existent_checks))
+
     set_def_checks.short_description = _(u'Asign selected default checks to all up machines')
 
 
 class NagiosContactGroupAdmin(admin.ModelAdmin):
-    actions = ['delete_contact',]
+    actions = ['delete_contact', ]
 
     def get_actions(self, request):
         """ Disable delete_selected action to control the delete operation, even in querysets """
@@ -82,15 +87,16 @@ class NagiosContactGroupAdmin(admin.ModelAdmin):
         """ Check if there are checks active for a contact, before delete it """
         for contact in queryset:
             if contact.delete():
-                messages.info(request, _(u'Deleted contact: %s ' % contact)) 
+                messages.info(request, _(u'Deleted contact: %s ' % contact))
             else:
-                messages.warning(request, _(u'Contact %s can not be deleted while having check notifications active' % contact))
-                    
+                messages.warning(request,
+                                 _(u'Contact %s can not be deleted while having check notifications active' % contact))
+
     delete_contact.verbose_name = _(u'Delete selected contacts')
 
 
 class NagiosNetworkParentAdmin(admin.ModelAdmin):
-    list_display = ('network','parent')
+    list_display = ('network', 'parent')
 
 
 class NagiosServiceCheckOptsAdmin(admin.ModelAdmin):

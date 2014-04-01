@@ -40,7 +40,7 @@ class Service(models.Model):
 
     def machines_names(self):
         machines_list = ""
-        for machine in self.machines:
+        for machine in self.machines.all():
             machines_list = machines_list + " " + str(machine.fqdn)
         return machines_list
 
@@ -53,8 +53,11 @@ class NagiosCheck(models.Model):
     default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
     machines = models.ManyToManyField(Machine, through='NagiosMachineCheckOpts', blank=True, null=True)
     services = models.ManyToManyField(Service, through='NagiosServiceCheckOpts', blank=True, null=True)
-    nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True, related_name="nrpeservice")
-    unrackable_networked_devices = models.ManyToManyField(UnrackableNetworkedDevice, through='NagiosUnrackableNetworkedDeviceCheckOpts', blank=True, null=True)
+    nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True,
+                                  related_name="nrpeservice")
+    unrackable_networked_devices = models.ManyToManyField(UnrackableNetworkedDevice,
+                                                          through='NagiosUnrackableNetworkedDeviceCheckOpts',
+                                                          blank=True, null=True)
     slug = models.SlugField()
    
     def __unicode__(self):

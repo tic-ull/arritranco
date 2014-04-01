@@ -19,6 +19,7 @@ from monitoring.nagios.admin import NagiosMachineCheckOptsInline
 import datetime
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Try to import the default name for service interface of a machine
@@ -37,7 +38,7 @@ class MachineAdmin(admin.ModelAdmin):
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
     date_hierarchy = 'start_up'
     search_fields = ('fqdn', 'os__name', 'networks__desc', 'networks__ip')
-    inlines = [InterfacesInline, NagiosMachineCheckOptsInline,]
+    inlines = [InterfacesInline, NagiosMachineCheckOptsInline, ]
     actions = ['copy_machine', 'update_machine']
 
     def save_related(self, request, form, formsets, change):
@@ -62,14 +63,16 @@ class MachineAdmin(admin.ModelAdmin):
                 # If there is no ifaces, or ther is some but no one with fqdn
                 # ip addr, we create the default one
                 machine.interface_set.add(svc_iface)
-                messages.info(request, u'The iface %s has been created bounded to the fqdn of %s' % (machine.get_service_iface(),machine))
+                messages.info(request, u'The iface %s has been created bounded to the fqdn of %s' % (
+                    machine.get_service_iface(), machine))
             else:
                 # There is an interface with fqdn ip addr, we rename it to DEFAULT_SVC_IFACE_NAME
                 messages.info(request, _(u'The iface founded %s' % fqdn_iface))
                 fqdn_iface.name = DEFAULT_SVC_IFACE_NAME
                 logger.debug("Calling Interface Save method: %d - %s " % (fqdn_iface.id, fqdn_iface))
                 fqdn_iface.save()
-                messages.info(request, _(u'The iface %s has been renamed to default service interface' % machine.get_service_iface()))    
+                messages.info(request, _(
+                    u'The iface %s has been renamed to default service interface' % machine.get_service_iface()))
 
     class CopyMachineForm(forms.Form):
         fqdn = forms.CharField(max_length=255)
@@ -83,18 +86,19 @@ class MachineAdmin(admin.ModelAdmin):
         if 'apply' in request.POST:
             messages.info(request, _(u'The action has been applied'))
             return HttpResponseRedirect(request.get_full_path())
-        if not form: # first call render the form to ask for diferent parametters
+        if not form:  # first call render the form to ask for diferent parametters
             form = self.CopyMachineForm(initial=
-                                            {
-                                                '_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME),
-                                                'fqdn': queryset[0].fqdn,
-                                                'description': queryset[0].fqdn,
-                                            }
-                                        )
+                                        {
+                                            '_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME),
+                                            'fqdn': queryset[0].fqdn,
+                                            'description': queryset[0].fqdn,
+                                        }
+            )
         return render_to_response('admin/copy_machine.html', {'machines': queryset,
-                                                         'copy_form': form,
-                                                        }, context_instance = RequestContext(request))
-    copy_machine.short_description = _(u'Copy from selected machine(TODO)') 
+                                                              'copy_form': form,
+        }, context_instance=RequestContext(request))
+
+    copy_machine.short_description = _(u'Copy from selected machine(TODO)')
 
     def update_machine(self, request, queryset):
         """ Admin action to set update date to now"""
@@ -102,11 +106,12 @@ class MachineAdmin(admin.ModelAdmin):
             machine.up_to_date_date = datetime.date.today()
             machine.save()
         messages.info(request, _(u'%s machines has been updated' % (queryset.count())))
+
     update_machine.short_description = _(u'Machine up to date')
 
 
 class PysicalMachineAdmin(MachineAdmin):
-    list_display = ('fqdn', 'server', 'get_warranty_expires','up', 'os', 'start_up', 'update_priority', 'epo_level')
+    list_display = ('fqdn', 'server', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
 
 
@@ -125,9 +130,11 @@ class OperatingSystemAdmin(admin.ModelAdmin):
     list_display = ('name', 'type', )
     list_filter = ('type', )
 
+
 class IPAdmin(admin.ModelAdmin):
     list_display = ('addr', 'network_addr', )
     list_filter = ('addr', )
+
 
 admin.site.register(PhysicalMachine, PysicalMachineAdmin)
 admin.site.register(VirtualMachine, VirtualMachineAdmin)

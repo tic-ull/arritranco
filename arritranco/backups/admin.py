@@ -18,16 +18,19 @@ class FileBackupProductInline(admin.TabularInline):
 
 
 class FileBackupTaskAdmin(admin.ModelAdmin):
-    list_display = ('machine', 'active', 'bckp_type', 'description', 'checker_fqdn', 'directory', 'days_in_hard_drive', 'max_backup_month')
+    list_display = ('machine', 'active', 'bckp_type', 'description', 'checker_fqdn', 'directory',
+                    'days_in_hard_drive', 'max_backup_month')
     list_filter = ('bckp_type', 'checker_fqdn')
     list_editable = ('bckp_type', )
     search_fields = ['machine__fqdn', 'directory', 'checker_fqdn', 'description']
-    inlines = [FileBackupProductInline, ]  
+    inlines = [FileBackupProductInline, ]
 
 
 class BackupFileAdmin(admin.ModelAdmin):
-    list_display = ('original_file_name', 'original_date', 'original_file_size_display', 'machine', 'checker', 'deletion_date')
-    search_fields = ['original_file_name', 'compressed_file_name', 'file_backup_product__file_backup_task__machine__fqdn']
+    list_display = ('original_file_name', 'original_date', 'original_file_size_display', 'machine',
+                    'checker', 'deletion_date')
+    search_fields = ['original_file_name', 'compressed_file_name',
+                     'file_backup_product__file_backup_task__machine__fqdn']
     raw_id_fields = ('file_backup_product', 'task_check')
     date_hierarchy = 'original_date'
     list_filter = ('file_backup_product__file_backup_task__checker_fqdn',)

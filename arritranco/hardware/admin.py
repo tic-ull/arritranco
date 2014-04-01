@@ -4,7 +4,8 @@ Created on 23/12/2010
 @author: esauro
 '''
 from django.contrib import admin
-from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer, UnrackableNetworkedDevice, ProcessorType, UnrackableNetworkedDevice
+from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer, \
+    UnrackableNetworkedDevice, ProcessorType, UnrackableNetworkedDevice
 
 SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number', 'management_ip')
 
@@ -22,24 +23,25 @@ class HwAdmin(admin.ModelAdmin):
 
     def model_name(self, obj):
         return obj.model.name
+
     model_name.short_description = 'model'
 
 
 class RackableAdmin(HwAdmin):
-    list_display = HwAdmin.list_display  + ('rack', )
+    list_display = HwAdmin.list_display + ('rack', )
     list_filter = HwAdmin.list_filter + ('rack__room__building', 'model')
 
 
 class RackServerAdmin(RackableAdmin):
-    list_display = HwAdmin.list_display  + SERVER_LIST_DISPLAY 
-    inlines = [HardDiskInline,]
+    list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY
+    inlines = [HardDiskInline, ]
     raw_id_fields = ('model',)
 
 
 class BladeServerAdmin(HwAdmin):
-    list_display = HwAdmin.list_display  + ('chassis', ) + SERVER_LIST_DISPLAY
+    list_display = HwAdmin.list_display + ('chassis', ) + SERVER_LIST_DISPLAY
     list_filter = ('model__name', 'chassis', 'chassis__rack__room__building' )
-    inlines = [HardDiskInline, ]  
+    inlines = [HardDiskInline, ]
 
 
 class ChasisAdmin(RackableAdmin):
@@ -47,8 +49,8 @@ class ChasisAdmin(RackableAdmin):
 
 
 class ServerAdmin(HwAdmin):
-    list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY 
-    inlines = [HardDiskInline,]
+    list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY
+    inlines = [HardDiskInline, ]
 
 
 class RackAdmin(admin.ModelAdmin):

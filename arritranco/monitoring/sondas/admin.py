@@ -43,7 +43,7 @@ class SondaAdmin(admin.ModelAdmin):
                 password = request.POST["passwd"]
 
                 for sonda in queryset:
-                    if sonda.ssh == False or request.POST.get("force", '') != '':
+                    if sonda.ssh is False or request.POST.get("force", '') != '':
                         ssh_key_send_task.apply_async((sonda.pk, user, password, None), serializer="json")
                         #ssh_key_send_task(sonda.pk, user, password, None)
                         sondas_updated += 1
@@ -99,11 +99,12 @@ class TaskLogAdmin(admin.ModelAdmin):
                     password = request.POST["passwd"]
 
                     for tasklog in SondaTasksLog.objects.all():
-                        if (tasklog.sonda.ssh == False or request.POST.get("force", '') != '') and tasklog.task.name == "ssh_key":
+                        if (tasklog.sonda.ssh is False or request.POST.get("force", '') != '') and tasklog.task.name == "ssh_key":
                             last_timestamp = max([i.timestamp for i in SondaTaskStatus.objects.filter(tasklog=tasklog)])
                             taskstatus = SondaTaskStatus.objects.get(timestamp=last_timestamp, tasklog=tasklog)
                             if taskstatus.status > 0:
-                                ssh_key_send_task.apply_async((tasklog.sonda.pk, user, password, tasklog.pk), serializer="json")
+                                ssh_key_send_task.apply_async(
+                                    (tasklog.sonda.pk, user, password, tasklog.pk), serializer="json")
                                 sondas_updated += 1
                 except:
                     fails = "\n"
@@ -117,7 +118,9 @@ class TaskLogAdmin(admin.ModelAdmin):
 
         if not form:
             form = self.SshForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
-        return render_to_response('confssh.html', {"form": form, "action": "resend_shh_key"}, context_instance=RequestContext(request))
+        return render_to_response('confssh.html',
+                                  {"form": form, "action": "resend_shh_key"},
+                                  context_instance=RequestContext(request))
 
     resend_shh_key.short_description = "resend key to failed"
 
@@ -143,7 +146,6 @@ class TaskLogAdmin(admin.ModelAdmin):
 
         for i in range(0, len(sondas)):
             send_nrpecfg.apply_async((sondas[i].pk, tasklog_list[i].pk), serializer="json")
-
 
         messages.info(request, str(sondas_updated) + ' sondas have been pushed to the task queue')
         return HttpResponseRedirect(request.get_full_path())

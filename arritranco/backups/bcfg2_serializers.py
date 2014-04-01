@@ -3,6 +3,7 @@ from rest_framework import serializers
 from backups.models import FileBackupTask
 from inventory.models import PhysicalMachine
 
+
 class Bcfg2BackupPropertySerializer(serializers.ModelSerializer):
     """Serialize backup properties for bcfg2."""
 
@@ -17,22 +18,22 @@ class Bcfg2BackupPropertySerializer(serializers.ModelSerializer):
     class Meta:
         model = FileBackupTask
         exclude = ('checker_fqdn',
-                'minute',
-                'hour',
-                'monthday',
-                'month',
-                'weekday',
-                'active',
-                'duration',
-                'extra_options',
-                'bckp_type',
-                'days_in_hard_drive',
-                'max_backup_month',
-                'machine',
-                'active',
-                'duration',)
+                   'minute',
+                   'hour',
+                   'monthday',
+                   'month',
+                   'weekday',
+                   'active',
+                   'duration',
+                   'extra_options',
+                   'bckp_type',
+                   'days_in_hard_drive',
+                   'max_backup_month',
+                   'machine',
+                   'active',
+                   'duration',)
 
-    def get_extra(self,obj):
+    def get_extra(self, obj):
         data = {}
         if obj.extra_options:
             for l in obj.extra_options.split('\n'):

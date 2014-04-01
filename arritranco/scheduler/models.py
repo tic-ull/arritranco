@@ -11,13 +11,13 @@ from croniter import croniter
 
 
 class TaskManager(models.Manager):
-    def todo(self, start_time = None, end_time = None):
+    def todo(self, start_time=None, end_time=None):
         """List of Tasks to be done in a period of time."""
 
         if not start_time:
             start_time = datetime.datetime.now()
         if not end_time:
-            end_time = datetime.datetime.now() + datetime.timedelta(days = 1)
+            end_time = datetime.datetime.now() + datetime.timedelta(days=1)
         if start_time > end_time:
             raise ValueError
         queryset = self.model.objects.filter(active=True)
@@ -27,20 +27,26 @@ class TaskManager(models.Manager):
             execution_time = t.next_run(start_time)
             while execution_time < end_time:
                 todo.append(t)
-                execution_time = t.next_run(execution_time + datetime.timedelta(minutes = 1))
+                execution_time = t.next_run(execution_time + datetime.timedelta(minutes=1))
         return todo
+
 
 class Task(models.Model):
     """
         This model define a simple task. You shoud extend it to personalize as much as you wish.
     """
-    minute = models.CharField(max_length = 10, help_text = _('Minute (Cron like syntax)'), default = '*', validators=[validate_minute])
-    hour = models.CharField(max_length = 10, help_text = _('Hour (Cron like syntax)'), default = '*', validators=[validate_hour])
-    monthday = models.CharField(max_length = 10, help_text = _('Day of moth (Cron like syntax)'), default = '*', validators=[validate_day_of_month])
-    month = models.CharField(max_length = 10, help_text = _('Month (Cron like syntax)'), default = '*', validators=[validate_month])
-    weekday = models.CharField(max_length = 40, help_text = _('Day of week (Cron like syntax)'), default = '*', validators=[validate_day_of_week])
-    description = models.TextField(help_text = _('Task description'))
-    active = models.BooleanField(help_text = _('Is this task active?'), default = True)
+    minute = models.CharField(max_length=10, help_text=_('Minute (Cron like syntax)'), default='*',
+                              validators=[validate_minute])
+    hour = models.CharField(max_length=10, help_text=_('Hour (Cron like syntax)'), default='*',
+                            validators=[validate_hour])
+    monthday = models.CharField(max_length=10, help_text=_('Day of moth (Cron like syntax)'), default='*',
+                                validators=[validate_day_of_month])
+    month = models.CharField(max_length=10, help_text=_('Month (Cron like syntax)'), default='*',
+                             validators=[validate_month])
+    weekday = models.CharField(max_length=40, help_text=_('Day of week (Cron like syntax)'), default='*',
+                               validators=[validate_day_of_week])
+    description = models.TextField(help_text=_('Task description'))
+    active = models.BooleanField(help_text=_('Is this task active?'), default=True)
 
     objects = TaskManager()
 
@@ -50,36 +56,39 @@ class Task(models.Model):
     def __unicode__(self):
         return "%s: %s" % (self.cron_syntax(), self.description)
 
-    def _get_croniter_entry(self,start_time):
-        return croniter(self.cron_syntax(),start_time)
+    def _get_croniter_entry(self, start_time):
+        return croniter(self.cron_syntax(), start_time)
+
     def _get_crontab_entry(self):
         return SimpleCrontabEntry(self.cron_syntax())
-    def next_run(self, start_time = None):
+
+    def next_run(self, start_time=None):
         if not start_time:
             start_time = datetime.datetime.now()
         #return self._get_crontab_entry().next_run(start_time)
         return self._get_croniter_entry(start_time).get_next(datetime.datetime)
 
-    def last_run(self, start_time = None):
+    def last_run(self, start_time=None):
         if not start_time:
             start_time = datetime.datetime.now()
         #return self._get_crontab_entry().prev_run(start_time)
         return self._get_croniter_entry(start_time).get_prev(datetime.datetime)
 
-    def update_status(self, task_time, status, comment = None):
-        task_check, created = TaskCheck.objects.get_or_create(task = self, task_time = task_time)
+    def update_status(self, task_time, status, comment=None):
+        task_check, created = TaskCheck.objects.get_or_create(task=self, task_time=task_time)
         if created:
             task_check.save()
         task_check.update_status(status, comment)
 
-    def get_status(self, d = None):
+    def get_status(self, d=None):
         if d is not None:
-            task_check = get_object_or_404(TaskCheck, task = self, task_time = d)
+            task_check = get_object_or_404(TaskCheck, task=self, task_time=d)
             return task_check.get_status()
-        task_check = TaskCheck.objects.filter(task = self).order_by('-task_time')
+        task_check = TaskCheck.objects.filter(task=self).order_by('-task_time')
         if len(task_check):
             return task_check[0].get_status()
         return None
+
     get_status.short_description = 'Last check and status'
 
 
@@ -104,8 +113,8 @@ class TaskCheck(models.Model):
         except IndexError:
             return u'Unknown'
 
-    def update_status(self, status, comment = None):
-        task_status = TaskStatus.objects.create(status = status, comment = comment, task_check = self)
+    def update_status(self, status, comment=None):
+        task_status = TaskStatus.objects.create(status=status, comment=comment, task_check=self)
         task_status.save()
 
     def num_status(self):
@@ -117,7 +126,7 @@ class TaskStatus(models.Model):
         Model to store information about status.
     """
     task_check = models.ForeignKey(TaskCheck)
-    check_time = models.DateTimeField(auto_now_add = True, blank=True, null=True, help_text='Check time')
+    check_time = models.DateTimeField(auto_now_add=True, blank=True, null=True, help_text='Check time')
     status = models.CharField(max_length=100, null=False, blank=False, help_text='Status')
     comment = models.TextField(blank=True, null=True, help_text='Comment')
 

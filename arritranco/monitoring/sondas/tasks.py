@@ -33,7 +33,7 @@ def ssh_key_send_task(sonda_pk, user, passwd, tasklog_pk):
         env.abort_on_prompts = True
         env.user = user
         env.password = passwd
-        env.host_string = str(sonda.address)
+        env.host_string = str(sonda.unrackable_networked_device.main_ip.addr)
 
         if sonda.script_inicio != "":
             f = open("tmp/script_inicio_" + sonda.name, "w")
@@ -97,7 +97,8 @@ def send_nrpecfg(sonda_pk, tasklog_pk):
                                   nagiosnrpecheckopts.service.name + "_" +
                                   nagiosnrpecheckopts.host.name + "]=" +
                                   sonda.dir_checks + "/" +
-                                  nagiosnrpecheckopts.service.command.replace("$HOST", nagiosnrpecheckopts.host.address))
+                                  nagiosnrpecheckopts.service.command.replace("$HOST",
+                                                                              nagiosnrpecheckopts.host.address))
             if not nagiosnrpecheckopts.service.command_nativo:
                 f = open("tmp/" + nagiosnrpecheckopts.service.name, "w")
                 f.write(nagiosnrpecheckopts.service.command_script.replace("$HOST", nagiosnrpecheckopts.host.name))
@@ -115,7 +116,7 @@ def send_nrpecfg(sonda_pk, tasklog_pk):
         env.skip_bad_hosts = True
         env.abort_on_prompts = True
         env.user = "root"
-        env.host_string = str(sonda.address)
+        env.host_string = str(sonda.unrackable_networked_device.main_ip.addr)
         env.key_filename = settings.PROJECT_ROOT + '/keys/id_rsa'
 
         if sonda.script_inicio is not None:

@@ -14,33 +14,31 @@ class BackupGridList(TemplateView):
     template_name = "admin/backups/filebackuptask/grid_list.html"
 
     def get_context_data(self):
-    	list_of_backups = {}
-    	for mchn in Machine.objects.filter( up = True ):
- 		list_of_backups[mchn.fqdn] = {}
-   		list_of_backups[mchn.fqdn]['fqdn'] = mchn.fqdn
-                list_of_backups[mchn.fqdn]['R1Soft'] = ''
-                list_of_backups[mchn.fqdn]['TSM'] = ''
-                list_of_backups[mchn.fqdn]['Sistemas'] = 'NOT_OK'
-                list_of_backups[mchn.fqdn]['Datos'] = ''
-                list_of_backups[mchn.fqdn]['Databases'] = ''
-     		for fbt in FileBackupTask.objects.filter( active = True, machine=mchn.id):
-   	           if fbt.machine.fqdn == mchn.fqdn:
-			if fbt.bckp_type == 1:
-   		          list_of_backups[mchn.fqdn]['Datos'] = 'OK'
-			if fbt.bckp_type == 2:
-   		          list_of_backups[mchn.fqdn]['Databases'] = 'OK'
-			if fbt.bckp_type == 3:
-   		          list_of_backups[mchn.fqdn]['Sistemas'] = 'OK'
-   
-                   if TSMBackupTask.objects.filter(machine=mchn.id):
-                        list_of_backups[mchn.fqdn]['TSM'] = 'OK'
-   
-                   if R1BackupTask.objects.filter(machine=mchn.id):
-                        list_of_backups[mchn.fqdn]['R1Soft'] = 'OK'
+        list_of_backups = {}
+        for mchn in Machine.objects.filter(up=True):
+            list_of_backups[mchn.fqdn] = {}
+            list_of_backups[mchn.fqdn]['fqdn'] = mchn.fqdn
+            list_of_backups[mchn.fqdn]['R1Soft'] = ''
+            list_of_backups[mchn.fqdn]['TSM'] = ''
+            list_of_backups[mchn.fqdn]['Sistemas'] = 'NOT_OK'
+            list_of_backups[mchn.fqdn]['Datos'] = ''
+            list_of_backups[mchn.fqdn]['Databases'] = ''
+            for fbt in FileBackupTask.objects.filter(active=True, machine=mchn.id):
+                if fbt.machine.fqdn == mchn.fqdn:
+                    if fbt.bckp_type == 1:
+                        list_of_backups[mchn.fqdn]['Datos'] = 'OK'
+                    if fbt.bckp_type == 2:
+                        list_of_backups[mchn.fqdn]['Databases'] = 'OK'
+                    if fbt.bckp_type == 3:
+                        list_of_backups[mchn.fqdn]['Sistemas'] = 'OK'
 
-	return {'list_of_backups':list_of_backups}
+                if TSMBackupTask.objects.filter(machine=mchn.id):
+                    list_of_backups[mchn.fqdn]['TSM'] = 'OK'
 
+                if R1BackupTask.objects.filter(machine=mchn.id):
+                    list_of_backups[mchn.fqdn]['R1Soft'] = 'OK'
 
+        return {'list_of_backups': list_of_backups}
 
 
 class BackupGrid(TemplateView):
@@ -85,11 +83,11 @@ class BackupGrid(TemplateView):
                     'offset': 230 + self.get_offset(last_run),
                     'id': id,
                 })
-                last_run = fbt.next_run(last_run + datetime.timedelta(minutes = 1))
+                last_run = fbt.next_run(last_run + datetime.timedelta(minutes=1))
                 id += 1
         return {
             'minute_width': self.minute_width,
-            'list_of_tasks':list_of_tasks,
-            'checker_list':[checker[0] for checker in settings.FILE_BACKUP_CHECKERS]
-            }
+            'list_of_tasks': list_of_tasks,
+            'checker_list': [checker[0] for checker in settings.FILE_BACKUP_CHECKERS]
+        }
 

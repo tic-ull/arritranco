@@ -24,6 +24,7 @@ manual = False
 num_backups = 10000
 tivoli_server = None
 
+
 def usage():
     """
         Print information usage
@@ -40,6 +41,7 @@ Usage: check_nagios_tsm.py [options]
  -?  Show help
  -t  Tivoli server
 """
+
 
 def parseOpts():
     """
@@ -72,7 +74,8 @@ def parseOpts():
         elif o == "-t":
             tivoli_server = str(a)
 
-def get_node_name(hostname = None, ip = None):
+
+def get_node_name(hostname=None, ip=None):
     """
         Intenta obtener por todos los medios el nombre del nodo de TSM
     """
@@ -86,8 +89,9 @@ def get_node_name(hostname = None, ip = None):
             return hostname.upper()
         nueva_ip = socket.gethostbyname(hostname)
         if nueva_ip != ip:
-            return get_node_name(ip = nueva_ip)
+            return get_node_name(ip=nueva_ip)
     return None
+
 
 def chequea_nodo(nodo, fecha_anterior, maquina):
     global verbose, nagios
@@ -117,13 +121,15 @@ def chequea_nodo(nodo, fecha_anterior, maquina):
         if verbose:
             print "    %s fallos detectados" % num_fallos
         if nagios:
-            print "%s\tTSM Backup %s\t2\t%s errores detectados. Revise la interfaz de administracion" % (maquina, maquina, num_fallos)
-    return (not fallo)
+            print "%s\tTSM Backup %s\t2\t%s errores detectados. Revise la interfaz de administracion" % (
+                maquina, maquina, num_fallos)
+    return not fallo
+
 
 def chequea_inventario(maquinas, fecha_anterior):
     global verbose
 
-    nodos_inventario  = []
+    nodos_inventario = []
     for maquina in maquinas:
         nodo = get_node_name(maquina['fqdn'].upper(), maquina['ipaddress'])
         if not nodo:
@@ -137,11 +143,12 @@ def chequea_inventario(maquinas, fecha_anterior):
         nodos_inventario.append(nodo)
     return nodos_inventario
 
+
 def chequea_tsm(fecha_anterior, nodos_inventario):
     global verbose
 
     nodos_TSM = []
-    tsm.run_TSM_CSV_Command ('query node', parser.parse)
+    tsm.run_TSM_CSV_Command('query node', parser.parse)
     for nodo in parser.data:
         nodo = nodo[0]
         if verbose:
@@ -156,6 +163,7 @@ def chequea_tsm(fecha_anterior, nodos_inventario):
             nodos_TSM.append(nodo)
     return nodos_TSM
 
+
 def chequea_backup_manual(nodo, num_backups, fecha_anterior, maquina):
     global verbose, nagios
     backup_found = tsm.getBackupInformation(nodo, fecha_anterior)
@@ -169,31 +177,31 @@ def chequea_backup_manual(nodo, num_backups, fecha_anterior, maquina):
     critical = False
     msg = "%s sesiones encontradas: " % len(backup_found)
     for backup in backup_found:
-        if backup['objects failed'] < 0.1 *  backup['objects inspected']:
+        if backup['objects failed'] < 0.1 * backup['objects inspected']:
             msg += "Session %s OK: %% de fallos dentro de lo esperado: %s fallos, %s inspeccionados. " % (
-                            backup['session'],
-                        backup['objects failed'],
-                        backup['objects inspected']
-                    )
+                backup['session'],
+                backup['objects failed'],
+                backup['objects inspected']
+            )
             if verbose:
                 print "Ok"
             continue
         else:
-            if backup['objects failed'] > 0.3 *  backup['objects inspected']:
-                msg += "Session %s CITICAL: %% de fallos _MUY_ superior a lo esperado: %s fallos, %s inspeccionados. "  % (
-                            backup['session'],
-                            backup['objects failed'],
-                            backup['objects inspected']
-                        )
+            if backup['objects failed'] > 0.3 * backup['objects inspected']:
+                msg += "Session %s CITICAL: %% de fallos _MUY_ superior a lo esperado: %s fallos, %s inspeccionados. " % (
+                    backup['session'],
+                    backup['objects failed'],
+                    backup['objects inspected']
+                )
                 if verbose:
                     print "Critical"
                 critical = True
             else:
-                msg += "Session %s WARNING: %% de fallos superior a lo esperado: %s fallos, %s inspeccionados. "  % (
-                            backup['session'],
-                            backup['objects failed'],
-                            backup['objects inspected']
-                        )
+                msg += "Session %s WARNING: %% de fallos superior a lo esperado: %s fallos, %s inspeccionados. " % (
+                    backup['session'],
+                    backup['objects failed'],
+                    backup['objects inspected']
+                )
                 if verbose:
                     print "Warning"
                 warning = True
@@ -214,19 +222,20 @@ def chequea_backup_manual(nodo, num_backups, fecha_anterior, maquina):
         if verbose:
             print msg
 
+
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "es_ES.UTF-8")
     parseOpts()
 
-    tsm = TSMClient(dsmcPath = '/opt/tivoli/tsm/client/ba/bin/', username = 'admin', server = tivoli_server)
+    tsm = TSMClient(dsmcPath='/opt/tivoli/tsm/client/ba/bin/', username='admin', server=tivoli_server)
     parser = TSM_CSVSelectParser()
 
     if password_file:
         tsm.setPassword(open(password_file, 'r').read().strip())
 
-    fecha_anterior = datetime.datetime.now() - datetime.timedelta(days = num_dias)
+    fecha_anterior = datetime.datetime.now() - datetime.timedelta(days=num_dias)
     if hostname:
-        nodo = get_node_name(hostname = hostname)
+        nodo = get_node_name(hostname=hostname)
         if nodo:
             if manual:
                 chequea_backup_manual(nodo, num_backups, fecha_anterior, hostname)
@@ -235,7 +244,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     try:
-        hosts_url = URLBASE + '?' + urllib.urlencode({'tsm_server':tivoli_server})
+        hosts_url = URLBASE + '?' + urllib.urlencode({'tsm_server': tivoli_server})
         request = urllib2.Request(hosts_url, None, {'Accept': 'application/json'})
         res = urllib2.urlopen(request)
     except Exception, e:
