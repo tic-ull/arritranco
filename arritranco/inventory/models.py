@@ -308,6 +308,8 @@ class Interface(models.Model):
         return u"%s (%s)  <%s>" % (self.name, self.ip.addr, "UP" if self.visible else "DOWN")
 
     def network(self):
+        if self.ip.network is None:
+            return "No Network"
         return self.ip.network.ip
 
 
@@ -345,6 +347,3 @@ class PhysicalMachine(Machine):
             return location
         except:
             return None
-
-
-s
