@@ -258,6 +258,7 @@ class FilesToDeleteView(APIView):
             raise Http404(MACHINE_NOT_FOUND_ERROR)
 
         if not request.POST.has_key('deleted_files'):
+            logger.warning('Lack of  deleted_files POST data')
             return HttpResponseBadRequest()
         files_to_delete = request.POST.getlist('deleted_files')
         logger.debug('deleted_files: %s', files_to_delete)
@@ -278,7 +279,7 @@ class FilesToDeleteView(APIView):
             else:
                 logger.debug('Already deleted, nothing to do')
         response = Response(response, httpstatus.HTTP_200_OK)
-        return self.render(response)
+        return (response)
 
     def get(self, request):
         if request.GET.has_key('checker'):
