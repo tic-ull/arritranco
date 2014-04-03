@@ -13,7 +13,10 @@ class BCFG2BackupProperty(APIView):
     """Returns BCFG2 properties on desired format(xml,json,yaml..)."""
     def get(self, request, format=None):
         list_of_tasks = {}
-        for m in Machine.objects.filter(up = True):
+        filter = {}
+        if 'fqdn' in request.GET:
+            filter['fqdn'] = request.GET['fqdn']
+        for m in Machine.objects.filter(up = True, **filter):
             task_for_machine = {}
             for fbt in FileBackupTask.objects.filter(active = True, machine = m).order_by('bckp_type'):
                 bckp_type = fbt.get_bckp_type_display().lower()
