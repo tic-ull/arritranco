@@ -11,7 +11,7 @@ ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 # time to wait to delete the backup deleted files in de data base in days
-BACKUP_FILE_TIME_TO_DELETE = 60
+BACKUP_FILE_TIME_TO_DELETE = 300
 DEFAULT_SVC_IFACE_NAME = 'service'
 MANAGERS = ADMINS
 

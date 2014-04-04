@@ -1,9 +1,10 @@
 from django.core.management.base import BaseCommand, CommandError
-from backups.models import BackupFile
+from backups.models import BackupFile, FileBackupTask, BackupTask
 from scheduler.models import TaskCheck, TaskStatus
 import datetime
 import settings
 import sys
+
 
 class Command(BaseCommand):
     args = ''
@@ -12,19 +13,22 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             self.stdout.write('Deleting backupFiles')
-            for backupFile in BackupFile.objects.all():
-                if backupFile.deletion_date is None:
-                    backupFile.delete()
-                elif backupFile.deletion_date < (datetime.datetime.now() +
-                                               datetime.timedelta(days=settings.BACKUP_FILE_TIME_TO_DELETE)):
-                    backupFile.delete()
+
+            BackupFile.objects.exclude(deletion_date__isnull=True).filter(
+                deletion_date__lt=(datetime.datetime.now() -
+                                   datetime.timedelta(days=settings.BACKUP_FILE_TIME_TO_DELETE))).delete()
 
             self.stdout.write('Deleting TaskChecks')
+
             for taskcheck in TaskCheck.objects.all():
-                if BackupFile.objects.filter(task_check=taskcheck) is None:
-                    for taskstatu in TaskStatus.objects.filter(taskcheck=taskcheck):
-                        taskstatu.delete()
-                    taskcheck.delete()
+                try:
+                    FileBackupTask.objects.get(id=taskcheck.task.id)
+                    if not BackupFile.objects.filter(task_check=taskcheck):
+                        TaskStatus.objects.filter(task_check=taskcheck).delete()
+                        taskcheck.delete()
+                except FileBackupTask.DoesNotExist:
+                    pass
+
         except Exception as e:
             self.stdout.write('Fail : ' + e.message)
             return -1
