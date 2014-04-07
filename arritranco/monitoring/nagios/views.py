@@ -134,6 +134,7 @@ def refresh_nagios_status(request):
         status = tch.get_status()
         if isinstance(status, TaskStatus):
             logger.debug('Last status for %s: %s is %s (%s)', bt, bt.description, status, status.check_time)
+            logger.debug('Human to nagios de %s es %d' % (status.status,HUMAN_TO_NAGIOS[status.status]))
             nsca.add_custom_status(
                     bt.machine.fqdn,
                     nagios_safe(bt.description),
