@@ -7,6 +7,7 @@ from hardware_model.models import HwModel, Manufacturer
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -103,7 +104,8 @@ class Server(HwBase):
     """A generic server"""
     memory = models.DecimalField(max_digits=15, decimal_places=3, blank=True, null=True,
                                  help_text=_('Installed memory in GB'))
-    management_ip = models.IPAddressField(help_text=_(u'Management or DRAC/iLO IP address'), blank=True, null=True)
+    management_ip = models.OneToOneField("inventory.IP", help_text=_(u'Management or DRAC/iLO IP address'),
+                                         blank=True, null=True)
     processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
     processor_clock = models.DecimalField(_(u"GHz"), max_digits=15, decimal_places=3, blank=True, null=True)
     # Multi CPU servers has the same CPU type
