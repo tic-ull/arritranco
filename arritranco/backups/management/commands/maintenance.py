@@ -20,14 +20,15 @@ class Command(BaseCommand):
 
             self.stdout.write('Deleting TaskChecks')
 
-            for taskcheck in TaskCheck.objects.all():
-                try:
-                    FileBackupTask.objects.get(id=taskcheck.task.id)
-                    if not BackupFile.objects.filter(task_check=taskcheck):
-                        TaskStatus.objects.filter(task_check=taskcheck).delete()
-                        taskcheck.delete()
-                except FileBackupTask.DoesNotExist:
-                    pass
+            for filebackuptask in FileBackupTask.objects.filter(taskcheck__backupfile__isnull=True).distinct():
+                for taskcheck in filebackuptask.taskcheck_set.filter(backupfile__isnull=True).distinct():
+                    taskcheck.taskstatus_set.all().delete()
+                    taskcheck.delete()
+
+            f = open("fbt_no_taskcheck.csv", "w")
+            for filebackuptask in FileBackupTask.objects.filter(taskcheck__isnull=True, active=True, machine__up=True):
+                f.write(str(filebackuptask.id) + "," + str(filebackuptask.machine.fqdn) + "\n")
+            f.close()
 
         except Exception as e:
             self.stdout.write('Fail : ' + e.message)
