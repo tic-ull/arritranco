@@ -2,7 +2,6 @@
 *.json
 *.swp
 *.mo
-.idea
 *.db
 .idea
 arritranco/.project
@@ -16,3 +15,5 @@ arritranco/import_data.sh
 arritranco/scheduler/test.py
 arritranco/deployed-static/
 virtualenv/
+fbt_no_taskcheck.csv
+devdb
