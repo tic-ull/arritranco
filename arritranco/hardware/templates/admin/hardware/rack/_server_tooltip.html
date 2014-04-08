@@ -18,10 +18,16 @@
         <b>OS:</b> {{ obj.get_running_machine.os }}</br>
         <b>EPO:</b> {{ obj.get_running_machine.get_epo_level_display }}</br>
     {% endif %}
+        <b>Machines down :</b></br>
+        <ul style="color:#999999">
+            {% for machine in obj.get_machines_down %}
+                <li>{{ machine.fqdn }}</li>
+            {% endfor %}
+        </ul>
     {% endif %}
     {% if type == 'chasis' %}
     <ul>
-            {% for bs in c.bladeserver_set.all %}
+            {% for bs in c.bladeserver_set_order_by_slot_number %}
             <li><b>{{ bs.slot_number }}</b> {% if bs.get_running_machine %}{{ bs.get_running_machine }}{% else %}{{ bs.serial_number }}{% endif %}</li>
             {% endfor %}
     </ul>

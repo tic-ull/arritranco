@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from hardware_model.models import HwModel, Manufacturer
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+import re
 
 import logging
 logger = logging.getLogger(__name__)
@@ -51,6 +52,15 @@ class Rack(models.Model):
 
     def get_render_height(self):
         return settings.PX_FOR_UNITS * self.units_number
+
+    def get_index(self):
+        numbers = "".join(re.findall('\d+', self.name))
+        if numbers == "":
+            return -1
+        else:
+            return int(numbers)
+
+
 
 class RackPlace(models.Model):
     """A place in a rack. This model is not intented to be used directly but as a
@@ -108,9 +118,12 @@ class Server(HwBase):
 
     def get_running_machine(self):
         try:
-            return self.physicalmachine_set.get(up = True)
+            return self.physicalmachine_set.get(up=True)
         except ObjectDoesNotExist:
             return None
+
+    def get_machines_down(self):
+        return self.physicalmachine_set.filter(up=False)
 
 
 class Chassis(HwBase, RackPlace):
