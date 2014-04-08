@@ -2,7 +2,6 @@
 *.json
 *.swp
 *.mo
-.idea
 *.db
 .idea
 arritranco/arritranco/settings_local.py
@@ -17,5 +16,6 @@ arritranco/import_data.sh
 arritranco/scheduler/test.py
 arritranco/deployed-static/
 virtualenv/
-devdb
 keys/
+fbt_no_taskcheck.csv
+devdb

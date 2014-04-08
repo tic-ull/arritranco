@@ -45,7 +45,7 @@ class NSCA:
     NAGIOS_OK = 0
     NAGIOS_WARNING = 1
     NAGIOS_CRITICAL = 2
-    NAGIOS_UNKNOWN = 2
+    NAGIOS_UNKNOWN = 3
 
     def __init__(self, timeout=300):
         self.timeout = timeout

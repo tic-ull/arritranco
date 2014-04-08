@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from hardware_model.models import HwModel, Manufacturer
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+import re
 
 
 import logging
@@ -55,6 +56,13 @@ class Rack(models.Model):
 
     def get_render_height(self):
         return settings.PX_FOR_UNITS * self.units_number
+
+    def get_index(self):
+        numbers = "".join(re.findall('\d+', self.name))
+        if numbers == "":
+            return -1
+        else:
+            return int(numbers)
 
 
 class RackPlace(models.Model):
@@ -124,6 +132,9 @@ class Server(HwBase):
         except ObjectDoesNotExist:
             return None
 
+    def get_machines_down(self):
+        return self.physicalmachine_set.filter(up=False)
+
 
 class Chassis(HwBase, RackPlace):
     """A chassis is a hardware where we can plug servers, network cards, etc.
@@ -139,7 +150,19 @@ class Chassis(HwBase, RackPlace):
     def __unicode__(self):
         return u"Chasis (%s)" % (self.name)
 
+    def bladeserver_set_order_by_slot_number(self):
+        return self.qsort(self.bladeserver_set.all())
 
+    def qsort(self, list):
+        if list == []:
+            return []
+        else:
+            pivot = list[0]
+            lesser = self.qsort([x for x in list[1:] if x.get_int_slot_number() < pivot.get_int_slot_number()])
+            greater = self.qsort([x for x in list[1:] if x.get_int_slot_number() >= pivot.get_int_slot_number()])
+            return lesser + [pivot] + greater
+
+    
 class BladeServer(Server):
     """A server to be plugged in a chassis"""
     slot_number = models.CommaSeparatedIntegerField(max_length=50, help_text=_(u'Slots number used by this server'))
@@ -149,6 +172,9 @@ class BladeServer(Server):
         ordering = ['slot_number']
         verbose_name = _('Blade server')
         verbose_name_plural = _('Blade servers')
+
+    def get_int_slot_number(self):
+        return int(self.slot_number.split(",")[0])
 
 
 class RackServer(Server, RackPlace):
