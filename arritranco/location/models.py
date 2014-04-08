@@ -34,3 +34,15 @@ class Room(models.Model):
 
     def __unicode__(self):
         return u'%s (%s)' % (self.name , self.building.name)
+
+    def rack_set_order(self):
+        return self.qsort(self.rack_set.all())
+
+    def qsort(self, list):
+        if list == []:
+            return []
+        else:
+            pivot = list[0]
+            lesser = self.qsort([x for x in list[1:] if x.get_index() < pivot.get_index()])
+            greater = self.qsort([x for x in list[1:] if x.get_index() >= pivot.get_index()])
+            return lesser + [pivot] + greater
