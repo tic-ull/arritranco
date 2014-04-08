@@ -8,7 +8,7 @@ from validators import validate_day_of_month, validate_day_of_week, validate_hou
 import datetime
 from cron import *
 from croniter import croniter
-
+from django.db.models.signals import post_save
 
 class TaskManager(models.Manager):
     def todo(self, start_time=None, end_time=None):
@@ -98,6 +98,7 @@ class TaskCheck(models.Model):
     """
     task = models.ForeignKey(Task)
     task_time = models.DateTimeField(blank=True, null=True, help_text='Task time')
+    last_status = models.CharField(max_length=100, null=False, blank=False, help_text='Status')
 
     def __unicode__(self):
         status = ''
@@ -132,3 +133,10 @@ class TaskStatus(models.Model):
 
     def __unicode__(self):
         return "%s %s" % (self.check_time.strftime('%d-%m-%Y %H:%M:%S'), self.status)
+
+
+def update_status(sender, instance, **kwargs):
+    instance.task_check.last_status = instance.task_check.get_status
+    instance.task_check.save()
+
+post_save.connect(update_status, sender=TaskStatus, dispatch_uid="update_status")
