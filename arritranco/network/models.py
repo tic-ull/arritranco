@@ -81,6 +81,14 @@ def clean_netip(value):
         raise ValidationError, _(u'You must use CIDR notation  \'xxx.xxx.xxx.xxx/xx\'')
 
 
+def clean_ip(value):
+    """ Check valid IPv4 addr """
+    try:
+        ip = IPy.IP(value)
+    except ValueError:
+        raise ValidationError, _(u'You must provide a valid IPv4 address e.g.: 10.119.70.0')
+
+
 class Network(models.Model):
     """ Represents a network of the organization. """
     desc = models.CharField(help_text=_(u'Short description of the network context'), max_length=250)
@@ -126,6 +134,32 @@ class Network(models.Model):
     def _last_ip_int(self):
         """ Returns integer last network host-ip """
         return IPy.IP(self.ip)[-2].int()
+
+
+class IP(models.Model):
+    addr = models.IPAddressField(help_text=_(u'IP v4 address'), validators=[clean_ip])
+    network = models.ForeignKey(Network, null=True, blank=True, editable=False, related_name="network_from_ip")
+
+    def save(self, *args, **kwargs):
+        """ Assigning the net to which this interface belongs to. """
+        logger.debug("Calling IP Save method IP: %s", self.addr)
+        addr = IPy.IP(self.addr).int()
+        nets = Network.objects.filter(first_ip_int__lte=addr, last_ip_int__gte=addr).order_by('size')
+        if nets:
+            logger.debug("There is net and assign: %s" % nets[0])
+            self.network = nets[0]
+            logger.debug("Result of asignation is: %s" % self.network)
+        super(IP, self).save(*args, **kwargs)
+        logger.debug("Saved IP: %d - %s" % (self.id, self))
+
+    def network_addr(self):
+        if self.network is None:
+            return "No Network"
+        else:
+            return self.network.ip
+
+    def __unicode__(self):
+        return self.addr
 
 
 class ManagementInfo(models.Model):

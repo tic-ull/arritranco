@@ -88,7 +88,7 @@ class Unrackable(HwBase):
 
 
 class NetworkedDevice(models.Model):
-    main_ip = models.ForeignKey("inventory.IP")
+    main_ip = models.ForeignKey("network.IP")
 
 
 class UnrackableNetworkedDevice(Unrackable, NetworkedDevice):
@@ -112,7 +112,7 @@ class Server(HwBase):
     """A generic server"""
     memory = models.DecimalField(max_digits=15, decimal_places=3, blank=True, null=True,
                                  help_text=_('Installed memory in GB'))
-    management_ip = models.OneToOneField("inventory.IP", help_text=_(u'Management or DRAC/iLO IP address'),
+    management_ip = models.OneToOneField("network.IP", help_text=_(u'Management or DRAC/iLO IP address'),
                                          blank=True, null=True)
     processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
     processor_clock = models.DecimalField(_(u"GHz"), max_digits=15, decimal_places=3, blank=True, null=True)

@@ -6,8 +6,8 @@ from scheduler.models import TaskStatus
 from nsca import NSCA
 
 from django.utils.translation import ugettext_lazy as _
-from inventory.models import Machine, PhysicalMachine, VirtualMachine, IP
-from network.models import Network
+from inventory.models import Machine, PhysicalMachine, VirtualMachine
+from network.models import Network, IP
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
 from hardware.models import UnrackableNetworkedDevice

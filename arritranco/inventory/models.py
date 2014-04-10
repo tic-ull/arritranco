@@ -1,5 +1,5 @@
 from django.db import models
-from network.models import Network
+from network.models import Network, IP
 from hardware.models import RackServer, Rack
 from location.models import Room
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -98,14 +98,6 @@ def clean_fqdn(value):
         socket.gethostbyname(value)
     except:
         raise ValidationError, _(u'The fqdn name u entered is not resoluble, please enter a valid one')
-
-
-def clean_ip(value):
-    """ Check valid IPv4 addr """
-    try:
-        ip = IPy.IP(value)
-    except ValueError:
-        raise ValidationError, _(u'You must provide a valid IPv4 address e.g.: 10.119.70.0')
 
 
 class Machine(models.Model):
@@ -262,32 +254,6 @@ class Machine(models.Model):
 
     def get_nagios_parents(self):
         return 'Router_ccti1'
-
-
-class IP(models.Model):
-    addr = models.IPAddressField(help_text=_(u'IP v4 address'), validators=[clean_ip])
-    network = models.ForeignKey(Network, null=True, blank=True, editable=False, related_name="network_from_ip")
-
-    def save(self, *args, **kwargs):
-        """ Assigning the net to which this interface belongs to. """
-        logger.debug("Calling IP Save method IP: %s", self.addr)
-        addr = IPy.IP(self.addr).int()
-        nets = Network.objects.filter(first_ip_int__lte=addr, last_ip_int__gte=addr).order_by('size')
-        if nets:
-            logger.debug("There is net and assign: %s" % nets[0])
-            self.network = nets[0]
-            logger.debug("Result of asignation is: %s" % self.network)
-        super(IP, self).save(*args, **kwargs)
-        logger.debug("Saved IP: %d - %s" % (self.id, self))
-
-    def network_addr(self):
-        if self.network is None:
-            return "No Network"
-        else:
-            return self.network.ip
-
-    def __unicode__(self):
-        return self.addr
 
 
 class Interface(models.Model):
