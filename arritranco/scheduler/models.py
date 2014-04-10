@@ -83,10 +83,10 @@ class Task(models.Model):
     def get_status(self, d=None):
         if d is not None:
             task_check = get_object_or_404(TaskCheck, task=self, task_time=d)
-            return task_check.get_status()
+            return task_check.last_status
         task_check = TaskCheck.objects.filter(task=self).order_by('-task_time')
         if len(task_check):
-            return task_check[0].get_status()
+            return task_check[0].last_status
         return None
 
     get_status.short_description = 'Last check and status'
@@ -102,7 +102,7 @@ class TaskCheck(models.Model):
 
     def __unicode__(self):
         status = ''
-        tch_status = self.get_status()
+        tch_status = self.last_status
         if isinstance(tch_status, TaskStatus):
             status = tch_status.status
         return u"%s %s (%s)" % (self.task.description, self.task_time.strftime('%d-%m-%Y'), status)

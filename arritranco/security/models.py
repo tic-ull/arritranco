@@ -1,5 +1,5 @@
 from django.db import models
-from monitoring.nagios.models import NagiosCheck
+from monitoring.nagios.models import NagiosOpts
 from hardware.models import UnrackableNetworkedDevice
 
 
@@ -15,7 +15,5 @@ class SecurityDevice(UnrackableNetworkedDevice):
         return u"%s" % self.model.type.name
 
 
-class NagiosSecurityDeviceCheckDefaults(models.Model):
-    nagioscheck = models.ForeignKey(NagiosCheck)
-    options = models.CharField(max_length=400)
-    model = models.ForeignKey(SecurityDevice)
+class NagiosSecurityDeviceCheckOpts(NagiosOpts):
+    securitydevice = models.ForeignKey(SecurityDevice)

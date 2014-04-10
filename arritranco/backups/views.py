@@ -36,7 +36,7 @@ class BackupFileCheckerView(APIView):
             last_run = fbt.last_run()
             try:
                 tc = TaskCheck.objects.get(task=fbt, task_time=last_run)
-                status = tc.get_status()
+                status = tc.last_status
                 if (isinstance(status, TaskStatus) and status.status == 'Ok') or (status == 'Ok'):
                     continue
             except TaskCheck.DoesNotExist:

@@ -122,7 +122,7 @@ def refresh_nagios_status(request):
         except IndexError:
             logger.debug('There is no TaskCheck for %s', bt)
             continue
-        status = tch.get_status()
+        status = tch.last_status
         if isinstance(status, TaskStatus):
             logger.debug('Last status for %s: %s is %s (%s)', bt, bt.description, status, status.check_time)
             logger.debug('Human to nagios de %s es %d' % (status.status,HUMAN_TO_NAGIOS[status.status]))

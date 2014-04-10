@@ -32,7 +32,7 @@ class TaskCheckStatusFilter(SimpleListFilter):
 
         if self.value():
             checks = [x.id for x in queryset.filter(taskstatus__status=self.value(), taskstatus__isnull=False) if
-                      x.get_status().status == self.value()]
+                      x.last_status == self.value()]
             return queryset.filter(id__in=checks)
 
 
@@ -60,7 +60,7 @@ class TaskStatusAdmin(admin.StackedInline):
 
 
 class TaskCheckAdmin(admin.ModelAdmin):
-    list_display = ('task', 'task_time', 'num_status', 'get_status', 'info')
+    list_display = ('task', 'task_time', 'num_status', 'last_status', 'info')
     list_filter = (TaskCheckStatusFilter,)
     inlines = [TaskStatusAdmin, ]
     readonly_fields = ('task_time', )
@@ -75,7 +75,7 @@ class TaskCheckAdmin(admin.ModelAdmin):
             return u"Machine: %s" % obj.task.backuptask.machine.fqdn
 
     def get_status(self, obj):
-        status = obj.get_status()
+        status = obj.last_status
         if isinstance(status, TaskStatus):
             nagios_status = HUMAN_TO_NAGIOS[status.status]
         else:

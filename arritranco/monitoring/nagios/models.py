@@ -70,7 +70,6 @@ class NagiosCheck(models.Model):
 
 class NagiosMachineCheckDefaults(models.Model):
     nagioscheck = models.ForeignKey(NagiosCheck)
-    options = models.CharField(max_length=400)
 
 
 class NagiosOpts(models.Model):
