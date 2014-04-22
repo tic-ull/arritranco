@@ -81,29 +81,34 @@ class RackPlace(models.Model):
 class Unrackable(HwBase):
     """It's a non rackable hardware. It must be in a room"""
     room = models.ForeignKey(Room)
-    
-class NetworkedDevice(models.Model): 
-    main_ip = models.IPAddressField(help_text = _(u'Management or main IP address'))
-    
-class NetworkPort(models.Model):
-    hw = models.ForeignKey(HwBase)
-    name = models.CharField(max_length = 255)
-    uplink = models.BooleanField(default = False)    
 
-class UserDevice(Unrackable, NetworkedDevice):
-    name = models.CharField(max_length = 255)
-    wall_socket = models.CharField(max_length = 255)
-    port = models.ForeignKey("NetworkPort")
+
+class NetworkedDevice(models.Model):
+    main_ip = models.ForeignKey("network.IP")
+
+
+class UnrackableNetworkedDevice(Unrackable, NetworkedDevice):
+    name = models.CharField(max_length=255)
+    wall_socket = models.CharField(max_length=255)
+    switch = models.ForeignKey("network.Switch")
     place_in_building = models.TextField()
     comments = models.TextField()
-    
-class Phone(UserDevice):
-    extension = models.CharField(max_length = 4)
-    
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+
+    def __unicode__(self):
+        return u"%s" % self.name
+
+
+class Phone(UnrackableNetworkedDevice):
+    extension = models.CharField(max_length=4)
+
+
 class Server(HwBase):
     """A generic server"""
     memory = models.DecimalField(max_digits = 15, decimal_places = 3, blank = True, null = True, help_text =_('Installed memory in GB'))
-    management_ip = models.IPAddressField(help_text = _(u'Management or DRAC/iLO IP address'), blank = True, null = True)
+    management_ip_new = models.ForeignKey("network.IP", help_text=_(u'Management or DRAC/iLO IP address'),
+                                         blank=True, null=True)
     processor_type = models.ForeignKey("ProcessorType", blank = True, null=True)
     processor_clock = models.DecimalField(_(u"GHz"), max_digits = 15, decimal_places = 3, blank = True, null = True)
     # Multi CPU servers has the same CPU type

@@ -1,7 +1,6 @@
 
 from django.db import models
-from hardware.models import Server
-from network.models import Network
+from network.models import Network, IP
 from hardware.models import RackServer, Rack
 from location.models import Room
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -255,19 +254,11 @@ class Machine(models.Model):
         return 'Router_ccti1'
 
 
-
-class BalancedService(models.Model):
-    ip = models.IPAddressField(help_text = _(u'Interface IP v4 address'), validators = [clean_ip])
-    up = models.BooleanField('Up', default = False, help_text = _(u'Is this machine up?'))
-    fqdn = models.CharField( max_length = 255, unique = True)
-    description = models.TextField(blank = True, null = True)
-    machine = models.ManyToManyField(Machine)
-
 class Interface(models.Model):
     """ Model to represent a machine network interface """
     machine = models.ForeignKey(Machine)
     name = models.CharField(help_text = _(u'Itentified name for the interface'), max_length = 50)
-    ip = models.IPAddressField(help_text = _(u'Interface IP v4 address'), validators = [clean_ip])
+    ip_new = models.ForeignKey(IP)
     hwaddr = models.CharField(help_text = _(u'Mac / Hardware address of the interface'), max_length = 17, validators = [clean_hwaddr])
     visible = models.BooleanField(help_text = _(u'Whether the interface and IP are visible through the network'), default = False)
     network = models.ForeignKey(Network, null = True, blank = True,editable = False)
@@ -306,7 +297,7 @@ class VirtualMachine(Machine):
 
 class PhysicalMachine(Machine):
     """ Machine with real hardware """
-    server = models.ForeignKey(Server, verbose_name=_(u'Server'))
+    server = models.ForeignKey("hardware.Server", verbose_name=_(u'Server'))
     ups = models.IntegerField(blank=False, help_text=_('Connected UPS'), choices=UPS_CHOICES, default=0)
 
     class Meta:
@@ -328,4 +319,3 @@ class PhysicalMachine(Machine):
             return None
 
         return None
-    

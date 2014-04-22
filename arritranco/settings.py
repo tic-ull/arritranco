@@ -132,6 +132,7 @@ INSTALLED_APPS = (
     'hardware_model',
     'network',
     'backups',
+    'monitoring.sondas',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
