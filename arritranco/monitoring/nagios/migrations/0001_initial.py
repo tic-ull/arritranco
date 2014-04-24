@@ -11,8 +11,6 @@ class Migration(SchemaMigration):
         db.delete_table(u'nagios_nagioscheckopts')
         db.delete_table(u'nagios_nagioscheckopts_contact_groups')
         db.delete_table(u'nagios_nagioscheck')
-        db.delete_table(u'nagios_nagioscontactgroup')
-        db.delete_table(u'nagios_nagiosnetworkparent')
 
         # Adding model 'Service'
         db.create_table(u'nagios_service', (
@@ -97,22 +95,6 @@ class Migration(SchemaMigration):
             ('unrackable_networked_device', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['hardware.UnrackableNetworkedDevice'])),
         ))
         db.send_create_signal(u'nagios', ['NagiosUnrackableNetworkedDeviceCheckOpts'])
-
-        # Adding model 'NagiosContactGroup'
-        db.create_table(u'nagios_nagioscontactgroup', (
-            (u'responsible_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['monitoring.Responsible'], unique=True, primary_key=True)),
-            ('ngcontact', self.gf('django.db.models.fields.CharField')(max_length=100)),
-        ))
-        db.send_create_signal(u'nagios', ['NagiosContactGroup'])
-
-        # Adding model 'NagiosNetworkParent'
-        db.create_table(u'nagios_nagiosnetworkparent', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('network', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.Network'])),
-            ('parent', self.gf('django.db.models.fields.CharField')(max_length=500)),
-        ))
-        db.send_create_signal(u'nagios', ['NagiosNetworkParent'])
-
 
     def backwards(self, orm):
         # Deleting model 'Service'
