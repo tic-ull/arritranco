@@ -111,7 +111,7 @@ class Phone(UnrackableNetworkedDevice):
 class Server(HwBase):
     """A generic server"""
     memory = models.DecimalField(max_digits = 15, decimal_places = 3, blank = True, null = True, help_text =_('Installed memory in GB'))
-    management_ip_new = models.ForeignKey("network.IP", help_text=_(u'Management or DRAC/iLO IP address'),
+    management_ip = models.ForeignKey("network.IP", help_text=_(u'Management or DRAC/iLO IP address'),
                                          blank=True, null=True)
     processor_type = models.ForeignKey("ProcessorType", blank = True, null=True)
     processor_clock = models.DecimalField(_(u"GHz"), max_digits = 15, decimal_places = 3, blank = True, null = True)
@@ -133,6 +133,11 @@ class Server(HwBase):
 
     def get_machines_down(self):
         return self.physicalmachine_set.filter(up=False)
+
+    def management_ip_addr(self):
+        if self.management_ip is not None:
+            return self.management_ip.addr
+        return ""
 
 
 class Chassis(HwBase, RackPlace):

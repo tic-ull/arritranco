@@ -260,7 +260,7 @@ class Interface(models.Model):
     """ Model to represent a machine network interface """
     machine = models.ForeignKey(Machine)
     name = models.CharField(help_text = _(u'Itentified name for the interface'), max_length = 50)
-    ip_new = models.ForeignKey(IP)
+    ip = models.ForeignKey(IP)
     hwaddr = models.CharField(help_text = _(u'Mac / Hardware address of the interface'), max_length = 17, validators = [clean_hwaddr])
     visible = models.BooleanField(help_text = _(u'Whether the interface and IP are visible through the network'), default = False)
     network = models.ForeignKey(Network, null = True, blank = True,editable = False)
@@ -276,6 +276,9 @@ class Interface(models.Model):
         if self.ip.network is None:
             return "No Network"
         return self.ip.network.ip
+
+    def ip_addr(self):
+        return self.ip.addr
 
 
 class VirtualMachine(Machine):

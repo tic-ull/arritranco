@@ -122,7 +122,7 @@ class VirtualMachineAdmin(MachineAdmin):
 
 
 class InterfaceAdmin(admin.ModelAdmin):
-    list_display = ('ip', 'visible', 'machine', 'network')
+    list_display = ('ip_addr', 'visible', 'machine', 'network')
     list_filter = ('visible', 'machine')
 
 

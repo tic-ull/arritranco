@@ -7,7 +7,7 @@ from django.contrib import admin
 from models import Server, Rack, RackPlace, Chassis, BladeServer, HardDisk, RackServer, \
     UnrackableNetworkedDevice, ProcessorType, UnrackableNetworkedDevice
 
-SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number', 'management_ip')
+SERVER_LIST_DISPLAY = ('memory', 'processor_type', 'processor_clock', 'processor_number', 'management_ip_addr')
 
 
 class HardDiskInline(admin.TabularInline):
