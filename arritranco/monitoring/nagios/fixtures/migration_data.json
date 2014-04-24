@@ -1,0 +1,206 @@
+[
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 1,
+    "fields": {
+      "command": "check_snmp_load",
+      "default_params": "!netsl!5,5,5!8,8,8",
+      "name": "load",
+      "slug": "load",
+      "description": "LOAD",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 2,
+    "fields": {
+      "command": "check_mem_usage",
+      "default_params": "!90,75!95,85",
+      "name": "mem",
+      "slug": "mem",
+      "description": "MEM USG",
+      "os" : [2]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 3,
+    "fields": {
+      "command": "check_windows_disk_usage",
+      "default_params": "!-m '[A-Z]':",
+      "name": "windows_disk_usage",
+      "slug": "windows_disk_usage",
+      "description": "DISK USG",
+      "os" : [1]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 4,
+    "fields": {
+      "command": "check_linux_disk_usage",
+      "default_params": "!\"-m /|/sys|/proc|/media|/mnt|/etc|/system|/devices|/selinux|/var/run|/var/lib/nfs|/var/www/ks|/var/spool/squid3|/dev/shm|/mrepo/var/www/mrepo/rhel5-server-x86_64/disc1|/mrepo/var/www/mrepo/rhel6-server-x86_64/disc1|/var/www/deploy/rhel5_64|/var/www/deploy/rhel6_64|/zoneminder\" -e",
+      "name": "linux_disk_usage",
+      "slug": "linux_disk_usage",
+      "description": "DISK USG",
+      "os" : [2]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 5,
+    "fields": {
+      "command": "check_snmp_process",
+      "default_params": "!ntpd",
+      "name": "ntp",
+      "slug": "ntp",
+      "description": "NTPD",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 6,
+    "fields": {
+      "command": "check_snmp_process",
+      "default_params": "!upsmon",
+      "name": "nut",
+      "slug": "nut",
+      "description": "UPSMON",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 7,
+    "fields": {
+      "command": "check_snmp_process",
+      "default_params": "!upsmon!--warn=-1,0 --crit=-1,0",
+      "name": "no_nut",
+      "slug": "no_nut",
+      "description": "UPSMON",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 8,
+    "fields": {
+      "command": "check_snmp_load",
+      "default_params": "!netsl!12,12,12!20,20,20",
+      "name": "heavy-load",
+      "slug": "heavy-load",
+      "description": "LOAD",
+      "os" : [1,2,3]
+    }
+  },
+   {
+    "model": "nagios.NagiosCheck",
+    "pk": 9,
+    "fields": {
+      "command": "check_https",
+      "default_params": "",
+      "name": "generic-https-service",
+      "slug": "generic-https-service",
+      "description": "HTTPS",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 10,
+    "fields": {
+      "command": "check_http",
+      "default_params": "",
+      "name": "generic-http-service",
+      "slug": "generic-http-service",
+      "description": "HTTP",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 11,
+    "fields": {
+      "command": "check_ftp",
+      "default_params": "",
+      "name": "generic-ftp-service",
+      "slug": "generic-ftp-service",
+      "description": "FTP",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 12,
+    "fields": {
+      "command": "check_microsoft_ds",
+      "default_params": "",
+      "name": "microsoft-ds-service",
+      "slug": "microsoft-ds-service",
+      "description": "MICROSOFT_DS",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 13,
+    "fields": {
+      "command": "check_smtp",
+      "default_params": "",
+      "name": "generic-smtp-service",
+      "slug": "generic-smtp-service",
+      "description": "SMTP",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 14,
+    "fields": {
+      "command": "check_ssmtp",
+      "default_params": "",
+      "name": "smtps-service",
+      "slug": "smtps-service",
+      "description": "SMTPS",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 15,
+    "fields": {
+      "command": "check_netbios_ssn",
+      "default_params": "",
+      "name": "netbios-ssn-service",
+      "slug": "netbios-ssn-service",
+      "description": "NETBIOS_SSN",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 16,
+    "fields": {
+      "command": "check_openmanage2",
+      "default_params": "!--no-storage",
+      "name": "dell_old_server",
+      "slug": "dell_old_server",
+      "description": "Dell_OMSA",
+      "os" : [1,2,3]
+    }
+  },
+  {
+    "model": "nagios.NagiosCheck",
+    "pk": 17,
+    "fields": {
+      "command": "check_snmp_load",
+      "default_params": "!netsl!18,18,18!22,22,22",
+      "name": "heavy18-load-check",
+      "slug": "heavy18-load-check",
+      "description": "LOAD",
+      "os" : [1,2,3]
+    }
+  }
+]

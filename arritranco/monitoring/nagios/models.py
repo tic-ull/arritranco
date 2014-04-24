@@ -49,17 +49,16 @@ class NagiosCheck(models.Model):
     """ This represent a nagios check """
     name = models.CharField(max_length=255)
     command = models.CharField(max_length=255)
-    options = models.CharField(max_length=400)
     default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
     machines = models.ManyToManyField(Machine, through='NagiosMachineCheckOpts', blank=True, null=True)
     services = models.ManyToManyField(Service, through='NagiosServiceCheckOpts', blank=True, null=True)
     nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True,
                                   related_name="nrpeservice")
     unrackable_networked_devices = models.ManyToManyField(UnrackableNetworkedDevice,
-                                                          through='NagiosUnrackableNetworkedDeviceCheckOpts',
                                                           blank=True, null=True)
     slug = models.SlugField()
-   
+    description = models.CharField(max_length=400)
+    os = models.ManyToManyField("inventory.OperatingSystemType")
     def __unicode__(self):
         return u"%s" % self.name
 

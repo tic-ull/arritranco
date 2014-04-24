@@ -110,12 +110,11 @@ class Phone(UnrackableNetworkedDevice):
 
 class Server(HwBase):
     """A generic server"""
-    memory = models.DecimalField(max_digits=15, decimal_places=3, blank=True, null=True,
-                                 help_text=_('Installed memory in GB'))
-    management_ip = models.OneToOneField("network.IP", help_text=_(u'Management or DRAC/iLO IP address'),
+    memory = models.DecimalField(max_digits = 15, decimal_places = 3, blank = True, null = True, help_text =_('Installed memory in GB'))
+    management_ip_new = models.ForeignKey("network.IP", help_text=_(u'Management or DRAC/iLO IP address'),
                                          blank=True, null=True)
-    processor_type = models.ForeignKey("ProcessorType", blank=True, null=True)
-    processor_clock = models.DecimalField(_(u"GHz"), max_digits=15, decimal_places=3, blank=True, null=True)
+    processor_type = models.ForeignKey("ProcessorType", blank = True, null=True)
+    processor_clock = models.DecimalField(_(u"GHz"), max_digits = 15, decimal_places = 3, blank = True, null = True)
     # Multi CPU servers has the same CPU type
     processor_number = models.IntegerField(_(u'Number of processors'), help_text=_('Processors number'), default=1)
 
