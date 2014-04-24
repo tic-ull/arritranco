@@ -10,38 +10,10 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         db.delete_table(u'nagios_nagioscheckopts')
         db.delete_table(u'nagios_nagioscheckopts_contact_groups')
-        # Removing M2M table for field machines on 'Service'
-        # db.delete_table(db.shorten_name(u'nagios_service_machines'))
-
-        # Deleting model 'NagiosCheck'
         db.delete_table(u'nagios_nagioscheck')
-
-        # Removing M2M table for field os on 'NagiosCheck'
-        # db.delete_table(db.shorten_name(u'nagios_nagioscheck_os'))
-
-        # Deleting model 'NagiosMachineCheckDefaults'
-        # db.delete_table(u'nagios_nagiosmachinecheckdefaults')
-
-        # Deleting model 'NagiosOpts'
-        # db.delete_table(u'nagios_nagiosopts')
-
-        # Removing M2M table for field contact_groups on 'NagiosOpts'
-        db.delete_table(db.shorten_name(u'nagios_nagiosopts_contact_groups'))
-
-        # Deleting model 'NagiosMachineCheckOpts'
-        # db.delete_table(u'nagios_nagiosmachinecheckopts')
-
-        # Deleting model 'NagiosServiceCheckOpts'
-        # db.delete_table(u'nagios_nagiosservicecheckopts')
-
-        # Deleting model 'NagiosUnrackableNetworkedDeviceCheckOpts'
-        # db.delete_table(u'nagios_nagiosunrackablenetworkeddevicecheckopts')
-
-        # Deleting model 'NagiosContactGroup'
         db.delete_table(u'nagios_nagioscontactgroup')
-
-        # Deleting model 'NagiosNetworkParent'
         db.delete_table(u'nagios_nagiosnetworkparent')
+
         # Adding model 'Service'
         db.create_table(u'nagios_service', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
