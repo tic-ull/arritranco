@@ -44,6 +44,14 @@ class Service(models.Model):
             machines_list = machines_list + " " + str(machine.fqdn)
         return machines_list
 
+    def responsibles(self):
+        """ String with all responsibles for notification on nagios """
+        groups = set()
+        for servicecheckops in self.nagiosservicecheckopts_set.all():
+            for cg in servicecheckops.contact_groups.all():
+                groups.add(cg.ngcontact)
+        return ", ".join(groups)
+
 
 class NagiosCheck(models.Model):
     """ This represent a nagios check """
@@ -55,6 +63,7 @@ class NagiosCheck(models.Model):
     nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True,
                                   related_name="nrpeservice")
     unrackable_networked_devices = models.ManyToManyField(UnrackableNetworkedDevice,
+                                                          through='NagiosUnrackableNetworkedDeviceCheckOpts',
                                                           blank=True, null=True)
     slug = models.SlugField()
     description = models.CharField(max_length=400)
@@ -90,6 +99,11 @@ class NagiosOpts(models.Model):
     get_ngcontact_groups.short_description = _(u'Contact groups assigned')
     get_ngcontact_groups.admin_order_field = 'contact_groups'
 
+    def params(self):
+        if self.options is None or self.options == "":
+            return self.check.default_params
+        return self.options
+
 
 class NagiosMachineCheckOpts(NagiosOpts):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
@@ -97,6 +111,12 @@ class NagiosMachineCheckOpts(NagiosOpts):
 
     def __unicode__(self):
         return u"%s on machine %s" % (self.check.name, self.machine.fqdn)
+
+    def contact_group_all_csv(self):
+        contact_groups_csv = ""
+        for contact_group in self.contact_groups.all():
+            contact_groups_csv = contact_groups_csv + contact_group.ngcontact + ","
+        return contact_groups_csv[0:len(contact_groups_csv) - 1]
 
 
 class NagiosServiceCheckOpts(NagiosOpts):
@@ -111,6 +131,12 @@ class NagiosServiceCheckOpts(NagiosOpts):
     def check_name(self):
         return str(self.check.name)
 
+    def contact_group_all_csv(self):
+        contact_groups_csv = ""
+        for contact_group in self.contact_groups.all():
+            contact_groups_csv = contact_groups_csv + contact_group.ngcontact + ","
+        return contact_groups_csv[0:len(contact_groups_csv) - 1]
+
 
 class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
     unrackable_networked_device = models.ForeignKey(UnrackableNetworkedDevice)
@@ -123,6 +149,12 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
 
     def check_name(self):
         return str(self.check.name)
+
+    def contact_group_all_csv(self):
+        contact_groups_csv = ""
+        for contact_group in self.contact_groups.all():
+            contact_groups_csv = contact_groups_csv + contact_group.ngcontact + ","
+        return contact_groups_csv[0:len(contact_groups_csv) - 1]
 
 
 class NagiosContactGroup(Responsible):
@@ -158,7 +190,7 @@ class NagiosNetworkParent(models.Model):
         nagios_parents = set()
         for iface in host.interface_set.all():
             if iface.network:
-                for p in iface.network.nagiosnetworkparent_set.all():
+                for p in iface.ip.network.nagiosnetworkparent_set.all():
                     nagios_parents.add(p.parent)
         if not nagios_parents:
             return settings.DEFAULT_NAGIOS_HOST_PARENT

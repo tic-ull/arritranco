@@ -12,10 +12,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 from nsca import NSCA
-from models import NagiosCheck, NagiosMachineCheckOpts, NagiosNetworkParent, HUMAN_TO_NAGIOS
+from models import Service, NagiosCheck, NagiosMachineCheckOpts, NagiosNetworkParent, HUMAN_TO_NAGIOS, NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts
 from scheduler.models import TaskStatus, TaskCheck
 from templatetags.nagios_filters import nagios_safe
-
+from inventory.models import Machine
+from hardware.models import UnrackableNetworkedDevice
 
 def hosts(request):
     '''
@@ -23,7 +24,9 @@ def hosts(request):
     '''
     template = 'nagios/hosts.cfg'
 
-    context = {'machines': []}
+    context = {'machines': [],
+               'services': Service.objects.all(),
+               'unracknetdevs': UnrackableNetworkedDevice.objects.all()}
     for m in Machine.objects.filter(up=True).order_by('fqdn'):
         context['machines'].append({
             'fqdn': m.fqdn,
@@ -61,37 +64,17 @@ def hosts_ext_info(request):
 
 
 def get_checks(request, name):
-    '''
-        Render all defined checks of "name" for all machines UP.
-    '''
-    template = 'nagios/' + name + '_checks.cfg'
-    file_path = os.path.dirname(os.path.abspath(__file__)) + '/templates/' + template
-
-    if not os.path.isfile(file_path):
-        template = 'nagios/default_checks.cfg'
-
-    context = {}
-    try:
-        check = NagiosCheck.objects.get(slug=name)
-    except ObjectDoesNotExist:
-        response = HttpResponse(u"Check %s does not exist" % name, content_type="text/plain")
-        response.status_code = 404
-        return response
-
-    servers = []
-    for machine_check_options in check.all_machines():
-        servers.append(mco2dict(machine_check_options))
-
-    context['servers'] = servers
-    context['check'] = check.name
-
+    template = 'nagios/check.cfg'
+    context = {
+        'checks_machine': NagiosMachineCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name)),
+        'checks_service': NagiosServiceCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name)),
+        'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name))
+    }
     if 'file' in request.GET:
-        filename = name + '_checks.cfg'
         response = render_to_response(template, context, mimetype="text/plain")
         response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
     else:
         response = render_to_response(template, context, mimetype="text/plain")
-
     return response
 
 
@@ -136,3 +119,31 @@ def refresh_nagios_status(request):
     logger.debug('Nagios status updated for %s', bt)
 
     return HttpResponse("Nagios up to date")
+
+
+def getchecks_all(request):
+    template = 'nagios/check.cfg'
+    context = {
+        'checks_machine': NagiosMachineCheckOpts.objects.all(),
+        'checks_service': NagiosServiceCheckOpts.objects.all(),
+        'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.all()
+    }
+    if 'file' in request.GET:
+        response = render_to_response(template, context, mimetype="text/plain")
+        response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
+    else:
+        response = render_to_response(template, context, mimetype="text/plain")
+    return response
+
+
+def nut(request):
+    template = 'nagios/nut_checks.cfg'
+    context = {
+        'machines': Machine.objects.all()
+    }
+    if 'file' in request.GET:
+        response = render_to_response(template, context, mimetype="text/plain")
+        response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
+    else:
+        response = render_to_response(template, context, mimetype="text/plain")
+    return response

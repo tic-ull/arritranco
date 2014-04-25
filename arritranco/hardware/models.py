@@ -103,6 +103,14 @@ class UnrackableNetworkedDevice(Unrackable, NetworkedDevice):
     def __unicode__(self):
         return u"%s" % self.name
 
+    def responsibles(self):
+        """ String with all responsibles for notification on nagios """
+        groups = set()
+        for unracknetdevcheckops in self.nagiosunrackablenetworkeddevicecheckopts_set.all():
+            for cg in unracknetdevcheckops.contact_groups.all():
+                groups.add(cg.ngcontact)
+        return ", ".join(groups)
+
 
 class Phone(UnrackableNetworkedDevice):
     extension = models.CharField(max_length=4)

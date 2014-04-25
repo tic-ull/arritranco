@@ -61,30 +61,6 @@
   },
   {
     "model": "nagios.NagiosCheck",
-    "pk": 6,
-    "fields": {
-      "command": "check_snmp_process",
-      "default_params": "!upsmon",
-      "name": "nut",
-      "slug": "nut",
-      "description": "UPSMON",
-      "os" : [1,2,3]
-    }
-  },
-  {
-    "model": "nagios.NagiosCheck",
-    "pk": 7,
-    "fields": {
-      "command": "check_snmp_process",
-      "default_params": "!upsmon!--warn=-1,0 --crit=-1,0",
-      "name": "no_nut",
-      "slug": "no_nut",
-      "description": "UPSMON",
-      "os" : [1,2,3]
-    }
-  },
-  {
-    "model": "nagios.NagiosCheck",
     "pk": 8,
     "fields": {
       "command": "check_snmp_load",

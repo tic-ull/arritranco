@@ -207,7 +207,7 @@ class Machine(models.Model):
     def responsibles(self):
         """ String with all responsibles for notification on nagios """
         groups = set()
-        for co in self.nagioscheckopts_set.all():
+        for co in self.nagiosmachinecheckopts_set.all():
             for cg in co.contact_groups.all():
                 groups.add(cg.ngcontact)
         return ", ".join(groups)

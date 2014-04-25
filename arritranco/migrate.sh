@@ -7,5 +7,6 @@
 ./manage.py migrate scheduler 0001 --fake
 ./manage.py migrate scheduler
 ./manage.py migrate sondas
-./manage.py migrate nagios
+./manage.py migrate nagios 0002
 ./manage.py loaddata monitoring/nagios/fixtures/migration_data.json
+./manage.py migrate nagios
