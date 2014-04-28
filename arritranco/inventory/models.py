@@ -315,3 +315,8 @@ class PhysicalMachine(Machine):
             return location
         except:
             return None
+
+    def get_management_ip(self):
+        if self.server.management_ip is None or self.server.management_ip == "":
+            return None
+        return self.server.management_ip.addr

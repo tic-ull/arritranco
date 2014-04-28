@@ -13,6 +13,7 @@ from django.template import RequestContext
 from network.models import Network
 from django.contrib import admin, messages
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.admin import SimpleListFilter
 
 # This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
 from monitoring.nagios.admin import NagiosMachineCheckOptsInline
@@ -31,6 +32,27 @@ except ImportError:
 
 class InterfacesInline(admin.TabularInline):
     model = Interface
+
+
+class ManagementIPFilter(SimpleListFilter):
+    title = (u'Management Ip')
+
+    parameter_name = 'management ip'
+
+    def lookups(self, request, model_admin):
+        return (
+            ("with ip", _(u'with ip')),
+            ("without ip", _(u'without ip'))
+        )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            machines = None
+            if self.value() == "with ip":
+                machines = queryset.exclude(server__management_ip=None)
+            else:
+                machines = queryset.filter(server__management_ip=None)
+            return queryset.filter(id__in=machines)
 
 
 class MachineAdmin(admin.ModelAdmin):
@@ -112,7 +134,7 @@ class MachineAdmin(admin.ModelAdmin):
 
 class PysicalMachineAdmin(MachineAdmin):
     list_display = ('fqdn', 'server', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
-    list_filter = ('up', 'os', 'update_priority', 'epo_level')
+    list_filter = ('up', 'os', 'update_priority', 'epo_level', ManagementIPFilter)
 
 
 class VirtualMachineAdmin(MachineAdmin):
