@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 
 from models import NagiosCheck, NagiosMachineCheckOpts, NagiosContactGroup, NagiosNetworkParent, \
-    NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, Service
+    NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, Service, NagiosHardwarePolicyCheckOpts
 from inventory.models import Machine
 # Try to import the default nagios contact group
 try:
@@ -109,6 +109,11 @@ class NagiosUserdeviceCheckOptsAdmin(admin.ModelAdmin):
     list_display = ('unrackable_networked_device_name', 'check_name')
 
 
+class NagiosHardwarePolicyCheckOptsAdmin(admin.ModelAdmin):
+    search_fields = ['hwmodel_name', 'check_name']
+    list_display = ('hwmodel_name', 'check_name')
+
+
 class ServiceAdmin(admin.ModelAdmin):
     search_fields = ['name', 'machines_names', 'ip']
     list_display = ('name', 'machines_names', 'ip')
@@ -120,6 +125,7 @@ admin.site.register(NagiosContactGroup, NagiosContactGroupAdmin)
 admin.site.register(NagiosNetworkParent, NagiosNetworkParentAdmin)
 admin.site.register(NagiosServiceCheckOpts, NagiosServiceCheckOptsAdmin)
 admin.site.register(NagiosUnrackableNetworkedDeviceCheckOpts, NagiosUserdeviceCheckOptsAdmin)
+admin.site.register(NagiosHardwarePolicyCheckOpts, NagiosHardwarePolicyCheckOptsAdmin)
 admin.site.register(Service, ServiceAdmin)
 
 

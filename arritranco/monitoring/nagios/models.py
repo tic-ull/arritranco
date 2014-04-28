@@ -6,11 +6,12 @@ from scheduler.models import TaskStatus
 from nsca import NSCA
 
 from django.utils.translation import ugettext_lazy as _
-from inventory.models import Machine, PhysicalMachine, VirtualMachine
+from inventory.models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem
 from network.models import Network, IP
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
 from hardware.models import UnrackableNetworkedDevice
+from hardware_model.models import HwModel
 
 
 NAGIOS_OK = 0
@@ -65,9 +66,13 @@ class NagiosCheck(models.Model):
     unrackable_networked_devices = models.ManyToManyField(UnrackableNetworkedDevice,
                                                           through='NagiosUnrackableNetworkedDeviceCheckOpts',
                                                           blank=True, null=True)
+    hwmodels = models.ManyToManyField(HwModel,
+                                      through='NagiosHardwarePolicyCheckOpts',
+                                      blank=True, null=True)
     slug = models.SlugField()
     description = models.CharField(max_length=400)
     os = models.ManyToManyField("inventory.OperatingSystemType")
+
     def __unicode__(self):
         return u"%s" % self.name
 
@@ -104,6 +109,18 @@ class NagiosOpts(models.Model):
             return self.check.default_params
         return self.options
 
+    def contact_group_all_csv(self):
+        contact_groups_csv = ""
+        for contact_group in self.contact_groups.all():
+            contact_groups_csv = contact_groups_csv + contact_group.ngcontact + ","
+        return contact_groups_csv[0:len(contact_groups_csv) - 1]
+
+    def get_full_check(self):
+        if self.options is None or self.options == "":
+            return self.check.command + self.check.default_params
+        else:
+            return self.check.command + self.options
+
 
 class NagiosMachineCheckOpts(NagiosOpts):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
@@ -111,12 +128,6 @@ class NagiosMachineCheckOpts(NagiosOpts):
 
     def __unicode__(self):
         return u"%s on machine %s" % (self.check.name, self.machine.fqdn)
-
-    def contact_group_all_csv(self):
-        contact_groups_csv = ""
-        for contact_group in self.contact_groups.all():
-            contact_groups_csv = contact_groups_csv + contact_group.ngcontact + ","
-        return contact_groups_csv[0:len(contact_groups_csv) - 1]
 
 
 class NagiosServiceCheckOpts(NagiosOpts):
@@ -131,12 +142,6 @@ class NagiosServiceCheckOpts(NagiosOpts):
     def check_name(self):
         return str(self.check.name)
 
-    def contact_group_all_csv(self):
-        contact_groups_csv = ""
-        for contact_group in self.contact_groups.all():
-            contact_groups_csv = contact_groups_csv + contact_group.ngcontact + ","
-        return contact_groups_csv[0:len(contact_groups_csv) - 1]
-
 
 class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
     unrackable_networked_device = models.ForeignKey(UnrackableNetworkedDevice)
@@ -150,11 +155,19 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
     def check_name(self):
         return str(self.check.name)
 
-    def contact_group_all_csv(self):
-        contact_groups_csv = ""
-        for contact_group in self.contact_groups.all():
-            contact_groups_csv = contact_groups_csv + contact_group.ngcontact + ","
-        return contact_groups_csv[0:len(contact_groups_csv) - 1]
+
+class NagiosHardwarePolicyCheckOpts(NagiosOpts):
+    hwmodel = models.ForeignKey(HwModel)
+    excluded_os = models.ManyToManyField(OperatingSystem, null=True, blank=True, help_text="Excluded Os")
+
+    def __unicode__(self):
+        return u"%s on %s" % (self.check.name, self.hwmodel.name)
+
+    def hwmodel_name(self):
+        return str(self.hwmodel.name)
+
+    def check_name(self):
+        return str(self.check.name)
 
 
 class NagiosContactGroup(Responsible):

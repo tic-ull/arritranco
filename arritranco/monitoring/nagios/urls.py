@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-from views import hosts, nut, hosts_ext_info, backup_checks, get_checks, refresh_nagios_status, getchecks_all
+from views import hosts, nut, hardware, hosts_ext_info, backup_checks, get_checks, refresh_nagios_status, getchecks_all
 
 
 urlpatterns = patterns('',
@@ -10,6 +10,7 @@ urlpatterns = patterns('',
 #    url(r'^load_checks.cfg$', generic_checks, {'template':'nagios/load_checks.cfg'}, name='load_checks'),
     url(r'^getchecks/backup$', backup_checks, name='backup_checks'),
     url(r'^getchecks/nut$', nut, name='nut'),
+    url(r'^getchecks/hardware$', hardware, name='hardware'),
     url(r'^getchecks/(?P<name>[-\w]+)$', get_checks, name='get_checks'),
     url(r'^getchecks', getchecks_all, name='get_checks_all'),
 )

@@ -12,11 +12,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 from nsca import NSCA
-from models import Service, NagiosCheck, NagiosMachineCheckOpts, NagiosNetworkParent, HUMAN_TO_NAGIOS, NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts
+from models import Service, NagiosCheck, NagiosMachineCheckOpts, NagiosNetworkParent, HUMAN_TO_NAGIOS, \
+    NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, NagiosHardwarePolicyCheckOpts
 from scheduler.models import TaskStatus, TaskCheck
 from templatetags.nagios_filters import nagios_safe
-from inventory.models import Machine
+from inventory.models import Machine, PhysicalMachine
 from hardware.models import UnrackableNetworkedDevice
+
 
 def hosts(request):
     '''
@@ -68,7 +70,8 @@ def get_checks(request, name):
     context = {
         'checks_machine': NagiosMachineCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name)),
         'checks_service': NagiosServiceCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name)),
-        'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name))
+        'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.filter(
+            check=NagiosCheck.objects.filter(name=name))
     }
     if 'file' in request.GET:
         response = render_to_response(template, context, mimetype="text/plain")
@@ -108,7 +111,7 @@ def refresh_nagios_status(request):
         status = tch.last_status
         if isinstance(status, TaskStatus):
             logger.debug('Last status for %s: %s is %s (%s)', bt, bt.description, status, status.check_time)
-            logger.debug('Human to nagios de %s es %d' % (status.status,HUMAN_TO_NAGIOS[status.status]))
+            logger.debug('Human to nagios de %s es %d' % (status.status, HUMAN_TO_NAGIOS[status.status]))
             nsca.add_custom_status(
                 bt.machine.fqdn,
                 nagios_safe(bt.description),
@@ -141,6 +144,24 @@ def nut(request):
     context = {
         'machines': Machine.objects.all()
     }
+    if 'file' in request.GET:
+        response = render_to_response(template, context, mimetype="text/plain")
+        response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
+    else:
+        response = render_to_response(template, context, mimetype="text/plain")
+    return response
+
+
+def hardware(request):
+    template = 'nagios/hardware_checks.cfg'
+    checks = []
+    for HardwarePolicy in NagiosHardwarePolicyCheckOpts.objects.all():
+        for machine in PhysicalMachine.objects.filter(server__model__id=HardwarePolicy.hwmodel.id).exclude(
+                os__in=HardwarePolicy.excluded_os.all()):
+            checks.append({"machine": machine.fqdn, "hwpolicy": HardwarePolicy})
+
+    context = {"checks": checks}
+
     if 'file' in request.GET:
         response = render_to_response(template, context, mimetype="text/plain")
         response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
