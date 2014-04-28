@@ -17,6 +17,7 @@ import datetime
 import math
 import os
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -271,6 +272,7 @@ class FilesToDeleteView(APIView):
         files_to_delete = request.POST.getlist('deleted_files')
         logger.debug('deleted_files: %s', files_to_delete)
         response = []
+
         for f in files_to_delete:
             directory, filename = os.path.split(f)
             logger.debug('Deleting directory: %s file: %s', directory, filename)
@@ -291,6 +293,7 @@ class FilesToDeleteView(APIView):
         return (response)
 
     def get(self, request):
+        t0 = time.time()
         if 'checker' in request.GET:
             machine = Machine.get_by_addr(request.GET['checker'])
         else:
@@ -330,6 +333,7 @@ class FilesToDeleteView(APIView):
                         'task_time'):
                     if tch.backupfile_set.filter(deletion_date__isnull=True).count():
                         tchs.append(tch)
+
                 logger.debug('len tash checks: %s, max_backup_month: %s', len(tchs), task.max_backup_month)
                 if len(tchs) > task.max_backup_month:
                     logger.debug('Selecting task check to delete')
@@ -351,7 +355,11 @@ class FilesToDeleteView(APIView):
             for bf in tch.backupfile_set.filter(deletion_date__isnull=True):
                 files_to_delete.append(BackupFileToDeleteSerializer(bf).data)
                 logger.debug('Adding: %s', bf.path)
+
         logger.debug("End filling files_to_delete")
+
+        print ("time files to delete : " + str(time.time() - t0))
+
         return Response(files_to_delete, httpstatus.HTTP_200_OK)
 
 

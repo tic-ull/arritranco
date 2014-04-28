@@ -176,9 +176,9 @@ class Machine(models.Model):
         try:
             # Search by IP
             if filter_up:
-                return Machine.objects.get(interface__ip=addr, up=True)
+                return Machine.objects.get(interface__ip__addr=addr, up=True)
             else:
-                return Machine.objects.get(interface__ip=addr)
+                return Machine.objects.get(interface__ip__addr=addr)
         except Machine.DoesNotExist:
             # It's ok, we'll try searching by name
             pass

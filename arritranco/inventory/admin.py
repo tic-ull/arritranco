@@ -37,7 +37,7 @@ class MachineAdmin(admin.ModelAdmin):
     list_display = ('fqdn', 'up', 'os', 'start_up', 'update_priority', 'epo_level', 'network_names')
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
     date_hierarchy = 'start_up'
-    search_fields = ('fqdn', 'os__name', 'networks__desc', 'networks__ip')
+    search_fields = ('fqdn', 'os__name')
     inlines = [InterfacesInline, NagiosMachineCheckOptsInline, ]
     actions = ['copy_machine', 'update_machine']
 
