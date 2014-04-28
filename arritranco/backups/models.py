@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from scheduler.models import Task, TaskCheck, TaskManager
 from inventory.models import Machine
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 import datetime
 import re
@@ -54,7 +55,6 @@ class BackupTask(Task):
                     minutes=duracion.minute,
                     seconds=duracion.second
             )
-
 
 class VCBBackupTask(BackupTask):
     """

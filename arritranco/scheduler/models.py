@@ -35,9 +35,9 @@ class Task(models.Model):
     """
         This model define a simple task. You shoud extend it to personalize as much as you wish.
     """
-    minute = models.CharField(max_length=10, help_text=_('Minute (Cron like syntax)'), default='*',
+    minute = models.CharField(max_length=10, help_text=_('Minute (Cron like syntax)'), default='0',
                               validators=[validate_minute])
-    hour = models.CharField(max_length=10, help_text=_('Hour (Cron like syntax)'), default='*',
+    hour = models.CharField(max_length=10, help_text=_('Hour (Cron like syntax)'), default='0',
                             validators=[validate_hour])
     monthday = models.CharField(max_length=10, help_text=_('Day of moth (Cron like syntax)'), default='*',
                                 validators=[validate_day_of_month])

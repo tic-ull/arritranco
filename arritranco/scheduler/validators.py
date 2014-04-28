@@ -46,4 +46,7 @@ def validate_hour(value):
 def validate_minute(value):
     allowed_values = build_samples(0, 60)
     check(value, allowed_values)
+    if value == "*":
+        raise ValidationError("Minutes can't be *")
+
 
