@@ -158,7 +158,20 @@ def hardware(request):
     for HardwarePolicy in NagiosHardwarePolicyCheckOpts.objects.all():
         for machine in PhysicalMachine.objects.filter(server__model__id=HardwarePolicy.hwmodel.id).exclude(
                 os__in=HardwarePolicy.excluded_os.all()):
-            checks.append({"machine": machine.fqdn, "hwpolicy": HardwarePolicy})
+
+            if HardwarePolicy.get_full_check().__contains__("management_ip"):
+                if machine.server.management_ip is not None:
+                    checks.append({"machine": machine.fqdn,
+                                   "hwpolicy": HardwarePolicy,
+                                   "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip}
+                                   }
+                                  )
+            else:
+                checks.append({"machine": machine.fqdn,
+                               "hwpolicy": HardwarePolicy,
+                               "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
+                               }
+                              )
 
     context = {"checks": checks}
 

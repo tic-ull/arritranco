@@ -10,3 +10,5 @@ gunicorn
 pil
 pygraphviz
 croniter
+celery
+fabric

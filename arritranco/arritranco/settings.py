@@ -5,6 +5,15 @@ import os
 PROJECT_ROOT = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 #PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
+# Celery settings
+
+BROKER_URL = 'amqp://localhost//'
+
+#: Only add pickle to this list if your broker is secured
+#: from unwanted access (see userguide/security.html)
+CELERY_ACCEPT_CONTENT = ['json']
+
+
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
@@ -136,6 +145,7 @@ INSTALLED_APPS = (
     'monitoring.sondas',
     'security',
     'fabric',
+    'celery',
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
