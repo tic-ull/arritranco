@@ -14,7 +14,7 @@
              <div class="chasis_label">Chasis {{c.name}} <b>Slots:</b> {{ c.slots }}
                 {% include "admin/hardware/rack/_server_tooltip.html" with obj=c type='chasis' %}
              </div>
-            {% for bs in c.bladeserver_set.all %}
+            {% for bs in c.bladeserver_set_order_by_slot_number %}
                 <div class="blade">
                     {% include "admin/hardware/rack/_server_tooltip.html" with obj=bs type='bladeserver' %}
                     <div class="slot_number">{{ bs.slot_number }}</div>
