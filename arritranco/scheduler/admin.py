@@ -60,7 +60,7 @@ class TaskStatusAdmin(admin.StackedInline):
 
 
 class TaskCheckAdmin(admin.ModelAdmin):
-    list_display = ('task', 'task_time', 'num_status', 'last_status', 'info')
+    list_display = ('task', 'task_time', 'num_status', 'get_status', 'info')
     list_filter = (TaskCheckStatusFilter,)
     inlines = [TaskStatusAdmin, ]
     readonly_fields = ('task_time', )

@@ -4,6 +4,7 @@ from south.db import db
 from south.v2 import DataMigration
 from django.db import models
 
+
 class Migration(DataMigration):
 
     def forwards(self, orm):
@@ -25,9 +26,9 @@ class Migration(DataMigration):
             'Meta': {'object_name': 'Task'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {}),
-            'hour': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '10'}),
+            'hour': ('django.db.models.fields.CharField', [], {'default': "'0'", 'max_length': '10'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'minute': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '10'}),
+            'minute': ('django.db.models.fields.CharField', [], {'default': "'0'", 'max_length': '10'}),
             'month': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '10'}),
             'monthday': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '10'}),
             'weekday': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '40'})
@@ -35,7 +36,7 @@ class Migration(DataMigration):
         u'scheduler.taskcheck': {
             'Meta': {'object_name': 'TaskCheck'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'last_status': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'last_status': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['scheduler.TaskStatus']"}),
             'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['scheduler.Task']"}),
             'task_time': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
         },

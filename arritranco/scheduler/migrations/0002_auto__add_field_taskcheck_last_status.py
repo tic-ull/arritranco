@@ -10,13 +10,13 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'TaskCheck.last_status'
         db.add_column(u'scheduler_taskcheck', 'last_status',
-                      self.gf('django.db.models.fields.CharField')(default=datetime.datetime(2014, 4, 22, 0, 0), max_length=100),
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['scheduler.TaskStatus']),
                       keep_default=False)
 
 
     def backwards(self, orm):
         # Deleting field 'TaskCheck.last_status'
-        db.delete_column(u'scheduler_taskcheck', 'last_status')
+        db.delete_column(u'scheduler_taskcheck', 'last_status_id')
 
 
     models = {
@@ -24,9 +24,9 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Task'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {}),
-            'hour': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '10'}),
+            'hour': ('django.db.models.fields.CharField', [], {'default': "'0'", 'max_length': '10'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'minute': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '10'}),
+            'minute': ('django.db.models.fields.CharField', [], {'default': "'0'", 'max_length': '10'}),
             'month': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '10'}),
             'monthday': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '10'}),
             'weekday': ('django.db.models.fields.CharField', [], {'default': "'*'", 'max_length': '40'})
@@ -34,7 +34,7 @@ class Migration(SchemaMigration):
         u'scheduler.taskcheck': {
             'Meta': {'object_name': 'TaskCheck'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'last_status': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'last_status': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['scheduler.TaskStatus']"}),
             'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['scheduler.Task']"}),
             'task_time': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
         },

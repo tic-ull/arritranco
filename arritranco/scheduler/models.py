@@ -98,7 +98,7 @@ class TaskCheck(models.Model):
     """
     task = models.ForeignKey(Task)
     task_time = models.DateTimeField(blank=True, null=True, help_text='Task time')
-    last_status = models.CharField(max_length=100, null=False, blank=False, help_text='Status')
+    last_status = models.ForeignKey("scheduler.TaskStatus", help_text='Status')
 
     def __unicode__(self):
         status = ''
@@ -107,12 +107,11 @@ class TaskCheck(models.Model):
             status = tch_status.status
         return u"%s %s (%s)" % (self.task.description, self.task_time.strftime('%d-%m-%Y'), status)
 
-
     def get_status(self):
         try:
             return self.taskstatus_set.all().order_by('-check_time')[0]
         except IndexError:
-            return TaskStatus(check_time = datetime.datetime.now(), status = u'Unknown', comment = u'This task has no status yet.', task_check = self)
+            return TaskStatus(check_time=datetime.datetime.now(), status=u'Unknown', comment=u'This task has no status yet.', task_check=self)
 
     def update_status(self, status, comment=None):
         task_status = TaskStatus.objects.create(status=status, comment=comment, task_check=self)
