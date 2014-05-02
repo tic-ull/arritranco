@@ -135,6 +135,9 @@ class Network(models.Model):
         """ Returns integer last network host-ip """
         return IPy.IP(self.ip)[-2].int()
 
+    def number_of_ips(self):
+        return IP.objects.filter(network=self).count()
+
 
 class IP(models.Model):
     addr = models.IPAddressField(help_text=_(u'IP v4 address'), validators=[clean_ip], unique=True)
