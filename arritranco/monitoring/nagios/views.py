@@ -160,12 +160,13 @@ def hardware(request):
                 os__in=HardwarePolicy.excluded_os.all()):
 
             if HardwarePolicy.get_full_check().__contains__("management_ip"):
-                if machine.server.management_ip is not None:
+                if machine.server.management_ip is not None and machine.server.management_ip.addr != "":
                     checks.append({"machine": machine.fqdn,
                                    "hwpolicy": HardwarePolicy,
-                                   "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip}
+                                   "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip.addr}
                                    }
                                   )
+
             else:
                 checks.append({"machine": machine.fqdn,
                                "hwpolicy": HardwarePolicy,
