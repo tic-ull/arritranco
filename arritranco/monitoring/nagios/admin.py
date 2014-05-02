@@ -20,7 +20,7 @@ except ImportError:
 
 class NagiosMachineCheckOptsInline(admin.TabularInline):
     model = NagiosMachineCheckOpts
-
+    
 
 class NagiosCheckAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
@@ -34,6 +34,7 @@ class NagiosMachineCheckOptsAdmin(admin.ModelAdmin):
     list_editable = ('options',)
     search_fields = ('check__name', 'machine__fqdn')
     list_filter = ('contact_groups', 'check',)
+    filter_horizontal = ('contact_groups',)
 
     def set_def_checks(self, request, queryset):
         """ Assign default checks to each UP machine we have """
@@ -102,21 +103,24 @@ class NagiosNetworkParentAdmin(admin.ModelAdmin):
 class NagiosServiceCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ['service_name', 'check_name']
     list_display = ('service_name', 'check_name')
+    filter_horizontal = ('contact_groups',)
 
 
 class NagiosUserdeviceCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ['unrackable_networked_device_name', 'check_name']
     list_display = ('unrackable_networked_device_name', 'check_name')
+    filter_horizontal = ('contact_groups',)
 
 
 class NagiosHardwarePolicyCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ['hwmodel_name', 'check_name']
     list_display = ('hwmodel_name', 'check_name')
-
+    filter_horizontal = ('contact_groups',)
 
 class ServiceAdmin(admin.ModelAdmin):
     search_fields = ['name', 'machines_names', 'ip']
     list_display = ('name', 'machines_names', 'ip')
+    filter_horizontal = ('machines',)
 
 
 admin.site.register(NagiosMachineCheckOpts, NagiosMachineCheckOptsAdmin)
