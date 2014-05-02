@@ -320,3 +320,6 @@ class PhysicalMachine(Machine):
         if self.server.management_ip is None or self.server.management_ip == "":
             return None
         return self.server.management_ip.addr
+
+    def get_server_admin_url(self):
+        return reverse('admin:hardware_server_change', args=(self.server.id,))
