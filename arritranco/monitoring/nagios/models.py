@@ -146,6 +146,9 @@ class NagiosServiceCheckOpts(NagiosOpts):
 class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
     unrackable_networked_device = models.ForeignKey(UnrackableNetworkedDevice)
 
+    class Meta:
+        verbose_name = _(u'Nagios Device Check Ops')
+
     def __unicode__(self):
         return u"%s on %s" % (self.check.name, self.unrackable_networked_device.name)
 
