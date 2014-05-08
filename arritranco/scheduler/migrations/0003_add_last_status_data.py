@@ -17,6 +17,11 @@ class Migration(DataMigration):
             if status:
                 taskcheck.last_status = status[0]
                 taskcheck.save()
+            else:
+                task_status = orm.TaskStatus(check_time=datetime.datetime.now(), status=u'Unknown',
+                                         comment=u'This task has no status yet.',
+                                         task_check=taskcheck)
+                task_status.save()
 
     def backwards(self, orm):
         "Write your backwards methods here."

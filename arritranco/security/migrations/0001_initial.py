@@ -215,11 +215,9 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Network'},
             'desc': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
             'first_ip': ('django.db.models.fields.IPAddressField', [], {'max_length': '15'}),
-            'first_ip_int': ('django.db.models.fields.IntegerField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ip': ('django.db.models.fields.CharField', [], {'max_length': '18'}),
             'last_ip': ('django.db.models.fields.IPAddressField', [], {'max_length': '15'}),
-            'last_ip_int': ('django.db.models.fields.IntegerField', [], {}),
             'size': ('django.db.models.fields.IntegerField', [], {})
         },
         u'network.switch': {

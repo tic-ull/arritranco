@@ -94,11 +94,6 @@ class Migration(SchemaMigration):
             'serial_number': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'warranty_expires': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'})
         },
-        u'hardware.networkeddevice': {
-            'Meta': {'object_name': 'NetworkedDevice'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'main_ip': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']"})
-        },
         u'hardware.rack': {
             'Meta': {'object_name': 'Rack'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -107,21 +102,17 @@ class Migration(SchemaMigration):
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
             'units_number': ('django.db.models.fields.IntegerField', [], {})
         },
-        u'hardware.unrackable': {
-            'Meta': {'ordering': "['model', 'serial_number']", 'object_name': 'Unrackable', '_ormbases': [u'hardware.HwBase']},
-            u'hwbase_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.HwBase']", 'unique': 'True', 'primary_key': 'True'}),
-            'room': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['location.Room']"})
-        },
         u'hardware.unrackablenetworkeddevice': {
-            'Meta': {'ordering': "['model', 'serial_number']", 'object_name': 'UnrackableNetworkedDevice', '_ormbases': [u'hardware.Unrackable', u'hardware.NetworkedDevice']},
+            'Meta': {'object_name': 'UnrackableNetworkedDevice'},
             'comments': ('django.db.models.fields.TextField', [], {}),
+            u'hwbase_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.HwBase']", 'unique': 'True', 'primary_key': 'True'}),
             'latitude': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'longitude': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+            'main_ip': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            u'networkeddevice_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.NetworkedDevice']", 'unique': 'True'}),
             'place_in_building': ('django.db.models.fields.TextField', [], {}),
+            'room': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['location.Room']"}),
             'switch': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Switch']"}),
-            u'unrackable_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.Unrackable']", 'unique': 'True', 'primary_key': 'True'}),
             'wall_socket': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
         u'hardware_model.hwmodel': {
@@ -144,23 +135,12 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'})
         },
-        u'inventory.interface': {
-            'Meta': {'object_name': 'Interface'},
-            'hwaddr': ('django.db.models.fields.CharField', [], {'max_length': '17'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'ip_new': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']"}),
-            'machine': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.Machine']"}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'network': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Network']", 'null': 'True', 'blank': 'True'}),
-            'visible': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
-        },
         u'inventory.machine': {
             'Meta': {'ordering': "['fqdn']", 'object_name': 'Machine'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'epo_level': ('django.db.models.fields.IntegerField', [], {'default': '5'}),
             'fqdn': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'networks': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['network.Network']", 'through': u"orm['inventory.Interface']", 'symmetrical': 'False'}),
             'os': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.OperatingSystem']", 'null': 'True', 'blank': 'True'}),
             'start_up': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'up': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -216,11 +196,11 @@ class Migration(SchemaMigration):
             'command': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'default_params': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '400'}),
+            'hwmodels': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['hardware_model.HwModel']", 'null': 'True', 'through': u"orm['nagios.NagiosHardwarePolicyCheckOpts']", 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'machines': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['inventory.Machine']", 'null': 'True', 'through': u"orm['nagios.NagiosMachineCheckOpts']", 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'nrpe': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'nrpeservice'", 'to': u"orm['nagios.Service']", 'through': u"orm['sondas.NagiosNrpeCheckOpts']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'}),
-            'options': ('django.db.models.fields.CharField', [], {'max_length': '400'}),
             'os': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['inventory.OperatingSystemType']", 'symmetrical': 'False'}),
             'services': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['nagios.Service']", 'null': 'True', 'through': u"orm['nagios.NagiosServiceCheckOpts']", 'blank': 'True'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
@@ -230,6 +210,12 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'NagiosContactGroup', '_ormbases': [u'monitoring.Responsible']},
             'ngcontact': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             u'responsible_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['monitoring.Responsible']", 'unique': 'True', 'primary_key': 'True'})
+        },
+        u'nagios.nagioshardwarepolicycheckopts': {
+            'Meta': {'object_name': 'NagiosHardwarePolicyCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
+            'excluded_os': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['inventory.OperatingSystem']", 'null': 'True', 'blank': 'True'}),
+            'hwmodel': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware_model.HwModel']"}),
+            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'})
         },
         u'nagios.nagiosmachinecheckopts': {
             'Meta': {'object_name': 'NagiosMachineCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
@@ -284,20 +270,19 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Network'},
             'desc': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
             'first_ip': ('django.db.models.fields.IPAddressField', [], {'max_length': '15'}),
-            'first_ip_int': ('django.db.models.fields.IntegerField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ip': ('django.db.models.fields.CharField', [], {'max_length': '18'}),
             'last_ip': ('django.db.models.fields.IPAddressField', [], {'max_length': '15'}),
-            'last_ip_int': ('django.db.models.fields.IntegerField', [], {}),
             'size': ('django.db.models.fields.IntegerField', [], {})
         },
         u'network.switch': {
-            'Meta': {'object_name': 'Switch', '_ormbases': [u'hardware.NetworkedDevice']},
+            'Meta': {'object_name': 'Switch'},
             'base_unit': ('django.db.models.fields.IntegerField', [], {}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'level': ('django.db.models.fields.IntegerField', [], {}),
+            'main_ip': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']"}),
             'managementinfo': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.ManagementInfo']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            u'networkeddevice_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.NetworkedDevice']", 'unique': 'True', 'primary_key': 'True'}),
             'ports': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'rack': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware.Rack']"}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'})
