@@ -86,9 +86,15 @@ class Unrackable(HwBase):
     """It's a non rackable hardware. It must be in a room"""
     room = models.ForeignKey(Room)
 
+    class Meta:
+        abstract = True
+
 
 class NetworkedDevice(models.Model):
     main_ip = models.ForeignKey("network.IP")
+
+    class Meta:
+        abstract = True
 
 
 class UnrackableNetworkedDevice(Unrackable, NetworkedDevice):

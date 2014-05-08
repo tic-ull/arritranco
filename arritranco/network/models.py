@@ -96,8 +96,6 @@ class Network(models.Model):
                           validators=[clean_netip])
     first_ip = models.IPAddressField(help_text=_(u'First Host IP on network range'), editable=False)
     last_ip = models.IPAddressField(help_text=_(u'Last Host IP on network range'), editable=False)
-    first_ip_int = models.IntegerField(help_text=_(u'First Host IP on network range'), editable=False)
-    last_ip_int = models.IntegerField(help_text=_(u'Last Host IP on network range'), editable=False)
     size = models.IntegerField(help_text=_(u'Number of Hosts in this network'), editable=False)
 
     def __unicode__(self):
@@ -144,10 +142,9 @@ class IP(models.Model):
     network = models.ForeignKey(Network, null=True, blank=True, editable=False, related_name="network_from_ip")
 
     def save(self, *args, **kwargs):
-        """ Assigning the net to which this interface belongs to. """
+        """ Assigning the net to which this ip belongs to. """
         logger.debug("Calling IP Save method IP: %s", self.addr)
-        addr = IPy.IP(self.addr).int()
-        nets = Network.objects.filter(first_ip_int__lte=addr, last_ip_int__gte=addr).order_by('size')
+        nets = Network.objects.filter(first_ip__lte=self.addr, last_ip__gte=self.addr).order_by('size')
         if nets:
             logger.debug("There is net and assign: %s" % nets[0])
             self.network = nets[0]

@@ -111,7 +111,10 @@ class TaskCheck(models.Model):
         try:
             return self.taskstatus_set.all().order_by('-check_time')[0]
         except IndexError:
-            return TaskStatus(check_time=datetime.datetime.now(), status=u'Unknown', comment=u'This task has no status yet.', task_check=self)
+            task_status = TaskStatus(check_time=datetime.datetime.now(), status=u'Unknown', comment=u'This task has no status yet.',
+                       task_check=self)
+            task_status.save()
+            return task_status
 
     def update_status(self, status, comment=None):
         task_status = TaskStatus.objects.create(status=status, comment=comment, task_check=self)
@@ -135,7 +138,7 @@ class TaskStatus(models.Model):
 
 
 def update_status(sender, instance, **kwargs):
-    instance.task_check.last_status = instance.task_check.get_status
+    instance.task_check.last_status = instance.task_check.get_status()
     instance.task_check.save()
 
 post_save.connect(update_status, sender=TaskStatus, dispatch_uid="update_status")

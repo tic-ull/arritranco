@@ -61,7 +61,6 @@ class RackAdmin(admin.ModelAdmin):
 class ProcessorTypeAdmin(admin.ModelAdmin):
     list_display = ('manufacturer', 'model')
 
-
 class UnrackableNetworkedDeviceAdmin(admin.ModelAdmin):
     list_display = ("name",)
 
@@ -73,4 +72,3 @@ admin.site.register(Chassis, ChasisAdmin)
 admin.site.register(BladeServer, BladeServerAdmin)
 admin.site.register(ProcessorType)
 admin.site.register(UnrackableNetworkedDevice, UnrackableNetworkedDeviceAdmin)
-

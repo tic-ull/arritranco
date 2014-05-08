@@ -1,38 +1,91 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        "Write your forwards methods here."
-        # Note: Don't use "from appname.models import ModelName". 
-        # Use orm.ModelName to refer to models in this application,
-        # and orm['appname.ModelName'] for models in other applications.
-        for server in orm.Server.objects.all():
-            if server.management_ip is not None:
-                try:
-                    ip = orm["network.IP"].objects.get(addr=server.management_ip)
-                    server.management_ip_new = ip
-                    server.save()
-                except:
-                    if server.management_ip != "":
-                        ip = orm["network.IP"]()
-                        ip.addr = server.management_ip
-                        ip.save()
-                        server.management_ip_new = ip
-                        server.save()
-                    else:
-                        server.management_ip = None
-                        server.save()
+        # Deleting model 'NetworkedDevice'
+        db.delete_table(u'hardware_networkeddevice')
 
+        # Deleting model 'Unrackable'
+        db.delete_table(u'hardware_unrackable')
 
+        # Deleting field 'UnrackableNetworkedDevice.unrackable_ptr'
+        db.delete_column(u'hardware_unrackablenetworkeddevice', u'unrackable_ptr_id')
+
+        # Deleting field 'UnrackableNetworkedDevice.networkeddevice_ptr'
+        db.delete_column(u'hardware_unrackablenetworkeddevice', u'networkeddevice_ptr_id')
+
+        # Adding field 'UnrackableNetworkedDevice.hwbase_ptr'
+        db.add_column(u'hardware_unrackablenetworkeddevice', u'hwbase_ptr',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['hardware.HwBase'], unique=True, primary_key=True),
+                      keep_default=False)
+
+        # Adding field 'UnrackableNetworkedDevice.room'
+        db.add_column(u'hardware_unrackablenetworkeddevice', 'room',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['location.Room']),
+                      keep_default=False)
+
+        # Adding field 'UnrackableNetworkedDevice.main_ip'
+        db.add_column(u'hardware_unrackablenetworkeddevice', 'main_ip',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.IP']),
+                      keep_default=False)
+
+        # Deleting field 'Server.management_ip_new'
+        #db.delete_column(u'hardware_server', 'management_ip_new_id')
+
+        # Adding field 'Server.management_ip'
+        #db.add_column(u'hardware_server', 'management_ip',
+        #              self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.IP'], null=True, blank=True),
+        #              keep_default=False)
 
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        # Adding model 'NetworkedDevice'
+        db.create_table(u'hardware_networkeddevice', (
+            ('main_ip', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.IP'])),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+        ))
+        db.send_create_signal(u'hardware', ['NetworkedDevice'])
+
+        # Adding model 'Unrackable'
+        db.create_table(u'hardware_unrackable', (
+            (u'hwbase_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['hardware.HwBase'], unique=True, primary_key=True)),
+            ('room', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['location.Room'])),
+        ))
+        db.send_create_signal(u'hardware', ['Unrackable'])
+
+        # Adding field 'UnrackableNetworkedDevice.unrackable_ptr'
+        db.add_column(u'hardware_unrackablenetworkeddevice', u'unrackable_ptr',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['hardware.Unrackable'], unique=True, primary_key=True),
+                      keep_default=False)
+
+        # Adding field 'UnrackableNetworkedDevice.networkeddevice_ptr'
+        db.add_column(u'hardware_unrackablenetworkeddevice', u'networkeddevice_ptr',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['hardware.NetworkedDevice'], unique=True),
+                      keep_default=False)
+
+        # Deleting field 'UnrackableNetworkedDevice.hwbase_ptr'
+        db.delete_column(u'hardware_unrackablenetworkeddevice', u'hwbase_ptr_id')
+
+        # Deleting field 'UnrackableNetworkedDevice.room'
+        db.delete_column(u'hardware_unrackablenetworkeddevice', 'room_id')
+
+        # Deleting field 'UnrackableNetworkedDevice.main_ip'
+        db.delete_column(u'hardware_unrackablenetworkeddevice', 'main_ip_id')
+
+        # Adding field 'Server.management_ip_new'
+        db.add_column(u'hardware_server', 'management_ip_new',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.IP'], null=True, blank=True),
+                      keep_default=False)
+
+        # Deleting field 'Server.management_ip'
+        db.delete_column(u'hardware_server', 'management_ip_id')
+
 
     models = {
         u'hardware.bladeserver': {
@@ -65,13 +118,8 @@ class Migration(DataMigration):
             'serial_number': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'warranty_expires': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'})
         },
-        u'hardware.networkeddevice': {
-            'Meta': {'object_name': 'NetworkedDevice'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'main_ip': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']"})
-        },
         u'hardware.phone': {
-            'Meta': {'ordering': "['model', 'serial_number']", 'object_name': 'Phone', '_ormbases': [u'hardware.UnrackableNetworkedDevice']},
+            'Meta': {'object_name': 'Phone', '_ormbases': [u'hardware.UnrackableNetworkedDevice']},
             'extension': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             u'unrackablenetworkeddevice_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.UnrackableNetworkedDevice']", 'unique': 'True', 'primary_key': 'True'})
         },
@@ -98,28 +146,23 @@ class Migration(DataMigration):
         u'hardware.server': {
             'Meta': {'ordering': "['model', 'serial_number']", 'object_name': 'Server', '_ormbases': [u'hardware.HwBase']},
             u'hwbase_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.HwBase']", 'unique': 'True', 'primary_key': 'True'}),
-            'management_ip': ('django.db.models.fields.IPAddressField', [], {'max_length': '15', 'null': 'True', 'blank': 'True'}),
-            'management_ip_new': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']", 'null': 'True', 'blank': 'True'}),
+            'management_ip': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']", 'null': 'True', 'blank': 'True'}),
             'memory': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '15', 'decimal_places': '3', 'blank': 'True'}),
             'processor_clock': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '15', 'decimal_places': '3', 'blank': 'True'}),
             'processor_number': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
             'processor_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware.ProcessorType']", 'null': 'True', 'blank': 'True'})
         },
-        u'hardware.unrackable': {
-            'Meta': {'ordering': "['model', 'serial_number']", 'object_name': 'Unrackable', '_ormbases': [u'hardware.HwBase']},
-            u'hwbase_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.HwBase']", 'unique': 'True', 'primary_key': 'True'}),
-            'room': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['location.Room']"})
-        },
         u'hardware.unrackablenetworkeddevice': {
-            'Meta': {'ordering': "['model', 'serial_number']", 'object_name': 'UnrackableNetworkedDevice', '_ormbases': [u'hardware.Unrackable', u'hardware.NetworkedDevice']},
+            'Meta': {'object_name': 'UnrackableNetworkedDevice'},
             'comments': ('django.db.models.fields.TextField', [], {}),
+            u'hwbase_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.HwBase']", 'unique': 'True', 'primary_key': 'True'}),
             'latitude': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'longitude': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+            'main_ip': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            u'networkeddevice_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.NetworkedDevice']", 'unique': 'True'}),
             'place_in_building': ('django.db.models.fields.TextField', [], {}),
+            'room': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['location.Room']"}),
             'switch': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Switch']"}),
-            u'unrackable_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.Unrackable']", 'unique': 'True', 'primary_key': 'True'}),
             'wall_socket': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
         u'hardware_model.hwmodel': {
@@ -197,12 +240,13 @@ class Migration(DataMigration):
             'size': ('django.db.models.fields.IntegerField', [], {})
         },
         u'network.switch': {
-            'Meta': {'object_name': 'Switch', '_ormbases': [u'hardware.NetworkedDevice']},
+            'Meta': {'object_name': 'Switch'},
             'base_unit': ('django.db.models.fields.IntegerField', [], {}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'level': ('django.db.models.fields.IntegerField', [], {}),
+            'main_ip': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']"}),
             'managementinfo': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.ManagementInfo']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            u'networkeddevice_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.NetworkedDevice']", 'unique': 'True', 'primary_key': 'True'}),
             'ports': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'rack': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware.Rack']"}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'})
@@ -210,4 +254,3 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['hardware']
-    symmetrical = True
