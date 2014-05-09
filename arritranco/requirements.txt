@@ -12,3 +12,5 @@ pygraphviz
 croniter
 celery
 fabric
+psycopg2
+amqp

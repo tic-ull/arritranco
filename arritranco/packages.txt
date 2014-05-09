@@ -1,0 +1,7 @@
+Packages needeed to install arritranco
+Ubuntu :
+- libpq-dev
+
+Archlinux :
+- postgresql-libs
+
