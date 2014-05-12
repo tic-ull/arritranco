@@ -13,6 +13,10 @@ from django.core.urlresolvers import reverse
 from hardware.managementutils import sftpGet
 from django.conf import settings
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 SWITCH_LEVEL = (
     (10, _(u'Access')),
     (20, _(u'CPD')),
