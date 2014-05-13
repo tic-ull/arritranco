@@ -24,6 +24,7 @@ class NetworkIPFilter(SimpleListFilter):
 
 
 class SwitchAdmin(admin.ModelAdmin):
+    raw_id_fields = ('main_ip',)
     pass
 
 

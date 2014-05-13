@@ -63,6 +63,7 @@ class ProcessorTypeAdmin(admin.ModelAdmin):
 
 class UnrackableNetworkedDeviceAdmin(admin.ModelAdmin):
     list_display = ("name",)
+    raw_id_fields = ('main_ip',)
 
 
 admin.site.register(Server, ServerAdmin)

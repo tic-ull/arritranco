@@ -31,6 +31,7 @@ except ImportError:
 
 class InterfacesInline(admin.TabularInline):
     model = Interface
+    raw_id_fields = ('ip',)
 
 
 class ManagementIPFilter(SimpleListFilter):
