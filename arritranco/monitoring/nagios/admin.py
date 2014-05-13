@@ -121,6 +121,7 @@ class ServiceAdmin(admin.ModelAdmin):
     search_fields = ['name', 'machines_names', 'ip']
     list_display = ('name', 'machines_names', 'ip')
     filter_horizontal = ('machines',)
+    raw_id_fields = ('ip',)
 
 
 admin.site.register(NagiosMachineCheckOpts, NagiosMachineCheckOptsAdmin)
