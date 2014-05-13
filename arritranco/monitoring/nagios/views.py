@@ -68,7 +68,8 @@ def hosts_ext_info(request):
 def get_checks(request, name):
     template = 'nagios/check.cfg'
     context = {
-        'checks_machine': NagiosMachineCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name)),
+        'checks_machine': NagiosMachineCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name),
+                                                                machine__up=True),
         'checks_service': NagiosServiceCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name)),
         'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.filter(
             check=NagiosCheck.objects.filter(name=name))
@@ -127,7 +128,7 @@ def refresh_nagios_status(request):
 def getchecks_all(request):
     template = 'nagios/check.cfg'
     context = {
-        'checks_machine': NagiosMachineCheckOpts.objects.all(),
+        'checks_machine': NagiosMachineCheckOpts.objects.filter(machine__up=True),
         'checks_service': NagiosServiceCheckOpts.objects.all(),
         'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.all()
     }
