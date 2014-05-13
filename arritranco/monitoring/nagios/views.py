@@ -143,7 +143,7 @@ def getchecks_all(request):
 def nut(request):
     template = 'nagios/nut_checks.cfg'
     context = {
-        'machines': Machine.objects.all()
+        'machines': Machine.objects.filter(up=True)
     }
     if 'file' in request.GET:
         response = render_to_response(template, context, mimetype="text/plain")
