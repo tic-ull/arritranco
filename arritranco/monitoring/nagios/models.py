@@ -72,6 +72,7 @@ class NagiosCheck(models.Model):
     slug = models.SlugField()
     description = models.CharField(max_length=400)
     os = models.ManyToManyField("inventory.OperatingSystemType")
+    default_contact_groups = models.ManyToManyField("NagiosContactGroup", blank=False, null=False)
 
     def __unicode__(self):
         return u"%s" % self.name

@@ -9,7 +9,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 
 from models import NagiosCheck, NagiosMachineCheckOpts, NagiosContactGroup, NagiosNetworkParent, \
-    NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, Service, NagiosHardwarePolicyCheckOpts
+    NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, Service, NagiosHardwarePolicyCheckOpts,\
+    NagiosMachineCheckDefaults
 from inventory.models import Machine
 # Try to import the default nagios contact group
 try:
@@ -20,7 +21,12 @@ except ImportError:
 
 class NagiosMachineCheckOptsInline(admin.TabularInline):
     model = NagiosMachineCheckOpts
-    
+
+
+class NagiosMachineCheckDefaultsAdmin(admin.ModelAdmin):
+    list_display = ('nagioscheck',)
+    pass
+
 
 class NagiosCheckAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
@@ -132,5 +138,5 @@ admin.site.register(NagiosServiceCheckOpts, NagiosServiceCheckOptsAdmin)
 admin.site.register(NagiosUnrackableNetworkedDeviceCheckOpts, NagiosUserdeviceCheckOptsAdmin)
 admin.site.register(NagiosHardwarePolicyCheckOpts, NagiosHardwarePolicyCheckOptsAdmin)
 admin.site.register(Service, ServiceAdmin)
-
+admin.site.register(NagiosMachineCheckDefaults, NagiosMachineCheckDefaultsAdmin)
 

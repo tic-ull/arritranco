@@ -61,7 +61,27 @@ class MachineAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_up'
     search_fields = ('fqdn', 'os__name')
     inlines = [InterfacesInline, NagiosMachineCheckOptsInline, ]
-    actions = ['copy_machine', 'update_machine']
+    actions = ['copy_machine', 'update_machine', 'set_default_checks']
+
+    def set_default_checks(self, request, queryset):
+        """Admin action to set default checks"""
+        from monitoring.nagios.models import NagiosMachineCheckDefaults, NagiosMachineCheckOpts
+        for machine in queryset:
+            for checkdefault in NagiosMachineCheckDefaults.objects.all():
+                if (not machine.nagiosmachinecheckopts_set.filter(check=checkdefault.nagioscheck)) and \
+                                machine.os.type in checkdefault.nagioscheck.os.all():
+                    machineCheckOpts = NagiosMachineCheckOpts()
+                    machineCheckOpts.check = checkdefault.nagioscheck
+                    machineCheckOpts.machine = machine
+                    machineCheckOpts.save()
+                    for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
+                        machineCheckOpts.contact_groups.add(contact_group)
+                    machineCheckOpts.save()
+
+        messages.info(request, "%d machine have been set with the default checks" % queryset.count())
+        return HttpResponseRedirect(request.get_full_path())
+
+    set_default_checks.short_description = _(u'Set default checks')
 
     def save_related(self, request, form, formsets, change):
         """Control that interface called "DEFAULT_SVC_IFACE_NAME" e.g. "service" is asociated to de fqdn ip
