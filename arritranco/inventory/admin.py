@@ -153,14 +153,22 @@ class MachineAdmin(admin.ModelAdmin):
 
 
 class PysicalMachineAdmin(MachineAdmin):
-    list_display = ('fqdn', 'server_link', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
+    list_display = ('fqdn', 'server_link', 'ip_link', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
     list_filter = ('up', 'os', 'update_priority', 'epo_level', ManagementIPFilter)
 
     def server_link(self, obj):
-        return "<a href=%s>%s<a/>" % (obj.get_server_admin_url(), str(obj.server))
+        return "<a href=%s>%s<a/>" % (obj.get_server_admin_url(),
+                                      str(obj.server))
 
     server_link.short_description = u'Server'
     server_link.allow_tags = True
+
+    def ip_link(self, obj):
+        return "<a href=https://%s>%s<a/>" % (obj.server.management_ip_addr(),
+                                              obj.server.management_ip_addr())
+
+    ip_link.short_description = u'Management ip'
+    ip_link.allow_tags = True
 
 
 class VirtualMachineAdmin(MachineAdmin):
