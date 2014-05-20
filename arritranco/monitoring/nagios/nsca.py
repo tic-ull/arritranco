@@ -3,12 +3,14 @@ from django.conf import settings
 import logging
 import sys
 import time
+
 if sys.version_info < (2, 4):
     import popen2
 else:
     import subprocess
 
 logger = logging.getLogger(__name__)
+
 
 def process(cmd, stdin="", ignore_error=False):
     if sys.version_info < (2, 4):
@@ -50,18 +52,18 @@ class NSCA:
         self.nagios_status = []
 
     def add_ok(self, host, service, message):
-        self.nagios_status.append( (host, service, Nagios.NAGIOS_OK, message) )
+        self.nagios_status.append((host, service, Nagios.NAGIOS_OK, message))
 
     def add_warning(self, host, service, message):
-        self.nagios_status.append( (host, service, Nagios.NAGIOS_WARNING, message) )
+        self.nagios_status.append((host, service, Nagios.NAGIOS_WARNING, message))
 
     def add_critical(self, host, service, message):
-        self.nagios_status.append( (host, service, Nagios.NAGIOS_CRITICAL, message) )
+        self.nagios_status.append((host, service, Nagios.NAGIOS_CRITICAL, message))
 
     def add_custom_status(self, host, service, status, message):
         if int(status) not in [NSCA.NAGIOS_OK, NSCA.NAGIOS_WARNING, NSCA.NAGIOS_CRITICAL, NSCA.NAGIOS_UNKNOWN]:
             raise RuntimeError('%s is not a valid nagios status')
-        self.nagios_status.append( (host, service, int(status), message) )
+        self.nagios_status.append((host, service, int(status), message))
 
     def get_nagios_status(self):
         out = ""

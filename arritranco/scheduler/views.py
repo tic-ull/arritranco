@@ -16,7 +16,7 @@ class Todo(ListAPIView):
     model = Task
     serializer = TaskSerializer
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         """Return a list of all the tasks to be done."""
         start_time = None
         end_time = None
@@ -27,6 +27,7 @@ class Todo(ListAPIView):
         queryset = self.model.objects.todo(start_time, end_time)
 
         return Response(self.serializer(queryset).data, httpstatus.HTTP_200_OK)
+
 
 class TaskListCreateView(ListCreateAPIView):
     """List and create view for task items, paginated 50 items."""

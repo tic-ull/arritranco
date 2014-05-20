@@ -8,11 +8,11 @@ from monitoring.nagios.models import HUMAN_TO_NAGIOS, NAGIOS_OK, NAGIOS_WARNING,
 from django.contrib.admin import SimpleListFilter
 from django.utils.translation import ugettext as _
 
+
 class TaskCheckStatusFilter(SimpleListFilter):
     title = (u'Status')
 
     parameter_name = 'status'
-
 
     def lookups(self, request, model_admin):
         """Returns a list of tuples."""
@@ -31,17 +31,21 @@ class TaskCheckStatusFilter(SimpleListFilter):
         """
 
         if self.value():
-            checks = [x.id for x in queryset.filter(taskstatus__status=self.value(), taskstatus__isnull=False) if x.get_status().status == self.value()]
+            checks = [x.id for x in queryset.filter(taskstatus__status=self.value(), taskstatus__isnull=False) if
+                      x.last_status == self.value()]
             return queryset.filter(id__in=checks)
 
+
 class TaskStatusAdminForm(forms.ModelForm):
-#    class Meta:
-#        STATUS_CHOICES = (
-#                ('', 'Seleccione un nuevo estado'),
-#                ('Ok', 'ok'),
-#                ('Error', 'Error')
-#            ) 
-        model = TaskStatus
+    #    class Meta:
+    #        STATUS_CHOICES = (
+    #                ('', 'Seleccione un nuevo estado'),
+    #                ('Ok', 'ok'),
+    #                ('Error', 'Error')
+    #            )
+    model = TaskStatus
+
+
 #        widgets = {
 #            'status': forms.widgets.Select(choices = STATUS_CHOICES),
 #        }
@@ -58,11 +62,11 @@ class TaskStatusAdmin(admin.StackedInline):
 class TaskCheckAdmin(admin.ModelAdmin):
     list_display = ('task', 'task_time', 'num_status', 'get_status', 'info')
     list_filter = (TaskCheckStatusFilter,)
-    inlines = [ TaskStatusAdmin, ]
+    inlines = [TaskStatusAdmin, ]
     readonly_fields = ('task_time', )
     date_hierarchy = 'task_time'
     #FIXME: Not all task are backup tasks, so adding __backuptask on search fields could be a bit risky
-    search_fields = ['task__description','task__backuptask__machine__fqdn' ]
+    search_fields = ['task__description', 'task__backuptask__machine__fqdn']
 
 
     def info(self, obj):
@@ -71,7 +75,7 @@ class TaskCheckAdmin(admin.ModelAdmin):
             return u"Machine: %s" % obj.task.backuptask.machine.fqdn
 
     def get_status(self, obj):
-        status = obj.get_status()
+        status = obj.last_status
         if isinstance(status, TaskStatus):
             nagios_status = HUMAN_TO_NAGIOS[status.status]
         else:
@@ -86,7 +90,9 @@ class TaskCheckAdmin(admin.ModelAdmin):
             color = 'red'
         else:
             color = 'yellow'
-        return '<div style="width:100%%; height:100%%; background-color: %s;font-weight:bold;text-align:center;">%s</div>' % (color, status)
+        return '<div style="width:100%%; height:100%%; background-color: %s;font-weight:bold;text-align:center;">%s</div>' % (
+            color, status)
+
     get_status.short_description = u'Last check and status'
     get_status.allow_tags = True
 
@@ -96,15 +102,16 @@ class TaskAdmin(admin.ModelAdmin):
     fieldsets = [
         (
             'Recurrence', {
-            'fields': ['minute', 'hour', 'monthday', 'month', 'weekday']
+                'fields': ['minute', 'hour', 'monthday', 'month', 'weekday']
             }
         ),
         (
             'Date information', {
-            'fields': ['description', 'active']
+                'fields': ['description', 'active']
             }
         ),
     ]
+
 
 admin.site.register(Task, TaskAdmin)
 admin.site.register(TaskCheck, TaskCheckAdmin)

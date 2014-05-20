@@ -12,7 +12,7 @@ from location.models import Room
 class MapsActiveMachinesProperty(APIView):
 
     def get(self, request):
-        machine_map = {'map':[]}
+        machine_map = {'map': []}
         for physical_up in PhysicalMachine.objects.filter(up=True):
             location = physical_up.get_location()
             if location:

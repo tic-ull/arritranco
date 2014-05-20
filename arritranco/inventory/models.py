@@ -1,7 +1,5 @@
-
 from django.db import models
-from hardware.models import Server
-from network.models import Network
+from network.models import Network, IP
 from hardware.models import RackServer, Rack
 from location.models import Room
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -10,13 +8,16 @@ from django.core.urlresolvers import reverse
 import socket
 import re
 import IPy
+from django.db.models.signals import post_save
+
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Try to import the default name for service interface of a machine
 try:
-    from settings import DEFAULT_SVC_IFACE_NAME
+    from arritranco.settings import DEFAULT_SVC_IFACE_NAME
 except ImportError:
     DEFAULT_SVC_IFACE_NAME = None
 
@@ -35,9 +36,9 @@ UPDATE_PRIORITY = (
 
 EPO_LEVELS = (
     (0, _(u'Undefined')),
-    (5, _(u'No Service')), 
+    (5, _(u'No Service')),
     (10, _(u'No service lost (Service degradation)')),
-    (20, _(u'Service Lost. No critical service')), 
+    (20, _(u'Service Lost. No critical service')),
     (30, _(u'Service Lost. CRITICAL service')),
 )
 
@@ -48,7 +49,7 @@ KVM_HYPERVISOR = 2
 HYPERVISOR_HOSTS = (
     (UNDEF_HYPERVISOR, 'Undefined'),
     (VMWARE_HYPERVISOR, 'VMWare'),
-    (KVM_HYPERVISOR, 'KVM'), 
+    (KVM_HYPERVISOR, 'KVM'),
 )
 
 UPS_CHOICES = (
@@ -58,7 +59,7 @@ UPS_CHOICES = (
     (3, 'UPS2 Tarj.1'),
     (4, 'UPS2 Tarj.2'),
     (5, 'UPS VMware'),
-    (70,'UPS Etsii'),
+    (70, 'UPS Etsii'),
     (6, 'No se aplica'),
 )
 
@@ -69,6 +70,7 @@ class OperatingSystemType(models.Model):
 
     def __unicode__(self):
         return u"%s" % self.name
+
 
 class OperatingSystem(models.Model):
     """
@@ -83,12 +85,14 @@ class OperatingSystem(models.Model):
     def __unicode__(self):
         return u"%s %s" % (self.name, self.version)
 
+
 def clean_hwaddr(value):
     """ Check the construction of the mac address """
     MAC_RE = r'^([0-9a-fA-F]{2}([:-]?|$)){6}$'
     mac_re = re.compile(MAC_RE)
     if not mac_re.match(value):
         raise ValidationError, _(u'You must enter a valid mac address e.g.: 10:0f:c0:a0:00:b0 or 10-0f-c0-a0-00-b0')
+
 
 def clean_fqdn(value):
     """ Check fqdn hostname is defined on the DNS zone """
@@ -97,25 +101,18 @@ def clean_fqdn(value):
     except:
         raise ValidationError, _(u'The fqdn name u entered is not resoluble, please enter a valid one')
 
-def clean_ip(value):
-    """ Check valid IPv4 addr """
-    try:
-        ip = IPy.IP(value)
-    except ValueError:
-        raise ValidationError,  _(u'You must provide a valid IPv4 address e.g.: 10.119.70.0')
-
 
 class Machine(models.Model):
     """Software Machine."""
-    fqdn = models.CharField( max_length = 255, unique = True)
-    description = models.TextField(blank = True, null = True)
-    up = models.BooleanField('Up', default = False, help_text = _(u'Is this machine up?'))
-    os = models.ForeignKey(OperatingSystem, blank = True, null = True)
-    start_up = models.DateField(_(u'start up'), blank = True, null = True)
-    update_priority = models.IntegerField(_(u'Update priority'), choices = UPDATE_PRIORITY, default = 30)
+    fqdn = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+    up = models.BooleanField('Up', default=False, help_text=_(u'Is this machine up?'))
+    os = models.ForeignKey(OperatingSystem, blank=True, null=True)
+    start_up = models.DateField(_(u'start up'), blank=True, null=True)
+    update_priority = models.IntegerField(_(u'Update priority'), choices=UPDATE_PRIORITY, default=30)
     up_to_date_date = models.DateField(_(u'update date'), blank=True, null=True)
-    epo_level = models.IntegerField(_(u'EPO Level'), choices = EPO_LEVELS, default = 5)
-    networks = models.ManyToManyField(Network, help_text = _(u'Networks where machine is coneccted through his interfaces'), through = 'Interface')
+    epo_level = models.IntegerField(_(u'EPO Level'), choices=EPO_LEVELS, default=5)
+
 
     class Meta:
         ordering = ['fqdn']
@@ -131,19 +128,23 @@ class Machine(models.Model):
             clean_fqdn(self.fqdn)
 
     def get_admin_url(self):
-        return reverse('admin:inventory_machine_change',args=(self.id,))
+        return reverse('admin:inventory_machine_change', args=(self.id,))
 
     def resolveip(self):
         """ Return DNS ip for the fqdn if it is resoluble """
         try:
             ip = socket.gethostbyname(self.fqdn)
+            myip = IP()
+            myip.addr = ip
+            myip.save()
         except socket.gaierror:
             # The fqdn is not in the DNS
-            ip = None
+            myip = None
         except Exception as e:
             logger.exception("Unknown error resolving DNS name for '%s': %s" % (self.fqdn, e))
-            ip = None
-        return ip
+            myip = None
+
+        return myip
 
     def get_num_ifaces(self):
         """ Returns the count of interfaces asociated to a machine instance """
@@ -151,7 +152,7 @@ class Machine(models.Model):
 
     def get_service_iface(self):
         """ Returns the interface named DEFAULT_SVC_IFACE_NAME if exists """
-        try: 
+        try:
             svc_iface = self.interface_set.get(name=DEFAULT_SVC_IFACE_NAME)
         except ObjectDoesNotExist:
             svc_iface = None
@@ -167,7 +168,7 @@ class Machine(models.Model):
         return service_ip
 
     @staticmethod
-    def get_by_addr(addr, filter_up = False):
+    def get_by_addr(addr, filter_up=False):
         """
             Returns a machine by a IP or a DNS name.
 
@@ -177,9 +178,9 @@ class Machine(models.Model):
         try:
             # Search by IP
             if filter_up:
-                return Machine.objects.get(interface__ip = addr, up = True)
+                return Machine.objects.get(interface__ip__addr=addr, up=True)
             else:
-                return Machine.objects.get(interface__ip = addr)
+                return Machine.objects.get(interface__ip__addr=addr)
         except Machine.DoesNotExist:
             # It's ok, we'll try searching by name
             pass
@@ -190,9 +191,9 @@ class Machine(models.Model):
         try:
             # Search by Name
             if filter_up:
-                return Machine.objects.get(fqdn = addr, up = True)
+                return Machine.objects.get(fqdn=addr, up=True)
             else:
-                return Machine.objects.get(fqdn = addr)
+                return Machine.objects.get(fqdn=addr)
         except Machine.DoesNotExist:
             # It's ok too, our last try will be a reverse DNS search
             pass
@@ -201,25 +202,27 @@ class Machine(models.Model):
             # FIXME
             # The addr name could have more than one reverse DNS name.
             # In these cases we would iterate by the list of reverse names
-            return Machine.objects.get(fqdn = socket.getfqdn(addr), up = True)
+            return Machine.objects.get(fqdn=socket.getfqdn(addr), up=True)
         except Machine.DoesNotExist:
             return None
-    
+
     def responsibles(self):
         """ String with all responsibles for notification on nagios """
         groups = set()
-        for co in self.nagioscheckopts_set.all():
+        for co in self.nagiosmachinecheckopts_set.all():
             for cg in co.contact_groups.all():
                 groups.add(cg.ngcontact)
         return ", ".join(groups)
 
     def network_names(self):
         """ Network names where machine is conected to """
-        networks = []
+        # FIXME
+        """networks = []
         link = '<a href=\"%s\"> %s </a>'
         for net in self.networks.all().distinct():
             networks.append(link % (net.get_admin_url(),net.desc))
-        return ", ".join(networks)
+        return ", ".join(networks)"""
+        return ""
 
     network_names.short_description = _(u'Networks')
     network_names.allow_tags = True
@@ -228,7 +231,7 @@ class Machine(models.Model):
         """Returns if this machine should have upsmon or not."""
         try:
             vm = self.virtualmachine
-        except ObjectDoesNotExist: 
+        except ObjectDoesNotExist:
             return True
 
         if vm.hypervisor == KVM_HYPERVISOR:
@@ -243,70 +246,79 @@ class Machine(models.Model):
            - This function assumes that the fqdn name is resoluble.
         """
         iface = Interface(
-                    machine = self,
-                    ip = self.resolveip(),
-                    hwaddr = '00:00:00:00:00:00',
-                    name = DEFAULT_SVC_IFACE_NAME,
-                    visible = True,
-                    )
+            machine=self,
+            ip=self.resolveip(),
+            hwaddr='00:00:00:00:00:00',
+            name=DEFAULT_SVC_IFACE_NAME,
+            visible=True,
+        )
         return iface
 
     def get_nagios_parents(self):
         return 'Router_ccti1'
 
 
+def set_default_checks(sender, instance, **kwargs):
+    from monitoring.nagios.models import NagiosMachineCheckDefaults, NagiosMachineCheckOpts
 
-class BalancedService(models.Model):
-    ip = models.IPAddressField(help_text = _(u'Interface IP v4 address'), validators = [clean_ip])
-    up = models.BooleanField('Up', default = False, help_text = _(u'Is this machine up?'))
-    fqdn = models.CharField( max_length = 255, unique = True)
-    description = models.TextField(blank = True, null = True)
-    machine = models.ManyToManyField(Machine)
+    for checkdefault in NagiosMachineCheckDefaults.objects.all():
+        if not instance.nagiosmachinecheckopts_set.filter(check=checkdefault.nagioscheck) and \
+                        instance.os.type in checkdefault.nagioscheck.os.all():
+            machineCheckOpts = NagiosMachineCheckOpts()
+            machineCheckOpts.check = checkdefault.nagioscheck
+            machineCheckOpts.machine = instance
+            machineCheckOpts.save()
+            for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
+                machineCheckOpts.contact_groups.add(contact_group)
+            machineCheckOpts.save()
+
+
+
+
+post_save.connect(set_default_checks, sender=Machine, dispatch_uid="set_default_checks")
+
 
 class Interface(models.Model):
     """ Model to represent a machine network interface """
     machine = models.ForeignKey(Machine)
-    name = models.CharField(help_text = _(u'Itentified name for the interface'), max_length = 50)
-    ip = models.IPAddressField(help_text = _(u'Interface IP v4 address'), validators = [clean_ip])
-    hwaddr = models.CharField(help_text = _(u'Mac / Hardware address of the interface'), max_length = 17, validators = [clean_hwaddr])
-    visible = models.BooleanField(help_text = _(u'Whether the interface and IP are visible through the network'), default = False)
-    network = models.ForeignKey(Network, null = True, blank = True,editable = False)
+    name = models.CharField(help_text=_(u'Itentified name for the interface'), max_length=50)
+    ip = models.ForeignKey(IP)
+    hwaddr = models.CharField(help_text=_(u'Mac / Hardware address of the interface'), max_length=17,
+                              validators=[clean_hwaddr])
+    visible = models.BooleanField(help_text=_(u'Whether the interface and IP are visible through the network'),
+                                  default=False)
 
     class Meta:
         verbose_name = _('Interface')
         verbose_name_plural = _('Interfaces')
-    
-    def __unicode__(self):
-        return u"%s (%s)  <%s>" % (self.name, self.ip, "UP" if self.visible else "DOWN")
 
-    def save(self, *args, **kwargs):
-        """ Assigning the net to which this interface belongs to. """
-        logger.debug("Calling Interface Save method IP: %s", self.ip)
-        ip = IPy.IP(self.ip).int()
-        nets =  Network.objects.filter(first_ip_int__lte = ip, last_ip_int__gte = ip).order_by('size')
-        if nets:
-            logger.debug("There is net and assign: %s" % nets[0])
-            self.network = nets[0]
-            logger.debug("Result of asignation is: %s" % self.network)
-        super(Interface,self).save(*args,**kwargs)
-        logger.debug("Saved Interface: %d - %s" % (self.id,self))
+    def __unicode__(self):
+        return u"%s (%s)  <%s>" % (self.name, self.ip.addr, "UP" if self.visible else "DOWN")
+
+    def network(self):
+        if self.ip.network is None:
+            return "No Network"
+        return str(self.ip.network)
+
+    def ip_addr(self):
+        return self.ip.addr
 
 
 class VirtualMachine(Machine):
     """ Machine with no real hardware running on a virtual server like VMWare, KVM or whatever """
-    hypervisor = models.IntegerField(_(u'Hypervisor host'), choices = HYPERVISOR_HOSTS, default = 0)    
-    processors = models.IntegerField(_(u"Number of processors"), default = 1)
+    hypervisor = models.IntegerField(_(u'Hypervisor host'), choices=HYPERVISOR_HOSTS, default=0)
+    processors = models.IntegerField(_(u"Number of processors"), default=1)
     memory = models.DecimalField('GB RAM', max_digits=15, decimal_places=3, blank=True, null=True)
     total_disks_size = models.DecimalField(_(u"GB"), max_digits=15, decimal_places=3, blank=True, null=True)
 
     class Meta:
         verbose_name = _('Virtual machine')
         verbose_name_plural = _('Virtual machines')
-    
+
 
 class PhysicalMachine(Machine):
     """ Machine with real hardware """
-    server = models.ForeignKey(Server, verbose_name=_(u'Server'))
+    server = models.ForeignKey("hardware.Server", verbose_name=_(u'Server'))
     ups = models.IntegerField(blank=False, help_text=_('Connected UPS'), choices=UPS_CHOICES, default=0)
 
     class Meta:
@@ -314,18 +326,23 @@ class PhysicalMachine(Machine):
         verbose_name_plural = _('Physical machines')
 
     def get_warranty_expires(self):
-	return self.server.warranty_expires
+        return self.server.warranty_expires
 
     def get_location(self):
         """ returns location (physical) """
         try:
             server = RackServer.objects.filter(id=self.server.id)[0]
-            room   = Room.objects.filter(id=server.rack.room.id)[0]
+            room = Room.objects.filter(id=server.rack.room.id)[0]
             location = {'fqdn': self.fqdn, 'rack': server.rack.name, 'room': room.name, 'base_unit': server.base_unit}
 
             return location
         except:
             return None
 
-        return None
-    
+    def get_management_ip(self):
+        if self.server.management_ip is None or self.server.management_ip == "":
+            return None
+        return self.server.management_ip.addr
+
+    def get_server_admin_url(self):
+        return reverse('admin:hardware_server_change', args=(self.server.id,))

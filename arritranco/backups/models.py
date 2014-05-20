@@ -3,9 +3,12 @@ from django.utils.translation import ugettext_lazy as _
 from scheduler.models import Task, TaskCheck, TaskManager
 from inventory.models import Machine
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 import datetime
 import re
+
+import os
 
 import logging
 
@@ -28,11 +31,16 @@ class BackupTask(Task):
 
     machine = models.ForeignKey(Machine)
     duration = models.TimeField(_(u"Duration"), blank=True, null=True)
-    extra_options = models.TextField(help_text = _(u'Extra options for backup jobs, for now support data=dbengine:dbname '), blank=True, null=True)
-    bckp_type = models.IntegerField(blank=True, null=True, choices=BACKUP_TYPE_CHOICES, default = SYSTEM_BACKUP)
-    objects = TaskManager() # Include todo query from the task manager
+    extra_options = models.TextField(help_text=
+                                     _(u'Extra options for backup jobs, for now support data=dbengine:dbname '),
+                                     blank=True, null=True)
+    bckp_type = models.IntegerField(blank=True, null=True, choices=BACKUP_TYPE_CHOICES, default=SYSTEM_BACKUP)
+    objects = TaskManager()  # Include todo query from the task manager
+
     def __unicode__(self):
-        return _(u"%(fqdn)s @ %(bckp_type)s/%(cron)s") % {'fqdn': self.machine.fqdn, 'bckp_type': self.get_bckp_type_display(), 'cron': self.cron_syntax()}
+        return _(u"%(fqdn)s @ %(bckp_type)s/%(cron)s") % {'fqdn': self.machine.fqdn,
+                                                          'bckp_type': self.get_bckp_type_display(),
+                                                          'cron': self.cron_syntax()}
 
     def fecha_fin(self, day):
         """
@@ -41,11 +49,11 @@ class BackupTask(Task):
         if self.duracion:
             duracion = self.duracion
         else:
-            duracion = datetime.time(hour = 0, minute = 30)
+            duracion = datetime.time(hour=0, minute=30)
         return datetime.datetime.combine(day, self.time) + datetime.timedelta(
-                    hours = duracion.hour,
-                    minutes = duracion.minute,
-                    seconds = duracion.second
+                    hours=duracion.hour,
+                    minutes=duracion.minute,
+                    seconds=duracion.second
             )
 
 class VCBBackupTask(BackupTask):
@@ -53,83 +61,86 @@ class VCBBackupTask(BackupTask):
         VCB backup task
     """
     tsm_server = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
-        help_text=_(u"Machine fqdn where this backups shoud be checked."))
+                                  help_text=_(u"Machine fqdn where this backups shoud be checked."))
+
 
 class TSMBackupTask(BackupTask):
     """
         TSM backup task
     """
     tsm_server = models.CharField(max_length=255, verbose_name=_(u"TSM Server name"),
-        help_text=_(u"TSM Server name."))
+                                  help_text=_(u"TSM Server name."))
+
 
 class R1BackupTask(BackupTask):
     """
         R1Soft backup task
     """
     r1_server = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
-        help_text=_(u"Machine fqdn where this backups shoud be checked."))
-
+                                 help_text=_(u"Machine fqdn where this backups shoud be checked."))
 
 
 class FileBackupTask(BackupTask):
     """
         File backup task
     """
-    checker_fqdn = models.CharField(max_length=255, choices=settings.FILE_BACKUP_CHECKERS, verbose_name=_(u"Checker fqdn"),
-        help_text=_(u"Machine fqdn where this backups shoud be checked."))
+    checker_fqdn = models.CharField(max_length=255, choices=settings.FILE_BACKUP_CHECKERS,
+                                    verbose_name=_(u"Checker fqdn"),
+                                    help_text=_(u"Machine fqdn where this backups shoud be checked."))
     directory = models.CharField(max_length=255,
-        help_text=_(u'Directory where files shoud be.'))
+                                 help_text=_(u'Directory where files shoud be.'))
     days_in_hard_drive = models.IntegerField(blank=False, null=False, default=180,
-        help_text=_(u'Number of days that this backup shoud be on disk at most.'))
+                                             help_text=_(u'Number of days that this backup shoud be on disk at most.'))
     max_backup_month = models.IntegerField(blank=False, null=False, default=7,
-        help_text=_(u'Number of backups that shoud to be on disk after a month.'))
+                                           help_text=_(u'Number of backups that shoud to be on disk after a month.'))
 
-    objects = TaskManager() # Include todo query from the task manager
+    objects = TaskManager()  # Include todo query from the task manager
 
     @staticmethod
     def get_fbp(machine, filename):
         logger.debug('Searching FileBackupProduct for filename %s and machine %s', filename, machine)
-        for fbp in FileBackupProduct.objects.filter(file_backup_task__machine = machine, file_backup_task__active = True):
+        for fbp in FileBackupProduct.objects.filter(file_backup_task__machine=machine, file_backup_task__active=True):
             if fbp.file_pattern.get_re(machine).match(filename):
                 return fbp
         logger.debug('There is no FileBackupProduct for machine %s', machine)
         return None
+
 
 class FileNamePattern(models.Model):
     """
         File name patterns.
     """
     pattern = models.CharField('Nombre del archivo', max_length=255, blank=True, null=True,
-        help_text=_(u'File name pattern, you can use regexp and date patterns here.'))
+                               help_text=_(u'File name pattern, you can use regexp and date patterns here.'))
 
     def get_re (self, machine = None):
         # FIXME: Change month list based on default locale language
         sustituciones = (
-                ('%Y', '(?P<year4>\d{4})'),
-                ('%y', '(?P<year2>\d{2})'),
-                ('%m', '(?P<month>\d{2})'),
-                ('%d', '(?P<day>\d{2})'),
-                ('%H', '(?P<hour>\d{2})'),
-                ('%M', '(?P<minute>\d{2})'),
-#                ('%B', '(?P<month_large>' + _(u'(Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre))')),
-                ('#', '(?P<chunk>\d+)'),
+                        ('%Y', '(?P<year4>\d{4})'),
+                        ('%y', '(?P<year2>\d{2})'),
+                        ('%m', '(?P<month>\d{2})'),
+                        ('%d', '(?P<day>\d{2})'),
+                        ('%H', '(?P<hour>\d{2})'),
+                        ('%M', '(?P<minute>\d{2})'),
+                        #('%B', '(?P<month_large>' + _(u'(Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre))')),
+                        ('#', '(?P<chunk>\d+)'),
             )
         patron_re = self.pattern
         if machine is not None:
             patron_re = patron_re.replace('__FQDN__', machine.fqdn)
         for o, d in sustituciones:
-            patron_re = patron_re.replace (o, d)
+            patron_re = patron_re.replace(o, d)
         logger.error('Regular expression pattern: %s', patron_re)
-        return re.compile (patron_re)
+        return re.compile(patron_re)
 
-    def get_filename_for_date (self, d):
+    def get_filename_for_date(self, d):
         return d.strftime(self.pattern)
 
     def __unicode__(self):
         return u"%s" % self.pattern
 
     class Meta:
-        ordering = ['pattern',]
+        ordering = ['pattern', ]
         verbose_name_plural = _(u'File name patterns')
         verbose_name = _(u'File name pattern')
 
@@ -151,6 +162,7 @@ class FileNamePattern(models.Model):
 #        verbose_name_plural = _(u'File backup products')
 #        verbose_name = _(u'File backup product')
 
+
 class FileBackupProduct(models.Model):
     file_backup_task = models.ForeignKey(FileBackupTask, related_name = 'file_backup')
     file_pattern = models.ForeignKey(FileNamePattern)
@@ -164,33 +176,40 @@ class FileBackupProduct(models.Model):
     def __unicode__(self):
         return u"%si -> %s" % (self.file_backup_task, self.file_pattern)
 
+
 class BackupFile(models.Model):
     file_backup_product = models.ForeignKey(FileBackupProduct)
     task_check = models.ForeignKey(TaskCheck, null=True, blank=True)
 
     original_file_name = models.CharField(_(u'Original file name'), max_length=512,
         help_text=_(u'Exact file name generated by a backup task.'))
+
     original_md5 = models.CharField(_(u'MD5 original file hash'), max_length=32,
         help_text=_(u'MD5 original file hash.'))
-    original_file_size= models.FloatField(_(u'Original file size'), help_text=_(u'Original file size in bytes'))
+
+    original_file_size = models.FloatField(_(u'Original file size'), help_text=_(u'Original file size in bytes'))
 
     original_date = models.DateTimeField(blank=True, null=True, help_text=_(u'Original file creation date'))
 
     compressed_file_name = models.CharField(_(u'Compressed file name'), max_length=512,
         help_text=_(u'Exact file name generated by a backup task once it has been compressed.'))
+
     compressed_md5 = models.CharField(_(u'Compressed MD5 file hash'), max_length=32,
         help_text=_(u'Compressed MD5 file hash.'))
-    compressed_file_size= models.FloatField(_(u'Compressed file size'),
+
+    compressed_file_size = models.FloatField(_(u'Compressed file size'),
         help_text=_(u'Compressed file size in bytes.'), blank=True, null=True)
 
     compressed_date = models.DateTimeField(blank=True, null=True, help_text=_(u'Compression date'))
 
-    deletion_date = models.DateTimeField(blank=True, null=True, help_text = _(u"Deletion date"))
+    deletion_date = models.DateTimeField(blank=True, null=True, help_text=_(u"Deletion date"))
 
     disk_id = models.CharField(_(u'External disk'), max_length=512,
         help_text=_(u'External disk where this file is.'), blank=True, null=True)
+
     integrity_checked = models.NullBooleanField(blank=True, null=True,
         help_text=_(u'Integrity checked (uncompressable, MD5 hash is correct).'))
+
     utility_checked = models.NullBooleanField(blank=True, null=True,
         help_text=_(u'Useful.'))
 
@@ -206,21 +225,21 @@ class BackupFile(models.Model):
     def checker(self):
         return self.file_backup_product.file_backup_task.checker_fqdn
 
-    def original_file_size_display (self):
+    def original_file_size_display(self):
         if self.original_file_size:
-            return str(self._sizeof_fmt (self.original_file_size))
+            return str(self._sizeof_fmt(self.original_file_size))
         else:
             return '0'
 
-    def compressed_file_size_display (self):
+    def compressed_file_size_display(self):
         if self.compressed_file_size:
-            return str(self._sizeof_fmt (self.compressed_file_size))
+            return str(self._sizeof_fmt(self.compressed_file_size))
         else:
             return '0'
 
     def _sizeof_fmt(self, num):
-        num = float (num)
-        for x in ['bytes','KB','MB','GB','TB']:
+        num = float(num)
+        for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
             if num < 1024.0:
                 return "%3.1f%s" % (num, x)
             num /= 1024.0

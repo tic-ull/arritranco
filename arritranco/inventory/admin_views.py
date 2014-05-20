@@ -9,24 +9,24 @@ from django.core.exceptions import ObjectDoesNotExist
 import datetime
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
 class ActiveMachinesView(TemplateView):
     template_name = "admin/inventory/machine/active-machines.html"
 
-    def get_context_data(self, room_slug = None, rack_slug = None):
-        qs = Machine.objects.filter(up = True)
-        return { 'machines': qs, }
+    def get_context_data(self, room_slug=None, rack_slug=None):
+        qs = Machine.objects.filter(up=True)
+        return {'machines': qs, }
 
 
 class UpdateListView(ListView):
-
     template_name = "admin/inventory/machine/update_list.html"
-    queryset = Machine.objects.filter(up = True, os__type__slug = 'Linux').order_by('update_priority','up_to_date_date' )
+    queryset = Machine.objects.filter(up=True, os__type__slug='Linux').order_by('update_priority', 'up_to_date_date')
 
     def get_context_data(self, **kwargs):
-        one_month_ago = datetime.date.today() - datetime.timedelta(days = 30)
+        one_month_ago = datetime.date.today() - datetime.timedelta(days=30)
         context = super(UpdateListView, self).get_context_data(**kwargs)
         context.update({
                 'two_month_ago': one_month_ago,
@@ -68,7 +68,8 @@ def filter_by_room(machines, room):
             logger.warning('%s is a physical server but neither rack server nor blade server' % m)
             pass
     return filtered_machines
-            
+
+
 class EPOListView(ListView):
     """
         A machine list ordered by EPO level
@@ -76,13 +77,13 @@ class EPOListView(ListView):
     template_name = "admin/inventory/machine/epo_list.html"
 
     def get_queryset(self):
-        qs = Machine.objects.filter(up = True).order_by('epo_level')
+        qs = Machine.objects.filter(up=True).order_by('epo_level')
         if len(self.args):
             return filter_by_room(qs, self.args[0])
         return qs
 
     def get_context_data(self, object_list):
-        return { 
+        return {
             'object_list': object_list
-            }
+        }
 

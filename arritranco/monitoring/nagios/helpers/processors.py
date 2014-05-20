@@ -4,6 +4,7 @@ Created 14/03/2012
 @author: alorenzo
 '''
 
+
 def mco2dict(m_chckopts):
     """ Takes a model of NagiosCheckOpts and returns a dict.
 
@@ -20,6 +21,7 @@ def mco2dict(m_chckopts):
              'has_upsmon': m_chckopts.machine.has_upsmon()}
     return rdict
 
+
 def mco2dict_balanced(m_chckopts, m_balanced):
     """ Takes a model of NagiosCheckOpts and balanced fqdn and returns a dict.
 
@@ -31,11 +33,8 @@ def mco2dict_balanced(m_chckopts, m_balanced):
         - cg: contact groups to recieve alerts
         - has_upsmon: if its a nut check
     """
-    rdict = {}
-    rdict['ostype'] = m_chckopts.machine.os.type.name
-    rdict['fqdn'] = m_balanced.fqdn
-    rdict['cg'] = m_chckopts.get_ngcontact_groups() 
-    rdict['options'] = m_chckopts.options
-    rdict['has_upsmon'] = m_chckopts.machine.has_upsmon()
+    rdict = {'ostype': m_chckopts.machine.os.type.name, 'fqdn': m_balanced.fqdn,
+             'cg': m_chckopts.get_ngcontact_groups(), 'options': m_chckopts.options,
+             'has_upsmon': m_chckopts.machine.has_upsmon()}
     return rdict
 

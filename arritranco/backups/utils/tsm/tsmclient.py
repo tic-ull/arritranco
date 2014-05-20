@@ -17,6 +17,7 @@ import urllib2
 import csv
 import simplejson as json
 
+
 class TSMBaseParser:
     def __init__(self):
         self.data = []
@@ -34,6 +35,7 @@ class TSMBaseParser:
             self.returnCode = line
         else:
             self.error.append(line)
+
 
 class TSMQueryRequestParser(TSMBaseParser):
     """
@@ -58,6 +60,7 @@ class TSMQueryRequestParser(TSMBaseParser):
         elif line.startswith('ANR8373I'):
             self.requests.append(line.split(':')[0].split(' ')[1])
 
+
 class TSMMountParser(TSMBaseParser):
     MAX_DRIVES_USED = 4
 
@@ -76,6 +79,7 @@ class TSMMountParser(TSMBaseParser):
             self.drivesBussy = 0
         elif line.startswith('ANR8329I') or line.startswith('ANR8330I') or line.startswith('ANR8379I'):
             self.drivesBussy += 1
+
 
 class TSMLibvolParser(TSMBaseParser):
     SKIP_PHASE = 0
@@ -96,10 +100,10 @@ class TSMLibvolParser(TSMBaseParser):
         elif line == '':
             self.phase = TSMLibvolParser.SKIP_PHASE
         else:
-    # La línea debe tener esta pinta, los campos son de ancho fijo
-    #Library Name     Volume Name     Status               Owner          Last Use      Home        Device Type                                                                                   Element     Type
-    #------------     -----------     ----------------     ----------     ---------     -------     ------
-    #L80              000062          Scratch                                           1,004       LTO
+            # La línea debe tener esta pinta, los campos son de ancho fijo
+            #Library Name     Volume Name     Status               Owner          Last Use      Home        Device Type                                                                                   Element     Type
+            #------------     -----------     ----------------     ----------     ---------     -------     ------
+            #L80              000062          Scratch                                           1,004       LTO
 
             library = line[0:12].strip()
             volumename = line[17:29].strip()
@@ -108,7 +112,9 @@ class TSMLibvolParser(TSMBaseParser):
             last_usage = line[69:79].strip()
             home = line[83:91].strip()
             device_type = line[95:103].strip()
-            self.catridages["%s_%s" % (library, volumename)] = (volumename, status, owner, last_usage, home, device_type)
+            self.catridages["%s_%s" % (library, volumename)] = (
+                volumename, status, owner, last_usage, home, device_type)
+
 
 class TSMBackupTapeParser(TSMBaseParser):
     SKIP_PHASE = 0
@@ -131,24 +137,25 @@ class TSMBackupTapeParser(TSMBaseParser):
         elif line == '':
             self.phase = TSMSelectParser.SKIP_PHASE
         else:
-    # La línea debe tener esta pinta, los campos son de ancho fijo
-    # 12/13/08   08:14:07      BACKUPFULL          1,026             0          1     LTO3CLASS        A00110
+            # La línea debe tener esta pinta, los campos son de ancho fijo
+            # 12/13/08   08:14:07      BACKUPFULL          1,026             0          1     LTO3CLASS        A00110
             date = line[0:19]
             tape = line[97:107]
             self.data.append("%s (%s)" % (tape, date))
 
+
 class TSMActLogParser(TSMBaseParser):
     SKIP_PHASE = 0
     DATA_PHASE = 1
-#   FILE = None
+    #   FILE = None
 
     def __init__(self):
         TSMBaseParser.__init__(self)
-#        if not TSMActLogParser.FILE:
-#            TSMActLogParser.FILE = open('/tmp/actlog.log', 'w')
+        #        if not TSMActLogParser.FILE:
+        #            TSMActLogParser.FILE = open('/tmp/actlog.log', 'w')
         self.phase = TSMActLogParser.SKIP_PHASE
         self.data = []
-        self.aux = { 'date':None, 'message':None}
+        self.aux = {'date': None, 'message': None}
         if platform.platform().startswith("Windows"):
             self.platform = "Windows"
         else:
@@ -161,7 +168,7 @@ class TSMActLogParser(TSMBaseParser):
         return self.data[-number:]
 
     def parse(self, line):
-#        TSMActLogParser.FILE.write(line + '\n')
+        #        TSMActLogParser.FILE.write(line + '\n')
         if line.startswith('ANS'):
             self.ANSParser(line)
         if self.phase == TSMActLogParser.SKIP_PHASE:
@@ -190,6 +197,7 @@ class TSMActLogParser(TSMBaseParser):
         else:
             print line
 
+
 class TSMProcessParser(TSMBaseParser):
     SKIP_PHASE = 0
     DATA_PHASE = 1
@@ -205,8 +213,8 @@ class TSMProcessParser(TSMBaseParser):
             self.ANSParser(line)
             if line.startswith('ANS8002I'):
                 self.phase = TSMProcessParser.SKIP_PHASE
-#                for id in self.procesos.keys():
-#                    print "id: %s ->" % id, self.procesos[id]
+                #                for id in self.procesos.keys():
+                #                    print "id: %s ->" % id, self.procesos[id]
                 return
 
         if line.startswith('ANR0944E'):
@@ -234,12 +242,13 @@ class TSMProcessParser(TSMBaseParser):
             description = line[8:32].strip()
             status = line[32:].strip()
             self.procesos[self.last_id] = {
-                'description':description,
-                'status':status}
+                'description': description,
+                'status': status}
         elif line == '':
             self.phase = TSMProcessParser.SKIP_PHASE
         else:
             print "linea: %s" % line
+
 
 class TSMSelectParser(TSMBaseParser):
     SKIP_PHASE = 0
@@ -260,6 +269,7 @@ class TSMSelectParser(TSMBaseParser):
             self.phase = TSMSelectParser.SKIP_PHASE
         else:
             self.data.append(line)
+
 
 class TSM_CSVSelectParser(TSMBaseParser):
     SKIP_PHASE = 0
@@ -284,16 +294,17 @@ class TSM_CSVSelectParser(TSMBaseParser):
             for row in csv.reader([line]):
                 self.data.append(row)
 
+
 class TSMClient:
     """
     Clase para interactuar con el cliente de línea de comandos de Tivoli Storage Manager
     """
     WINDOWS = False
 
-    TSM_INVALID_PASSWORD=137
-    TSM_UNEXPECTED_SQL=3
+    TSM_INVALID_PASSWORD = 137
+    TSM_UNEXPECTED_SQL = 3
 
-    def __init__(self, dsmcPath = None, log = None, username = 'admin', server = None):
+    def __init__(self, dsmcPath=None, log=None, username='admin', server=None):
         if dsmcPath is not None:
             self.dsmcPath = str(dsmcPath)
         self.log = log
@@ -329,7 +340,7 @@ class TSMClient:
         self.setPassword(getpass.getpass('Introduce el password para el TSM: '))
         return True
 
-    def run_TSMcommand(self, command, parser = None):
+    def run_TSMcommand(self, command, parser=None):
         "-id=<usuario/> -password=<password/> <command/>"
         if self.password is None and not self.passwordDialog():
             print "Pon un password cenizo"
@@ -337,7 +348,8 @@ class TSMClient:
         if self.dsmcPath is None:
             self.loguea("No se donde está el ejecutable del dsmcadm")
             return False
-        self.loguea("\n\n\t--------- Consultando TSM (%s) -------\n\n" % datetime.datetime.now().strftime("%d:%m:%Y %H:%M"))
+        self.loguea(
+            "\n\n\t--------- Consultando TSM (%s) -------\n\n" % datetime.datetime.now().strftime("%d:%m:%Y %H:%M"))
         tsm_args = ' -id=%s -password=%s ' % (self.username, self.password)
         if self.server:
             tsm_args += '-server=%s ' % self.server
@@ -353,10 +365,10 @@ class TSMClient:
         self.run_command(cmd, self.dsmcPath, executable, parser)
         return True
 
-    def run_TSM_CSV_Command(self, command, parser = None):
+    def run_TSM_CSV_Command(self, command, parser=None):
         return self.run_TSMcommand(' -commadelimited ' + command, parser)
 
-    def run_command(self, command, cwd, executable, parser = None):
+    def run_command(self, command, cwd, executable, parser=None):
         self.loguea(command)
         try:
             if TSMClient.WINDOWS:
@@ -364,7 +376,7 @@ class TSMClient:
             else:
                 executable = os.path.join(cwd, executable)
                 cwd = None
-            process =  Popen(command.split(), executable=executable, stderr = STDOUT, stdout = PIPE, cwd = cwd)
+            process = Popen(command.split(), executable=executable, stderr=STDOUT, stdout=PIPE, cwd=cwd)
             pipe = process.stdout
             while True:
                 line = pipe.readline()
@@ -422,7 +434,8 @@ class TSMClient:
 8               COMPLETED: 2010-05-27 22:10:24.000000
         """
         since_str = since.strftime('%Y-%m-%d %H:%M:%S')
-        query = "select * from events where scheduled_start>'%s' and node_name='%s' and status <> 'Future'" % (since_str, node) 
+        query = "select * from events where scheduled_start>'%s' and node_name='%s' and status <> 'Future'" % (
+            since_str, node)
         parser = TSM_CSVSelectParser()
         self.run_TSM_CSV_Command(query, parser.parse)
         return parser.data
@@ -432,10 +445,10 @@ class TSMClient:
         since_time_str = since.strftime('%H:%M:%S')
         since_time_str = '00:00:00'
         query = "query actlog node=%s begindate='%s' begintime='%s' originator=client msgno=4952" % (
-                node_name,
-                since_date_str,
-                since_time_str
-            )
+            node_name,
+            since_date_str,
+            since_time_str
+        )
         parser = TSM_CSVSelectParser()
         self.run_TSM_CSV_Command(query, parser.parse)
         backups = []
@@ -446,11 +459,11 @@ class TSMClient:
             bckp['session'] = session_no
             bckp['objects inspected'] = int(log_msg[-3].replace('.', '').replace(',', ''))
             query = "query actlog node=%s begindate='%s' begintime='%s' originator=client SESSNUM=%d" % (
-                    node_name,
-                    since_date_str,
-                    since_time_str,
-                    session_no
-                )
+                node_name,
+                since_date_str,
+                since_time_str,
+                session_no
+            )
             session_parser = TSM_CSVSelectParser()
             self.run_TSM_CSV_Command(query, session_parser.parse)
             for info in session_parser.data:
@@ -465,8 +478,8 @@ class TSMClient:
                     key = 'objects failed'
                 elif info[1].startswith('ANE4960I'):
                     key = 'objects rebound'
-#                elif info[1].startswith('ANE4961I'):
-#                    key = 'bytes transferred'
+                #                elif info[1].startswith('ANE4961I'):
+                #                    key = 'bytes transferred'
                 elif info[1].startswith('ANE4965I'):
                     key = 'subfile objects'
                 elif info[1].startswith('ANE4970I'):
@@ -493,30 +506,29 @@ FILESPACE_NAME: \\vcvmware\d$
 
         """
         query = "select * from archives where TYPE=FILE and NODE_NAME='%s' and YEAR(ARCHIVE_DATE)>=%d and MONTH(ARCHIVE_DATE)>=%d and DAY(ARCHIVE_DATE)>=%d order by archive_date" % (
-                node_name,
-                since.year,
-                since.month,
-                since.day
-            )
+            node_name,
+            since.year,
+            since.month,
+            since.day
+        )
         parser = TSM_CSVSelectParser()
         self.run_TSM_CSV_Command(query, parser.parse)
         backups = []
         for backup in parser.data:
             fecha = datetime.datetime(*time.strptime(backup[7].split('.')[0], '%Y-%m-%d %H:%M:%S')[0:5])
-            b = {
-                    'fecha': fecha,
-                    'fichero':backup[4] + backup[5],
-                    'filespace':backup[1],
-                    'description':backup[9]
-                }
+            b = {'fecha': fecha,
+                 'fichero': backup[4] + backup[5],
+                 'filespace': backup[1],
+                 'description': backup[9]}
             backups.append(b)
         return backups
 
+
 if __name__ == "__main__":
-#    print "hola"
+    #    print "hola"
     num_dias = 90
     hoy = datetime.datetime.now()
-    fecha_anterior = hoy - datetime.timedelta(days = num_dias)
+    fecha_anterior = hoy - datetime.timedelta(days=num_dias)
     fecha_anterior = datetime.datetime(2009, 1, 1)
     tsm = TSMClient()
     parser = TSM_CSVSelectParser()
@@ -529,14 +541,14 @@ if __name__ == "__main__":
         if (b['fecha'].month == 2) and (b['fecha'].year == 2010):
             continue
         if b['fichero'].find('GESWIFI.COM.CCTI.ULL.ES') >= 0:
-#            print "Geswifi!!! no se borra ... %s --> %s" % (b['fecha'], b['fichero'])
+            #            print "Geswifi!!! no se borra ... %s --> %s" % (b['fecha'], b['fichero'])
             continue
         if b['description'].find('20100430') >= 0:
-#            print "Las copias de abril terminaron en mayo!!! no se borra ... %s --> %s" % (b['fecha'], b['fichero'])
+            #            print "Las copias de abril terminaron en mayo!!! no se borra ... %s --> %s" % (b['fecha'], b['fichero'])
             continue
         if (b['fecha'].year == hoy.year and b['fecha'].month == hoy.month) or (b['fecha'].day > max_dias):
             continue
-#        print "Borrar: %s --> %s" % (b['fecha'], b['fichero'])
+        #        print "Borrar: %s --> %s" % (b['fecha'], b['fichero'])
         print "Fecha: %s" % b['fecha']
         print "delete archive -noprompt -description=\"%s\" %s%s" % (b['description'], b['filespace'], b['fichero'])
 #        print "delete archive -pick -description=\"%s\" %s%s" % (b['description'], b['filespace'], b['fichero'])

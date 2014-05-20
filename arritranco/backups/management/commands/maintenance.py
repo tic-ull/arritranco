@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from backups.models import BackupFile, FileBackupTask, BackupTask
 from scheduler.models import TaskCheck, TaskStatus
 import datetime
-import settings
+import arritranco.settings as settings
 import sys
 from optparse import make_option
 
