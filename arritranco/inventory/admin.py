@@ -13,9 +13,11 @@ from django.template import RequestContext
 from django.contrib import admin, messages
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.admin import SimpleListFilter
+from django.forms import ModelForm
 
 # This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
 from monitoring.nagios.admin import NagiosMachineCheckOptsInline
+from backups.models import FileBackupTask, BackupTask
 import datetime
 
 import logging
@@ -61,7 +63,7 @@ class MachineAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_up'
     search_fields = ('fqdn', 'os__name')
     inlines = [InterfacesInline, NagiosMachineCheckOptsInline, ]
-    actions = ['copy_machine', 'update_machine', 'set_default_checks']
+    actions = ['copy_machine', 'update_machine', 'set_default_checks', 'aply_system_backupfile']
 
     def set_default_checks(self, request, queryset):
         """Admin action to set default checks"""
@@ -151,6 +153,60 @@ class MachineAdmin(admin.ModelAdmin):
 
     update_machine.short_description = _(u'Machine up to date')
 
+    class SystemBackupFileForm(ModelForm):
+        class Meta:
+            model = FileBackupTask
+            fields = ['description', 'active', 'days_in_hard_drive', 'checker_fqdn',
+                      'max_backup_month', 'duration', 'extra_options', 'bckp_type']
+
+    def aply_system_backupfile(self, request, queryset):
+        """Admin action to copy de basics of a machine."""
+        form = None
+        if 'apply' in request.POST:
+            messages.info(request, _(u'The action has been applied'))
+            return HttpResponseRedirect(request.get_full_path())
+        if not form:  # first call render the form to ask for diferent parametters
+            #date = [{"nbackups":x,"hours":[nbackpus ...]} ...]
+            date = {}
+            for mothday in xrange(1, 27):
+                hours = {}
+                for hour in xrange(0, 7):
+                    hours[hour] = FileBackupTask.objects.filter(monthday=mothday, hour=hour).count()
+
+                date[mothday] = {"nbackups": FileBackupTask.objects.filter(monthday=mothday).count(),
+                                 "hours": hours}
+
+            # machineDate = [{"machine": machine.fqdn, "mothday": x, "hour": y},  ...]
+
+            machineDate = []
+
+            for machine in queryset:
+                minNBackupsDay = min([i["nbackups"] for i in date])
+                day = [i for i in xrange(1, 27) if FileBackupTask.objects.filter(monthday=i).count() == minNBackupsDay][0]
+                minNBackupsHour = min([i for i in date[day]["hours"]])
+                hour = [i for i in xrange(0, 7) if FileBackupTask.objects.filter(monthday=day, hour=i).count() == minNBackupsHour][0]
+
+                machineDate.append({"machine": machine.fqdn, "mothday": day, "hour": hour})
+                date[day]["nbackups"] += 1
+                date[day]["hours"][hour] += 1
+                pass
+
+            form = self.SystemBackupFileForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME),
+                                                      'description': "",
+                                                      'active': True,
+                                                      'days_in_hard_drive': "",
+                                                      'checker_fqdn': "",
+                                                      'max_backup_month': "",
+                                                      'duration': "",
+                                                      'extra_options': "",
+                                                      'bckp_type': BackupTask.SYSTEM_BACKUP
+                                                     })
+            return render_to_response('admin/inventory/machine/systembackup.html',
+                                      {"form": form,
+                                       "action": "systembackupfile"},
+                                       context_instance=RequestContext(request))
+
+    aply_system_backupfile.short_description = _(u'Aply system backup')
 
 class PysicalMachineAdmin(MachineAdmin):
     list_display = ('fqdn', 'server_link', 'ip_link', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
