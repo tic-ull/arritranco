@@ -48,10 +48,9 @@ class OsMachineCheckFilter(SimpleListFilter):
             return queryset.filter(id__in=checks)
 
 
-
-
 class NagiosMachineCheckOptsInline(admin.TabularInline):
     model = NagiosMachineCheckOpts
+
 
 class NagiosServiceCheckOptsInline(admin.TabularInline):
     model = NagiosServiceCheckOpts
@@ -73,7 +72,7 @@ class NagiosMachineCheckOptsAdmin(admin.ModelAdmin):
     list_display = ('check', 'machine', 'options', 'get_ngcontact_groups')
     list_editable = ('options',)
     search_fields = ('check__name', 'machine__fqdn')
-    list_filter = ('contact_groups', 'check',OsMachineCheckFilter)
+    list_filter = ('contact_groups', 'check', OsMachineCheckFilter)
     filter_horizontal = ('contact_groups',)
 
     def set_def_checks(self, request, queryset):
@@ -156,6 +155,7 @@ class NagiosHardwarePolicyCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ['hwmodel_name', 'check_name']
     list_display = ('hwmodel_name', 'check_name')
     filter_horizontal = ('contact_groups',)
+
 
 class ServiceAdmin(admin.ModelAdmin):
     inlines = [NagiosServiceCheckOptsInline]

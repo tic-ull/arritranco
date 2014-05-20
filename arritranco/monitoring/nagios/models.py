@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -12,6 +13,7 @@ from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
 from hardware.models import UnrackableNetworkedDevice
 from hardware_model.models import HwModel
+from django.core.exceptions import ValidationError
 
 
 NAGIOS_OK = 0
@@ -130,6 +132,10 @@ class NagiosMachineCheckOpts(NagiosOpts):
     def __unicode__(self):
         return u"%s on machine %s" % (self.check.name, self.machine.fqdn)
 
+    def clean(self):
+        if NagiosMachineCheckOpts.objects.filter(check=self.check, machine=self.machine):
+            raise ValidationError('Error check in machine repited')
+
 
 class NagiosServiceCheckOpts(NagiosOpts):
     service = models.ForeignKey(Service)
@@ -142,6 +148,10 @@ class NagiosServiceCheckOpts(NagiosOpts):
 
     def check_name(self):
         return str(self.check.name)
+
+    def clean(self):
+        if NagiosServiceCheckOpts.objects.filter(check=self.check, service=self.service):
+            raise ValidationError('Error check in service repited')
 
 
 class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
@@ -159,6 +169,11 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
     def check_name(self):
         return str(self.check.name)
 
+    def clean(self):
+        if NagiosUnrackableNetworkedDeviceCheckOpts.objects.filter(check=self.check,
+                                                                   unrackable_networked_device=self.unrackable_networked_device):
+            raise ValidationError('Error check in device repited')
+
 
 class NagiosHardwarePolicyCheckOpts(NagiosOpts):
     hwmodel = models.ForeignKey(HwModel)
@@ -172,6 +187,11 @@ class NagiosHardwarePolicyCheckOpts(NagiosOpts):
 
     def check_name(self):
         return str(self.check.name)
+
+    def clean(self):
+        if NagiosHardwarePolicyCheckOpts.objects.filter(check=self.check,
+                                                                   hwmodel=self.hwmodel):
+            raise ValidationError('Error check in hardware repited')
 
 
 class NagiosContactGroup(Responsible):
@@ -242,3 +262,4 @@ post_save.connect(propagate_status, sender=TaskStatus)
 post_save.connect(assign_default_checks, sender=Machine)
 post_save.connect(assign_default_checks, sender=PhysicalMachine)
 post_save.connect(assign_default_checks, sender=VirtualMachine)
+
