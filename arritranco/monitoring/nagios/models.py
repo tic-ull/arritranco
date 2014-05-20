@@ -133,7 +133,8 @@ class NagiosMachineCheckOpts(NagiosOpts):
         return u"%s on machine %s" % (self.check.name, self.machine.fqdn)
 
     def clean(self):
-        if NagiosMachineCheckOpts.objects.filter(check=self.check, machine=self.machine):
+        if NagiosMachineCheckOpts.objects.filter(check=self.check,
+                                                 machine=self.machine).exclude(pk=self.pk):
             raise ValidationError('Error check in machine repited')
 
 
@@ -150,7 +151,8 @@ class NagiosServiceCheckOpts(NagiosOpts):
         return str(self.check.name)
 
     def clean(self):
-        if NagiosServiceCheckOpts.objects.filter(check=self.check, service=self.service):
+        if NagiosServiceCheckOpts.objects.filter(check=self.check,
+                                                 service=self.service).exclude(pk=self.pk):
             raise ValidationError('Error check in service repited')
 
 
@@ -171,7 +173,7 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
 
     def clean(self):
         if NagiosUnrackableNetworkedDeviceCheckOpts.objects.filter(check=self.check,
-                                                                   unrackable_networked_device=self.unrackable_networked_device):
+                                                                   unrackable_networked_device=self.unrackable_networked_device).exclude(pk=self.pk):
             raise ValidationError('Error check in device repited')
 
 
@@ -190,7 +192,7 @@ class NagiosHardwarePolicyCheckOpts(NagiosOpts):
 
     def clean(self):
         if NagiosHardwarePolicyCheckOpts.objects.filter(check=self.check,
-                                                                   hwmodel=self.hwmodel):
+                                                        hwmodel=self.hwmodel).exclude(pk=self.pk):
             raise ValidationError('Error check in hardware repited')
 
 
