@@ -10,6 +10,7 @@ from cron import *
 from croniter import croniter
 from django.db.models.signals import post_save
 
+
 class TaskManager(models.Manager):
     def todo(self, start_time=None, end_time=None):
         """List of Tasks to be done in a period of time."""
@@ -98,7 +99,7 @@ class TaskCheck(models.Model):
     """
     task = models.ForeignKey(Task)
     task_time = models.DateTimeField(blank=True, null=True, help_text='Task time')
-    last_status = models.ForeignKey("scheduler.TaskStatus", help_text='Status')
+    last_status = models.ForeignKey("scheduler.TaskStatus", help_text='Status', null=True)
 
     def __unicode__(self):
         status = ''
@@ -138,7 +139,7 @@ class TaskStatus(models.Model):
 
 
 def update_status(sender, instance, **kwargs):
-    instance.task_check.last_status = instance.task_check.get_status()
-    instance.task_check.save()
+    instance.last_status = instance.get_status()
+    instance.save()
 
-post_save.connect(update_status, sender=TaskStatus, dispatch_uid="update_status")
+post_save.connect(update_status, sender=TaskCheck, dispatch_uid="update_status")
