@@ -232,7 +232,7 @@ class FilesToCompressView(APIView):
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
 
-        logger.debug('Files to compress in: %s', machine.fqdn)
+        logger.info('Files to compress in: %s', machine.fqdn)
         tocompress = []
         totalsize = 0
         for bf in BackupFile.objects.filter(
@@ -240,10 +240,10 @@ class FilesToCompressView(APIView):
                 file_backup_product__file_backup_task__checker_fqdn=machine.fqdn).order_by('-original_date'):
             tocompress.append(BackupFileSerializer(bf).data)
             totalsize += bf.original_file_size
-            if (totalsize > settings.MAX_COMPRESS_GB * 1024 ** 3):
-                logger.debug('Total size max reached: %s', totalsize)
+            if (totalsize > settings.MAX_COMPRESS_GB * 1024**3):
+                logger.warning('Total size max reached: %s', totalsize)
                 break
-        logger.debug('Total files: %s', len(tocompress))
+        logger.info('Total files: %s', len(tocompress))
         return Response(tocompress, status=httpstatus.HTTP_200_OK)
 
 
