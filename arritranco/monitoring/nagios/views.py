@@ -183,3 +183,29 @@ def hardware(request):
     else:
         response = render_to_response(template, context, mimetype="text/plain")
     return response
+
+
+def service(request):
+    template = 'nagios/service_checks.cfg'
+
+    checks_service_machine = []
+    for serviceCheck in NagiosServiceCheckOpts.objects.all():
+        for machine in serviceCheck.service.machines.all():
+            if machine.up and not NagiosMachineCheckOpts.objects.filter(machine=machine, check=serviceCheck.check):
+                if not [i for i in checks_service_machine if i["description"] == serviceCheck.check.description and i["name"] == machine.fqdn]:
+                    checks_service_machine.append({"description": serviceCheck.check.description,
+                                                   "name": machine.fqdn,
+                                                   "command": serviceCheck.check.command,
+                                                   "params": serviceCheck.params,
+                                                   "contact_groups": serviceCheck.contact_group_all_csv})
+    context = {
+        'checks_service': NagiosServiceCheckOpts.objects.all(),
+        'checks_service_machine': checks_service_machine,
+    }
+
+    if 'file' in request.GET:
+        response = render_to_response(template, context, mimetype="text/plain")
+        response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
+    else:
+        response = render_to_response(template, context, mimetype="text/plain")
+    return response
