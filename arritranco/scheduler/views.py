@@ -89,4 +89,4 @@ class TaskStatusView(APIView):
             return Response(self.serializer.errors, httpstatus.HTTP_400_BAD_REQUEST)
         task_time = task.last_run()
         task.update_status(task_time, cleaned_data['status'], cleaned_data['comment'])
-        return Response(self.serializer(task.last_status).data, httpstatus.HTTP_200_OK)
+        return Response(self.serializer(task.get_status()).data, httpstatus.HTTP_200_OK)

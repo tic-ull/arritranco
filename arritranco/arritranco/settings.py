@@ -58,7 +58,7 @@ USE_I18N = True
 STATIC_URL = '/static/'
 
 # Static filesystem path
-STATIC_ROOT = os.path.join(os.path.dirname(__file__), 'deployed-static')
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'deployed-static')
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -73,7 +73,7 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(os.path.dirname(__file__), 'arritranco-static'),
+    os.path.join(PROJECT_ROOT, 'arritranco-static'),
 )
 
 

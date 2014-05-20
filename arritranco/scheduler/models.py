@@ -139,7 +139,7 @@ class TaskStatus(models.Model):
 
 
 def update_status(sender, instance, **kwargs):
-    instance.last_status = instance.get_status()
-    instance.save()
+    instance.task_check.last_status = instance.task_check.get_status()
+    instance.task_check.save()
 
-post_save.connect(update_status, sender=TaskCheck, dispatch_uid="update_status")
+post_save.connect(update_status, sender=TaskStatus, dispatch_uid="update_status")

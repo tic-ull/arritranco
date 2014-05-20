@@ -8,6 +8,8 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 
+from django.contrib.admin import SimpleListFilter
+
 from models import NagiosCheck, NagiosMachineCheckOpts, NagiosContactGroup, NagiosNetworkParent, \
     NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, Service, NagiosHardwarePolicyCheckOpts,\
     NagiosMachineCheckDefaults
@@ -19,8 +21,40 @@ except ImportError:
     DEFAULT_NAGIOS_CG = None
 
 
+# Custom filter for OS on machine checks
+
+class OsMachineCheckFilter(SimpleListFilter):
+    title = (u'Os')
+
+    parameter_name = 'os'
+
+    def lookups(self, request, model_admin):
+        """Returns a list of tuples."""
+
+        return (
+            ('Solaris', _('Solaris')),
+            ('Linux', _(u'Linux')),
+            ('Windows', _(u'Windows')),
+        )
+
+    def queryset(self, request, queryset):
+        """Returns the filtered queryset based on the value provided.
+
+        The value is retrievable via `self.value()`
+        """
+
+        if self.value():
+            checks = [x.id for x in queryset.filter(machine__os__type__name=self.value())]
+            return queryset.filter(id__in=checks)
+
+
+
+
 class NagiosMachineCheckOptsInline(admin.TabularInline):
     model = NagiosMachineCheckOpts
+
+class NagiosServiceCheckOptsInline(admin.TabularInline):
+    model = NagiosServiceCheckOpts
 
 
 class NagiosMachineCheckDefaultsAdmin(admin.ModelAdmin):
@@ -39,7 +73,7 @@ class NagiosMachineCheckOptsAdmin(admin.ModelAdmin):
     list_display = ('check', 'machine', 'options', 'get_ngcontact_groups')
     list_editable = ('options',)
     search_fields = ('check__name', 'machine__fqdn')
-    list_filter = ('contact_groups', 'check',)
+    list_filter = ('contact_groups', 'check',OsMachineCheckFilter)
     filter_horizontal = ('contact_groups',)
 
     def set_def_checks(self, request, queryset):
@@ -124,6 +158,7 @@ class NagiosHardwarePolicyCheckOptsAdmin(admin.ModelAdmin):
     filter_horizontal = ('contact_groups',)
 
 class ServiceAdmin(admin.ModelAdmin):
+    inlines = [NagiosServiceCheckOptsInline]
     search_fields = ['name', 'machines_names', 'ip']
     list_display = ('name', 'machines_names', 'ip')
     filter_horizontal = ('machines',)
