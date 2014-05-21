@@ -148,7 +148,7 @@ def hardware(request):
 
             if HardwarePolicy.get_full_check().__contains__("management_ip"):
                 if machine.server.management_ip is not None and machine.server.management_ip.addr != "":
-                    checks.append({"machine": machine.fqdn,
+                    checks.append({"host_name": machine.fqdn,
                                    "hwpolicy": HardwarePolicy,
                                    "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip.addr}
                                    }
@@ -160,6 +160,13 @@ def hardware(request):
                                "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
                                }
                               )
+        for device in UnrackableNetworkedDevice.objects.filter(model=HardwarePolicy.hwmodel):
+            checks.append({"host_name": device.name,
+                           "hwpolicy": HardwarePolicy,
+                           "command": HardwarePolicy.get_full_check() % {
+                               "management_ip": device.main_ip.addr}
+                            }
+            )
 
     context = {"checks": checks}
 
