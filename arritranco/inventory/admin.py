@@ -14,6 +14,7 @@ from django.contrib import admin, messages
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.admin import SimpleListFilter
 from django.forms import ModelForm
+from django.conf import settings
 
 # This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
 from monitoring.nagios.admin import NagiosMachineCheckOptsInline
@@ -67,7 +68,10 @@ class MachineAdmin(admin.ModelAdmin):
 
     def set_default_checks(self, request, queryset):
         """Admin action to set default checks"""
-        from monitoring.nagios.models import NagiosMachineCheckDefaults, NagiosMachineCheckOpts
+        from monitoring.nagios.models import NagiosMachineCheckDefaults, NagiosMachineCheckOpts,\
+            NagiosContactGroup, NagiosCheck
+
+        contact = NagiosContactGroup.objects.get(name=settings.DEFAULT_NAGIOS_CG)
         for machine in queryset:
             for checkdefault in NagiosMachineCheckDefaults.objects.all():
                 if (not machine.nagiosmachinecheckopts_set.filter(check=checkdefault.nagioscheck)) and \
@@ -79,6 +83,14 @@ class MachineAdmin(admin.ModelAdmin):
                     for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
                         machineCheckOpts.contact_groups.add(contact_group)
                     machineCheckOpts.save()
+
+            nut = NagiosCheck.objects.filter(name="nut")
+            if nut:
+                nut = nut[0]
+                if machine.has_upsmon():
+                    nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=nut)
+                    nchopt.contact_groups.add(contact)
+                    nchopt.save()
 
         messages.info(request, "%d machine have been set with the default checks" % queryset.count())
         return HttpResponseRedirect(request.get_full_path())

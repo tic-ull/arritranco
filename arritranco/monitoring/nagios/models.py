@@ -262,6 +262,7 @@ def assign_default_checks(sender, **kwargs):
 
         nut = NagiosCheck.objects.filter(name="nut")
         if nut:
+            nut = nut[0]
             if machine.has_upsmon():
                 nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=nut)
                 nchopt.contact_groups.add(contact)

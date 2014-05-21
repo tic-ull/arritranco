@@ -70,7 +70,6 @@ def get_checks(request, name):
     context = {
         'checks_machine': NagiosMachineCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name),
                                                                 machine__up=True),
-        'checks_service': NagiosServiceCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name)),
         'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.filter(
             check=NagiosCheck.objects.filter(name=name))
     }

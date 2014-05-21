@@ -6,6 +6,7 @@ Created 08/03/2012
 from django.contrib import admin
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
+from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.admin import SimpleListFilter
@@ -151,10 +152,19 @@ class NagiosUserdeviceCheckOptsAdmin(admin.ModelAdmin):
     filter_horizontal = ('contact_groups',)
 
 
+class NagiosHardwarePolicyCheckOptsForm(forms.ModelForm):
+    options = forms.CharField(
+        help_text="In this string you can put %(management_ip)s or %(fqdn)s and it will be interpolated")
+
+    class Meta:
+        model = NagiosHardwarePolicyCheckOpts
+
+
 class NagiosHardwarePolicyCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ['hwmodel_name', 'check_name']
     list_display = ('hwmodel_name', 'check_name')
     filter_horizontal = ('contact_groups',)
+    form = NagiosHardwarePolicyCheckOptsForm
 
 
 class ServiceAdmin(admin.ModelAdmin):
