@@ -9,7 +9,7 @@ import socket
 import re
 import IPy
 from django.db.models.signals import post_save
-
+from monitoring.nagios.models import assign_default_checks
 
 import logging
 
@@ -346,3 +346,8 @@ class PhysicalMachine(Machine):
 
     def get_server_admin_url(self):
         return reverse('admin:hardware_server_change', args=(self.server.id,))
+
+
+post_save.connect(assign_default_checks, sender=Machine)
+post_save.connect(assign_default_checks, sender=PhysicalMachine)
+post_save.connect(assign_default_checks, sender=VirtualMachine)

@@ -140,19 +140,6 @@ def getchecks_all(request):
     return response
 
 
-def nut(request):
-    template = 'nagios/nut_checks.cfg'
-    context = {
-        'machines': Machine.objects.filter(up=True)
-    }
-    if 'file' in request.GET:
-        response = render_to_response(template, context, mimetype="text/plain")
-        response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
-    else:
-        response = render_to_response(template, context, mimetype="text/plain")
-    return response
-
-
 def hardware(request):
     template = 'nagios/hardware_checks.cfg'
     checks = []

@@ -7,7 +7,7 @@ from scheduler.models import TaskStatus
 from nsca import NSCA
 
 from django.utils.translation import ugettext_lazy as _
-from inventory.models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem
+#from inventory.models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem
 from network.models import Network, IP
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
@@ -35,7 +35,7 @@ HUMAN_TO_NAGIOS = {
 class Service(models.Model):
     name = models.CharField(max_length=255)
     ip = models.ForeignKey(IP)
-    machines = models.ManyToManyField(Machine)
+    machines = models.ManyToManyField("inventory.Machine")
     date = models.DateField()
 
     def __unicode__(self):
@@ -61,7 +61,7 @@ class NagiosCheck(models.Model):
     name = models.CharField(max_length=255)
     command = models.CharField(max_length=255)
     default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
-    machines = models.ManyToManyField(Machine, through='NagiosMachineCheckOpts', blank=True, null=True)
+    machines = models.ManyToManyField("inventory.Machine", through='NagiosMachineCheckOpts', blank=True, null=True)
     services = models.ManyToManyField(Service, through='NagiosServiceCheckOpts', blank=True, null=True)
     nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True,
                                   related_name="nrpeservice")
@@ -127,7 +127,7 @@ class NagiosOpts(models.Model):
 
 class NagiosMachineCheckOpts(NagiosOpts):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey("inventory.Machine")
 
     def __unicode__(self):
         return u"%s on machine %s" % (self.check.name, self.machine.fqdn)
@@ -179,7 +179,7 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
 
 class NagiosHardwarePolicyCheckOpts(NagiosOpts):
     hwmodel = models.ForeignKey(HwModel)
-    excluded_os = models.ManyToManyField(OperatingSystem, null=True, blank=True, help_text="Excluded Os")
+    excluded_os = models.ManyToManyField("inventory.OperatingSystem", null=True, blank=True, help_text="Excluded Os")
 
     def __unicode__(self):
         return u"%s on %s" % (self.check.name, self.hwmodel.name)
@@ -252,16 +252,21 @@ def propagate_status(sender, **kwargs):
 
 
 def assign_default_checks(sender, **kwargs):
-    machine = kwargs['instance']
-    contact = NagiosContactGroup.objects.get(name=settings.DEFAULT_NAGIOS_CG)
-    if not NagiosMachineCheckOpts.objects.filter(machine=machine).count():
-        for nch in NagiosMachineCheckDefaults.objects.all():
-            nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=nch.nagioscheck)
+    if kwargs['created']:
+        machine = kwargs['instance']
+        contact = NagiosContactGroup.objects.get(name=settings.DEFAULT_NAGIOS_CG)
+        for check in NagiosMachineCheckDefaults.objects.all():
+            nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=check.nagioscheck)
             nchopt.contact_groups.add(contact)
             nchopt.save()
 
+        nut = NagiosCheck.objects.filter(name="nut")
+        if nut:
+            if machine.has_upsmon():
+                nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=nut)
+                nchopt.contact_groups.add(contact)
+                nchopt.save()
+
 post_save.connect(propagate_status, sender=TaskStatus)
-post_save.connect(assign_default_checks, sender=Machine)
-post_save.connect(assign_default_checks, sender=PhysicalMachine)
-post_save.connect(assign_default_checks, sender=VirtualMachine)
+
 
