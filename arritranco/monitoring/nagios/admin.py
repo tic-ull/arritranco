@@ -64,10 +64,10 @@ class NagiosMachineCheckDefaultsAdmin(admin.ModelAdmin):
 
 class NagiosCheckAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
-    list_display = ('name', 'default_params')
+    list_display = ('name', 'command', 'description', 'default_contact_groups_csv', "os_csv", 'default_params', )
     search_fields = ('name',)
     actions = ['set_def_checks']
-
+    list_filter = ('os', 'default_contact_groups')
 
 class NagiosMachineCheckOptsAdmin(admin.ModelAdmin):
     list_display = ('check', 'machine', 'options', 'get_ngcontact_groups')

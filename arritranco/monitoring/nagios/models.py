@@ -83,9 +83,19 @@ class NagiosCheck(models.Model):
         """ Returns all NagiosCheckOpts items which contains machine and options for the NagiosCheck """
         return self.nagioscheckopts_set.filter(machine__up=True).order_by('-machine__os__type__name', 'machine__fqdn')
 
+    def default_contact_groups_csv(self):
+        return ",".join([i.ngcontact for i in self.default_contact_groups.all()])
+
+    def os_csv(self):
+        return ",".join([i.name for i in self.os.all()])
+
 
 class NagiosMachineCheckDefaults(models.Model):
     nagioscheck = models.ForeignKey(NagiosCheck)
+
+    class Meta:
+        verbose_name = _(u'Machine Default Check')
+        verbose_name_plural = _(u'Machine Default Checks')
 
 
 class NagiosOpts(models.Model):
@@ -96,10 +106,6 @@ class NagiosOpts(models.Model):
     
     def __unicode__(self):
         return u"%s " % self.check.name
-
-    class Meta:
-        verbose_name = _(u'Asigned nagios check')
-        verbose_name_plural = _(u'Asigned nagios checks')
 
     def get_ngcontact_groups(self):
         """ Returns the contactcroup comaseparated line for the nagios conf """
@@ -129,6 +135,10 @@ class NagiosMachineCheckOpts(NagiosOpts):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
     machine = models.ForeignKey("inventory.Machine")
 
+    class Meta:
+        verbose_name = _(u'Machine Check')
+        verbose_name_plural = _(u'Machine Checks')
+
     def __unicode__(self):
         return u"%s on machine %s" % (self.check.name, self.machine.fqdn)
 
@@ -140,6 +150,10 @@ class NagiosMachineCheckOpts(NagiosOpts):
 
 class NagiosServiceCheckOpts(NagiosOpts):
     service = models.ForeignKey(Service)
+
+    class Meta:
+        verbose_name = _(u'Service Check')
+        verbose_name_plural = _(u'Service Checks')
 
     def __unicode__(self):
         return u"%s on %s" % (self.check.name, self.service.name)
@@ -160,7 +174,8 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
     unrackable_networked_device = models.ForeignKey(UnrackableNetworkedDevice)
 
     class Meta:
-        verbose_name = _(u'Nagios Device Check Ops')
+        verbose_name = _(u'Device Check')
+        verbose_name_plural = _(u'Device Checks')
 
     def __unicode__(self):
         return u"%s on %s" % (self.check.name, self.unrackable_networked_device.name)
@@ -180,6 +195,10 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
 class NagiosHardwarePolicyCheckOpts(NagiosOpts):
     hwmodel = models.ForeignKey(HwModel)
     excluded_os = models.ManyToManyField("inventory.OperatingSystem", null=True, blank=True, help_text="Excluded Os")
+
+    class Meta:
+        verbose_name = _(u'Hardware Policy Check')
+        verbose_name_plural = _(u'Hardware Policy Checks')
 
     def __unicode__(self):
         return u"%s on %s" % (self.check.name, self.hwmodel.name)
@@ -254,19 +273,25 @@ def propagate_status(sender, **kwargs):
 def assign_default_checks(sender, **kwargs):
     if kwargs['created']:
         machine = kwargs['instance']
-        contact = NagiosContactGroup.objects.get(name=settings.DEFAULT_NAGIOS_CG)
-        for check in NagiosMachineCheckDefaults.objects.all():
-            nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=check.nagioscheck)
-            nchopt.contact_groups.add(contact)
-            nchopt.save()
-
-        nut = NagiosCheck.objects.filter(name="nut")
-        if nut:
-            nut = nut[0]
-            if machine.has_upsmon():
-                nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=nut)
-                nchopt.contact_groups.add(contact)
-                nchopt.save()
+        for checkdefault in NagiosMachineCheckDefaults.objects.all():
+            if machine.os.type in checkdefault.nagioscheck.os.all():
+                if checkdefault.nagioscheck.slug == "nut":
+                    if machine.has_upsmon():
+                        machineCheckOpts = NagiosMachineCheckOpts()
+                        machineCheckOpts.check = checkdefault.nagioscheck
+                        machineCheckOpts.machine = machine
+                        machineCheckOpts.save()
+                        for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
+                            machineCheckOpts.contact_groups.add(contact_group)
+                        machineCheckOpts.save()
+                else:
+                    machineCheckOpts = NagiosMachineCheckOpts()
+                    machineCheckOpts.check = checkdefault.nagioscheck
+                    machineCheckOpts.machine = machine
+                    machineCheckOpts.save()
+                    for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
+                        machineCheckOpts.contact_groups.add(contact_group)
+                    machineCheckOpts.save()
 
 post_save.connect(propagate_status, sender=TaskStatus)
 

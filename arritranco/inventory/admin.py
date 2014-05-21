@@ -76,21 +76,23 @@ class MachineAdmin(admin.ModelAdmin):
             for checkdefault in NagiosMachineCheckDefaults.objects.all():
                 if (not machine.nagiosmachinecheckopts_set.filter(check=checkdefault.nagioscheck)) and \
                                 machine.os.type in checkdefault.nagioscheck.os.all():
-                    machineCheckOpts = NagiosMachineCheckOpts()
-                    machineCheckOpts.check = checkdefault.nagioscheck
-                    machineCheckOpts.machine = machine
-                    machineCheckOpts.save()
-                    for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
-                        machineCheckOpts.contact_groups.add(contact_group)
-                    machineCheckOpts.save()
-
-            nut = NagiosCheck.objects.filter(name="nut")
-            if nut:
-                nut = nut[0]
-                if machine.has_upsmon():
-                    nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=nut)
-                    nchopt.contact_groups.add(contact)
-                    nchopt.save()
+                    if checkdefault.nagioscheck.slug == "nut":
+                        if machine.has_upsmon():
+                            machineCheckOpts = NagiosMachineCheckOpts()
+                            machineCheckOpts.check = checkdefault.nagioscheck
+                            machineCheckOpts.machine = machine
+                            machineCheckOpts.save()
+                            for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
+                                machineCheckOpts.contact_groups.add(contact_group)
+                            machineCheckOpts.save()
+                    else:
+                        machineCheckOpts = NagiosMachineCheckOpts()
+                        machineCheckOpts.check = checkdefault.nagioscheck
+                        machineCheckOpts.machine = machine
+                        machineCheckOpts.save()
+                        for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
+                            machineCheckOpts.contact_groups.add(contact_group)
+                        machineCheckOpts.save()
 
         messages.info(request, "%d machine have been set with the default checks" % queryset.count())
         return HttpResponseRedirect(request.get_full_path())
