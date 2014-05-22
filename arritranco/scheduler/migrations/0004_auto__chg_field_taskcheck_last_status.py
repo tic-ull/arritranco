@@ -19,7 +19,7 @@ class Migration(SchemaMigration):
         
         # The following code is provided here to aid in writing a correct migration
         # Changing field 'TaskCheck.last_status'
-        db.alter_column(u'scheduler_taskcheck', 'last_status_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['scheduler.TaskStatus']))
+        #db.alter_column(u'scheduler_taskcheck', 'last_status_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['scheduler.TaskStatus']))
 
     models = {
         u'scheduler.task': {

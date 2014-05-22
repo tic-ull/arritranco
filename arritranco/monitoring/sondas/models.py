@@ -1,7 +1,6 @@
 from django.db import models
 from monitoring.nagios.models import NagiosOpts
 from hardware.models import UnrackableNetworkedDevice
-from inventory.models import Machine
 
 
 class NagiosNrpeCheckOpts(NagiosOpts):

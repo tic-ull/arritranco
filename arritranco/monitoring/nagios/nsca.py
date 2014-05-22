@@ -2,7 +2,6 @@
 from django.conf import settings
 import logging
 import sys
-import time
 
 if sys.version_info < (2, 4):
     import popen2

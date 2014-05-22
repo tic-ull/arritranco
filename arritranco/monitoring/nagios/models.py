@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.conf import settings
 from scheduler.models import TaskStatus
 from nsca import NSCA
-
 from django.utils.translation import ugettext_lazy as _
-#from inventory.models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem
 from network.models import Network, IP
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe

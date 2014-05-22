@@ -1,12 +1,7 @@
-from inventory.models import Machine, OperatingSystem
+from inventory.models import OperatingSystem
 from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask, BackupTask
 from django.shortcuts import render_to_response
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from helpers.processors import mco2dict, mco2dict_balanced
-from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
-import os.path
 import logging
 
 logger = logging.getLogger(__name__)
