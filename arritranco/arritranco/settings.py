@@ -146,6 +146,21 @@ INSTALLED_APPS = (
     'security',
     'fabric',
     'celery',
+    'arritranco',
+)
+
+ADMIN_REORDER = (
+    ('backups', ""),
+    ('nagios', ""),
+    ('inventory', ""),
+    ('location', ""),
+    ('hardware', ""),
+    ('scheduler', ""),
+    ('hardware_model', ""),
+    ('network', ""),
+    ('sondas', ""),
+    ('security', ""),
+    ('auth', ""),
 )
 
 AREA_CHOICES = [[1, 'La Laguna'],
