@@ -70,7 +70,6 @@ def get_checks(request, name):
     context = {
         'checks_machine': NagiosMachineCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name),
                                                                 machine__up=True),
-        'checks_service': NagiosServiceCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name)),
         'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.filter(
             check=NagiosCheck.objects.filter(name=name))
     }
@@ -140,19 +139,6 @@ def getchecks_all(request):
     return response
 
 
-def nut(request):
-    template = 'nagios/nut_checks.cfg'
-    context = {
-        'machines': Machine.objects.filter(up=True)
-    }
-    if 'file' in request.GET:
-        response = render_to_response(template, context, mimetype="text/plain")
-        response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
-    else:
-        response = render_to_response(template, context, mimetype="text/plain")
-    return response
-
-
 def hardware(request):
     template = 'nagios/hardware_checks.cfg'
     checks = []
@@ -162,7 +148,7 @@ def hardware(request):
 
             if HardwarePolicy.get_full_check().__contains__("management_ip"):
                 if machine.server.management_ip is not None and machine.server.management_ip.addr != "":
-                    checks.append({"machine": machine.fqdn,
+                    checks.append({"host_name": machine.fqdn,
                                    "hwpolicy": HardwarePolicy,
                                    "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip.addr}
                                    }
@@ -174,8 +160,41 @@ def hardware(request):
                                "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
                                }
                               )
+        for device in UnrackableNetworkedDevice.objects.filter(model=HardwarePolicy.hwmodel):
+            checks.append({"host_name": device.name,
+                           "hwpolicy": HardwarePolicy,
+                           "command": HardwarePolicy.get_full_check() % {
+                               "management_ip": device.main_ip.addr}
+                            }
+            )
 
     context = {"checks": checks}
+
+    if 'file' in request.GET:
+        response = render_to_response(template, context, mimetype="text/plain")
+        response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
+    else:
+        response = render_to_response(template, context, mimetype="text/plain")
+    return response
+
+
+def service(request):
+    template = 'nagios/service_checks.cfg'
+
+    checks_service_machine = []
+    for serviceCheck in NagiosServiceCheckOpts.objects.all():
+        for machine in serviceCheck.service.machines.all():
+            if machine.up and not NagiosMachineCheckOpts.objects.filter(machine=machine, check=serviceCheck.check):
+                if not [i for i in checks_service_machine if i["description"] == serviceCheck.check.description and i["name"] == machine.fqdn]:
+                    checks_service_machine.append({"description": serviceCheck.check.description,
+                                                   "name": machine.fqdn,
+                                                   "command": serviceCheck.check.command,
+                                                   "params": serviceCheck.params,
+                                                   "contact_groups": serviceCheck.contact_group_all_csv})
+    context = {
+        'checks_service': NagiosServiceCheckOpts.objects.all(),
+        'checks_service_machine': checks_service_machine,
+    }
 
     if 'file' in request.GET:
         response = render_to_response(template, context, mimetype="text/plain")

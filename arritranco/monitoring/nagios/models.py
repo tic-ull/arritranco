@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -6,12 +7,13 @@ from scheduler.models import TaskStatus
 from nsca import NSCA
 
 from django.utils.translation import ugettext_lazy as _
-from inventory.models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem
+#from inventory.models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem
 from network.models import Network, IP
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
 from hardware.models import UnrackableNetworkedDevice
 from hardware_model.models import HwModel
+from django.core.exceptions import ValidationError
 
 
 NAGIOS_OK = 0
@@ -33,7 +35,7 @@ HUMAN_TO_NAGIOS = {
 class Service(models.Model):
     name = models.CharField(max_length=255)
     ip = models.ForeignKey(IP)
-    machines = models.ManyToManyField(Machine)
+    machines = models.ManyToManyField("inventory.Machine")
     date = models.DateField()
 
     def __unicode__(self):
@@ -59,7 +61,7 @@ class NagiosCheck(models.Model):
     name = models.CharField(max_length=255)
     command = models.CharField(max_length=255)
     default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
-    machines = models.ManyToManyField(Machine, through='NagiosMachineCheckOpts', blank=True, null=True)
+    machines = models.ManyToManyField("inventory.Machine", through='NagiosMachineCheckOpts', blank=True, null=True)
     services = models.ManyToManyField(Service, through='NagiosServiceCheckOpts', blank=True, null=True)
     nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True,
                                   related_name="nrpeservice")
@@ -81,9 +83,19 @@ class NagiosCheck(models.Model):
         """ Returns all NagiosCheckOpts items which contains machine and options for the NagiosCheck """
         return self.nagioscheckopts_set.filter(machine__up=True).order_by('-machine__os__type__name', 'machine__fqdn')
 
+    def default_contact_groups_csv(self):
+        return ",".join([i.ngcontact for i in self.default_contact_groups.all()])
+
+    def os_csv(self):
+        return ",".join([i.name for i in self.os.all()])
+
 
 class NagiosMachineCheckDefaults(models.Model):
     nagioscheck = models.ForeignKey(NagiosCheck)
+
+    class Meta:
+        verbose_name = _(u'Machine Default Check')
+        verbose_name_plural = _(u'Machine Default Checks')
 
 
 class NagiosOpts(models.Model):
@@ -94,10 +106,6 @@ class NagiosOpts(models.Model):
     
     def __unicode__(self):
         return u"%s " % self.check.name
-
-    class Meta:
-        verbose_name = _(u'Asigned nagios check')
-        verbose_name_plural = _(u'Asigned nagios checks')
 
     def get_ngcontact_groups(self):
         """ Returns the contactcroup comaseparated line for the nagios conf """
@@ -125,14 +133,27 @@ class NagiosOpts(models.Model):
 
 class NagiosMachineCheckOpts(NagiosOpts):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey("inventory.Machine")
+
+    class Meta:
+        verbose_name = _(u'Machine Check')
+        verbose_name_plural = _(u'Machine Checks')
 
     def __unicode__(self):
         return u"%s on machine %s" % (self.check.name, self.machine.fqdn)
 
+    def clean(self):
+        if NagiosMachineCheckOpts.objects.filter(check=self.check,
+                                                 machine=self.machine).exclude(pk=self.pk):
+            raise ValidationError('Error check in machine repited')
+
 
 class NagiosServiceCheckOpts(NagiosOpts):
     service = models.ForeignKey(Service)
+
+    class Meta:
+        verbose_name = _(u'Service Check')
+        verbose_name_plural = _(u'Service Checks')
 
     def __unicode__(self):
         return u"%s on %s" % (self.check.name, self.service.name)
@@ -143,12 +164,18 @@ class NagiosServiceCheckOpts(NagiosOpts):
     def check_name(self):
         return str(self.check.name)
 
+    def clean(self):
+        if NagiosServiceCheckOpts.objects.filter(check=self.check,
+                                                 service=self.service).exclude(pk=self.pk):
+            raise ValidationError('Error check in service repited')
+
 
 class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
     unrackable_networked_device = models.ForeignKey(UnrackableNetworkedDevice)
 
     class Meta:
-        verbose_name = _(u'Nagios Device Check Ops')
+        verbose_name = _(u'Device Check')
+        verbose_name_plural = _(u'Device Checks')
 
     def __unicode__(self):
         return u"%s on %s" % (self.check.name, self.unrackable_networked_device.name)
@@ -159,10 +186,19 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
     def check_name(self):
         return str(self.check.name)
 
+    def clean(self):
+        if NagiosUnrackableNetworkedDeviceCheckOpts.objects.filter(check=self.check,
+                                                                   unrackable_networked_device=self.unrackable_networked_device).exclude(pk=self.pk):
+            raise ValidationError('Error check in device repited')
+
 
 class NagiosHardwarePolicyCheckOpts(NagiosOpts):
     hwmodel = models.ForeignKey(HwModel)
-    excluded_os = models.ManyToManyField(OperatingSystem, null=True, blank=True, help_text="Excluded Os")
+    excluded_os = models.ManyToManyField("inventory.OperatingSystem", null=True, blank=True, help_text="Excluded Os")
+
+    class Meta:
+        verbose_name = _(u'Hardware Policy Check')
+        verbose_name_plural = _(u'Hardware Policy Checks')
 
     def __unicode__(self):
         return u"%s on %s" % (self.check.name, self.hwmodel.name)
@@ -172,6 +208,11 @@ class NagiosHardwarePolicyCheckOpts(NagiosOpts):
 
     def check_name(self):
         return str(self.check.name)
+
+    def clean(self):
+        if NagiosHardwarePolicyCheckOpts.objects.filter(check=self.check,
+                                                        hwmodel=self.hwmodel).exclude(pk=self.pk):
+            raise ValidationError('Error check in hardware repited')
 
 
 class NagiosContactGroup(Responsible):
@@ -230,15 +271,28 @@ def propagate_status(sender, **kwargs):
 
 
 def assign_default_checks(sender, **kwargs):
-    machine = kwargs['instance']
-    contact = NagiosContactGroup.objects.get(name=settings.DEFAULT_NAGIOS_CG)
-    if not NagiosMachineCheckOpts.objects.filter(machine=machine).count():
-        for nch in NagiosMachineCheckDefaults.objects.all():
-            nchopt = NagiosMachineCheckOpts.objects.create(machine=machine, check=nch.nagioscheck)
-            nchopt.contact_groups.add(contact)
-            nchopt.save()
+    if kwargs['created']:
+        machine = kwargs['instance']
+        for checkdefault in NagiosMachineCheckDefaults.objects.all():
+            if machine.os.type in checkdefault.nagioscheck.os.all():
+                if checkdefault.nagioscheck.slug == "nut":
+                    if machine.has_upsmon():
+                        machineCheckOpts = NagiosMachineCheckOpts()
+                        machineCheckOpts.check = checkdefault.nagioscheck
+                        machineCheckOpts.machine = machine
+                        machineCheckOpts.save()
+                        for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
+                            machineCheckOpts.contact_groups.add(contact_group)
+                        machineCheckOpts.save()
+                else:
+                    machineCheckOpts = NagiosMachineCheckOpts()
+                    machineCheckOpts.check = checkdefault.nagioscheck
+                    machineCheckOpts.machine = machine
+                    machineCheckOpts.save()
+                    for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
+                        machineCheckOpts.contact_groups.add(contact_group)
+                    machineCheckOpts.save()
 
 post_save.connect(propagate_status, sender=TaskStatus)
-post_save.connect(assign_default_checks, sender=Machine)
-post_save.connect(assign_default_checks, sender=PhysicalMachine)
-post_save.connect(assign_default_checks, sender=VirtualMachine)
+
+
