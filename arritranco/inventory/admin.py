@@ -64,7 +64,7 @@ class MachineAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_up'
     search_fields = ('fqdn', 'os__name')
     inlines = [InterfacesInline, NagiosMachineCheckOptsInline, ]
-    actions = ['copy_machine', 'update_machine', 'set_default_checks', 'aply_system_backupfile']
+    actions = ['copy_machine', 'update_machine', 'set_default_checks', 'apply_system_backupfile']
 
     def set_default_checks(self, request, queryset):
         """Admin action to set default checks"""
@@ -173,19 +173,19 @@ class MachineAdmin(admin.ModelAdmin):
             fields = ['description', 'active', 'days_in_hard_drive', 'checker_fqdn',
                       'max_backup_month', 'duration', 'extra_options', 'bckp_type']
 
-    def aply_system_backupfile(self, request, queryset):
-        """Admin action to copy de basics of a machine."""
+    def apply_system_backupfile(self, request, queryset):
+        """Admin action to aply a system backup by default."""
         form = None
         if 'apply' in request.POST:
             messages.info(request, _(u'The action has been applied'))
             return HttpResponseRedirect(request.get_full_path())
         if not form:  # first call render the form to ask for diferent parametters
-            #date = [{"nbackups":x,"hours":[nbackpus ...]} ...]
+            #date = {mothdate:{"nbackups":x,"hours":[nbackpus ...]} ...}
             date = {}
             for mothday in xrange(1, 27):
                 hours = {}
                 for hour in xrange(0, 7):
-                    hours[hour] = FileBackupTask.objects.filter(monthday=mothday, hour=hour).count()
+                    hours[hour] = FileBackupTask.objects.filter(monthday=mothday, hour=hour).count() + FileBackupTask.objects.filter(monthday=mothday, hour="0"+str(hour)).count()
 
                 date[mothday] = {"nbackups": FileBackupTask.objects.filter(monthday=mothday).count(),
                                  "hours": hours}
@@ -193,17 +193,30 @@ class MachineAdmin(admin.ModelAdmin):
             # machineDate = [{"machine": machine.fqdn, "mothday": x, "hour": y},  ...]
 
             machineDate = []
+            print(date)
 
             for machine in queryset:
-                minNBackupsDay = min([i["nbackups"] for i in date])
-                day = [i for i in xrange(1, 27) if FileBackupTask.objects.filter(monthday=i).count() == minNBackupsDay][0]
+
+                minNBackupsDay = min([date[mothday]["nbackups"] for mothday in xrange(1, 27)])
+                day = -1
+                for i in xrange(1, 27):
+                    if date[i]["nbackups"] == minNBackupsDay:
+                        day = i
+                        break
+
                 minNBackupsHour = min([i for i in date[day]["hours"]])
-                hour = [i for i in xrange(0, 7) if FileBackupTask.objects.filter(monthday=day, hour=i).count() == minNBackupsHour][0]
+                hour = -1
+                for i in xrange(0, 7):
+                    if minNBackupsHour == date[day]["hours"][i]:
+                        hour = i
+                        break
 
                 machineDate.append({"machine": machine.fqdn, "mothday": day, "hour": hour})
+
                 date[day]["nbackups"] += 1
                 date[day]["hours"][hour] += 1
                 pass
+            print(date)
 
             form = self.SystemBackupFileForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME),
                                                       'description': "",
@@ -217,10 +230,11 @@ class MachineAdmin(admin.ModelAdmin):
                                                      })
             return render_to_response('admin/inventory/machine/systembackup.html',
                                       {"form": form,
-                                       "action": "systembackupfile"},
+                                       "action": "systembackupfile",
+                                       "machineDate": machineDate},
                                        context_instance=RequestContext(request))
 
-    aply_system_backupfile.short_description = _(u'Aply system backup')
+    apply_system_backupfile.short_description = _(u'Apply system backup')
 
 class PysicalMachineAdmin(MachineAdmin):
     list_display = ('fqdn', 'server_link', 'ip_link', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')

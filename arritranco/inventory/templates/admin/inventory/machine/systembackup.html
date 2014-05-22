@@ -7,12 +7,29 @@
 {% block content %}
 
 <p>System Backup Task:</p>
+<p>
+    <table>
+    {% for machinedate in machineDate %}
 
-<form action="" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="hidden" name="action" value="{{ action }}" />
-    <input type="submit" name="apply" value="Confirm" />
-</form>
+        <tr>
+            <td>{{ machinedate.machine }}</td>
+            <td>dia: {{ machinedate.mothday }}</td>
+            <td> hora: {{ machinedate.hour }}</td>
+        </tr>
+
+
+    {% endfor %}
+    </table>
+</p>
+<p>
+    <form action="" method="post">
+        {% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        <input type="hidden" name="action" value="{{ action }}" />
+        <input type="submit" name="apply" value="Confirm" />
+    </form>
+</p>
 
 {% endblock %}
