@@ -73,6 +73,9 @@ class NagiosCheck(models.Model):
     os = models.ManyToManyField("inventory.OperatingSystemType")
     default_contact_groups = models.ManyToManyField("NagiosContactGroup", blank=False, null=False)
 
+    class Meta():
+        ordering = ["name"]
+
     def __unicode__(self):
         return u"%s" % self.name
 
