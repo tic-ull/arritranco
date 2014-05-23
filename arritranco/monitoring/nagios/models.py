@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.conf import settings
 from scheduler.models import TaskStatus
 from nsca import NSCA
-
 from django.utils.translation import ugettext_lazy as _
-#from inventory.models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem
 from network.models import Network, IP
 from monitoring.models import Responsible
 from templatetags.nagios_filters import nagios_safe
@@ -68,9 +65,9 @@ class NagiosCheck(models.Model):
     unrackable_networked_devices = models.ManyToManyField(UnrackableNetworkedDevice,
                                                           through='NagiosUnrackableNetworkedDeviceCheckOpts',
                                                           blank=True, null=True)
-    hwmodels = models.ManyToManyField(HwModel,
-                                      through='NagiosHardwarePolicyCheckOpts',
-                                      blank=True, null=True)
+    #hwmodels = models.ManyToManyField(HwModel,
+    #                                  through='NagiosHardwarePolicyCheckOpts',
+    #                                  blank=True, null=True)
     slug = models.SlugField()
     description = models.CharField(max_length=400)
     os = models.ManyToManyField("inventory.OperatingSystemType")
@@ -193,26 +190,33 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
 
 
 class NagiosHardwarePolicyCheckOpts(NagiosOpts):
-    hwmodel = models.ForeignKey(HwModel)
+    hwmodel = models.ManyToManyField(HwModel)
     excluded_os = models.ManyToManyField("inventory.OperatingSystem", null=True, blank=True, help_text="Excluded Os")
 
     class Meta:
         verbose_name = _(u'Hardware Policy Check')
         verbose_name_plural = _(u'Hardware Policy Checks')
 
-    def __unicode__(self):
-        return u"%s on %s" % (self.check.name, self.hwmodel.name)
+    def __init__(self, *args, **kwargs):
+        self._meta.get_field('options').blank = True
+        super(NagiosOpts, self).__init__(*args, **kwargs)
 
-    def hwmodel_name(self):
-        return str(self.hwmodel.name)
+    def __unicode__(self):
+        hwNames = ",".join([i.name for i in self.hwmodel.all()])
+        return u"%s on %s" % (self.check.name, hwNames)
+
+    def hwmodels_names(self):
+        return ",".join([i.name for i in self.hwmodel.all()])
 
     def check_name(self):
         return str(self.check.name)
 
     def clean(self):
-        if NagiosHardwarePolicyCheckOpts.objects.filter(check=self.check,
-                                                        hwmodel=self.hwmodel).exclude(pk=self.pk):
-            raise ValidationError('Error check in hardware repited')
+        HwPolicys = NagiosHardwarePolicyCheckOpts.objects.filter(check=self.check).exclude(pk=self.pk)
+        for HwPolicy in HwPolicys:
+            for hwmodel in self.hwmodel.all():
+                if HwPolicy.hwmodel.filter(pk=hwmodel.pk):
+                    raise ValidationError('Error check in hardware %s repited' % hwmodel.name)
 
 
 class NagiosContactGroup(Responsible):

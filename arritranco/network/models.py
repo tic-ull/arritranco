@@ -208,7 +208,7 @@ class Switch(RackPlace, NetworkedDevice):
     def backup_config_to_file(self, destinationfile):
         mgt = self.managementinfo
         if mgt.backupmethod == BACKUP_METHOD_SFTP:
-            errorDesc = sftpGet(hostname=self.main_ip, username=mgt.backupusername, password=mgt.backuppassword, \
+            errorDesc = sftpGet(hostname=self.main_ip, username=mgt.backupusername, password=mgt.backuppassword,
                                 sourcefile=mgt.backupconfigfile, destfile=destinationfile)
             return True, errorDesc
         return False, None

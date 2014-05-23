@@ -172,7 +172,7 @@ class Chassis(HwBase, RackPlace):
         return self.qsort(self.bladeserver_set.all())
 
     def qsort(self, list):
-        if list == []:
+        if not list:
             return []
         else:
             pivot = list[0]

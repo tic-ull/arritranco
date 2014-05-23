@@ -1,4 +1,3 @@
-from django.contrib import admin
 from django import forms
 from models import SondaTasksLog, SondaTaskStatus, SondaTask, Sonda, NagiosNrpeCheckOpts
 from django.contrib import admin
@@ -8,7 +7,6 @@ from django.contrib import messages
 from os import path, system
 import sys
 from tasks import ssh_key_send_task, send_nrpecfg
-from monitoring.nagios.models import Service
 from arritranco import settings
 
 

@@ -1,12 +1,7 @@
-from inventory.models import Machine, OperatingSystem
+from inventory.models import OperatingSystem
 from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask, BackupTask
 from django.shortcuts import render_to_response
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from helpers.processors import mco2dict, mco2dict_balanced
-from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
-import os.path
 import logging
 
 logger = logging.getLogger(__name__)
@@ -128,9 +123,9 @@ def getchecks_all(request):
     template = 'nagios/check.cfg'
     context = {
         'checks_machine': NagiosMachineCheckOpts.objects.filter(machine__up=True),
-        'checks_service': NagiosServiceCheckOpts.objects.all(),
         'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.all()
     }
+
     if 'file' in request.GET:
         response = render_to_response(template, context, mimetype="text/plain")
         response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
@@ -143,30 +138,32 @@ def hardware(request):
     template = 'nagios/hardware_checks.cfg'
     checks = []
     for HardwarePolicy in NagiosHardwarePolicyCheckOpts.objects.all():
-        for machine in PhysicalMachine.objects.filter(server__model__id=HardwarePolicy.hwmodel.id).exclude(
-                os__in=HardwarePolicy.excluded_os.all()):
+        for hwmodel in HardwarePolicy.hwmodel.all():
+            for machine in PhysicalMachine.objects.filter(server__model__id=hwmodel.id).exclude(
+                    os__in=HardwarePolicy.excluded_os.all()):
 
-            if HardwarePolicy.get_full_check().__contains__("management_ip"):
-                if machine.server.management_ip is not None and machine.server.management_ip.addr != "":
-                    checks.append({"host_name": machine.fqdn,
+                if HardwarePolicy.get_full_check().__contains__("management_ip"):
+                    if machine.server.management_ip is not None and machine.server.management_ip.addr != "":
+                        checks.append({"host_name": machine.fqdn,
+                                       "hwpolicy": HardwarePolicy,
+                                       "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip.addr}
+                                       }
+                                      )
+
+                else:
+                    checks.append({"machine": machine.fqdn,
                                    "hwpolicy": HardwarePolicy,
-                                   "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip.addr}
+                                   "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
                                    }
                                   )
 
-            else:
-                checks.append({"machine": machine.fqdn,
+            for device in UnrackableNetworkedDevice.objects.filter(model=hwmodel):
+                checks.append({"host_name": device.name,
                                "hwpolicy": HardwarePolicy,
-                               "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
+                               "command": HardwarePolicy.get_full_check() % {
+                                   "management_ip": device.main_ip.addr}
                                }
                               )
-        for device in UnrackableNetworkedDevice.objects.filter(model=HardwarePolicy.hwmodel):
-            checks.append({"host_name": device.name,
-                           "hwpolicy": HardwarePolicy,
-                           "command": HardwarePolicy.get_full_check() % {
-                               "management_ip": device.main_ip.addr}
-                            }
-            )
 
     context = {"checks": checks}
 

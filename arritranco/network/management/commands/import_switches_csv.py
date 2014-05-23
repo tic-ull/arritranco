@@ -191,7 +191,7 @@ class Command(BaseCommand):
                 # get or create ManagementInfo
             _managementinfo = None
             try:
-                _managementinfo, _created = ManagementInfo.objects.get_or_create(name=_managementinfoname, defaults={ \
+                _managementinfo, _created = ManagementInfo.objects.get_or_create(name=_managementinfoname, defaults={
                     "defaultports": _ports, "backupmethod": _bkmethod, "backupusername": _bkusername,
                     "backuppassword": _bkpassword, "backupconfigfile": _bkconfigfile,
                     "recommended_version": " ", "configtemplate": " ", "oid": "1"})
