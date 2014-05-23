@@ -123,9 +123,9 @@ def getchecks_all(request):
     template = 'nagios/check.cfg'
     context = {
         'checks_machine': NagiosMachineCheckOpts.objects.filter(machine__up=True),
-        'checks_service': NagiosServiceCheckOpts.objects.all(),
         'checks_unracknetdev': NagiosUnrackableNetworkedDeviceCheckOpts.objects.all()
     }
+
     if 'file' in request.GET:
         response = render_to_response(template, context, mimetype="text/plain")
         response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
