@@ -129,7 +129,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.messages',
-    #'django_extensions',
+    'django_extensions',
     'south',
     'rest_framework',
     'monitoring.nagios',
@@ -150,12 +150,12 @@ INSTALLED_APPS = (
 )
 
 ADMIN_REORDER = (
+    ('scheduler', ""),
     ('backups', ""),
     ('nagios', ""),
     ('inventory', ""),
     ('location', ""),
     ('hardware', ""),
-    ('scheduler', ""),
     ('hardware_model', ""),
     ('network', ""),
     ('sondas', ""),
