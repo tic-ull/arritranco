@@ -222,6 +222,7 @@ class MachineAdmin(admin.ModelAdmin):
 
     aply_system_backupfile.short_description = _(u'Aply system backup')
 
+
 class PysicalMachineAdmin(MachineAdmin):
     list_display = ('fqdn', 'server_link', 'ip_link', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
     list_filter = ('up', 'os', 'update_priority', 'epo_level', ManagementIPFilter)

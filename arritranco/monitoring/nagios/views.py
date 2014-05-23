@@ -138,30 +138,32 @@ def hardware(request):
     template = 'nagios/hardware_checks.cfg'
     checks = []
     for HardwarePolicy in NagiosHardwarePolicyCheckOpts.objects.all():
-        for machine in PhysicalMachine.objects.filter(server__model__id=HardwarePolicy.hwmodel.id).exclude(
-                os__in=HardwarePolicy.excluded_os.all()):
+        for hwmodel in HardwarePolicy.hwmodel.all():
+            for machine in PhysicalMachine.objects.filter(server__model__id=hwmodel.id).exclude(
+                    os__in=HardwarePolicy.excluded_os.all()):
 
-            if HardwarePolicy.get_full_check().__contains__("management_ip"):
-                if machine.server.management_ip is not None and machine.server.management_ip.addr != "":
-                    checks.append({"host_name": machine.fqdn,
+                if HardwarePolicy.get_full_check().__contains__("management_ip"):
+                    if machine.server.management_ip is not None and machine.server.management_ip.addr != "":
+                        checks.append({"host_name": machine.fqdn,
+                                       "hwpolicy": HardwarePolicy,
+                                       "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip.addr}
+                                       }
+                                      )
+
+                else:
+                    checks.append({"machine": machine.fqdn,
                                    "hwpolicy": HardwarePolicy,
-                                   "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip.addr}
+                                   "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
                                    }
                                   )
 
-            else:
-                checks.append({"machine": machine.fqdn,
+            for device in UnrackableNetworkedDevice.objects.filter(model=hwmodel):
+                checks.append({"host_name": device.name,
                                "hwpolicy": HardwarePolicy,
-                               "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
+                               "command": HardwarePolicy.get_full_check() % {
+                                   "management_ip": device.main_ip.addr}
                                }
                               )
-        for device in UnrackableNetworkedDevice.objects.filter(model=HardwarePolicy.hwmodel):
-            checks.append({"host_name": device.name,
-                           "hwpolicy": HardwarePolicy,
-                           "command": HardwarePolicy.get_full_check() % {
-                               "management_ip": device.main_ip.addr}
-                            }
-            )
 
     context = {"checks": checks}
 
