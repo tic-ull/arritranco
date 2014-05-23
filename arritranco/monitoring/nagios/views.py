@@ -151,7 +151,7 @@ def hardware(request):
                                       )
 
                 else:
-                    checks.append({"machine": machine.fqdn,
+                    checks.append({"host_name": machine.fqdn,
                                    "hwpolicy": HardwarePolicy,
                                    "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
                                    }
