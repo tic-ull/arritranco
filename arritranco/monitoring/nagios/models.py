@@ -197,10 +197,6 @@ class NagiosHardwarePolicyCheckOpts(NagiosOpts):
         verbose_name = _(u'Hardware Policy Check')
         verbose_name_plural = _(u'Hardware Policy Checks')
 
-    def __init__(self, *args, **kwargs):
-        self._meta.get_field('options').blank = True
-        super(NagiosOpts, self).__init__(*args, **kwargs)
-
     def __unicode__(self):
         hwNames = ",".join([i.name for i in self.hwmodel.all()])
         return u"%s on %s" % (self.check.name, hwNames)
