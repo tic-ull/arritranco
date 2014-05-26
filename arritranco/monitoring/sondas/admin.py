@@ -18,7 +18,7 @@ class NagiosNrpeCheckOptsAdmin(admin.ModelAdmin):
 class SondaAdmin(admin.ModelAdmin):
     search_fields = ['name', ]
     list_display = ('name', )
-    actions = ['ssh_key']
+    actions = ['ssh_key', 'action_send_nrpecfg']
     readonly_fields = ["ssh", ]
 
     class SshForm(forms.Form):
@@ -56,7 +56,16 @@ class SondaAdmin(admin.ModelAdmin):
                                   context_instance=RequestContext(request))
 
     ssh_key.short_description = "send key"
-    pass
+
+    def action_send_nrpecfg(self, request, queryset):
+
+        for sonda in queryset:
+            send_nrpecfg.apply_async((sonda.pk, None), serializer="json")
+
+        messages.info(request, str(queryset.count()) + ' sondas have been pushed to the task queue')
+        return HttpResponseRedirect(request.get_full_path())
+
+    action_send_nrpecfg.short_description = "send nrpe.cfg"
 
 
 class TaskStatusInline(admin.StackedInline):

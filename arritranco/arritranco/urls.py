@@ -27,6 +27,8 @@ urlpatterns = patterns('',
     (r'^api/v1/rest/scheduler/', include('scheduler.urls')),
     (r'^monitoring/nagios/', include('monitoring.nagios.urls')),
     (r'^api/v1/monitoring/nagios/', include('monitoring.nagios.urls')),
+    (r'^monitoring/sondas/', include('monitoring.sondas.urls')),
+    (r'^api/v1/monitoring/sondas/', include('monitoring.sondas.urls')),
     (r'^maps/', include('inventory.maps_urls')),
     (r'^', include(admin.site.urls)),
 )
