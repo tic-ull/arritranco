@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -9,10 +10,21 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding model 'NagiosNrpeCheckOpts'
         db.create_table(u'sondas_nagiosnrpecheckopts', (
-            (u'nagiosopts_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['nagios.NagiosOpts'], unique=True, primary_key=True)),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('check', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['nagios.NagiosCheck'])),
+            ('options', self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True)),
             ('service', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['nagios.Service'])),
         ))
         db.send_create_signal(u'sondas', ['NagiosNrpeCheckOpts'])
+
+        # Adding M2M table for field contact_groups on 'NagiosNrpeCheckOpts'
+        m2m_table_name = db.shorten_name(u'sondas_nagiosnrpecheckopts_contact_groups')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('nagiosnrpecheckopts', models.ForeignKey(orm[u'sondas.nagiosnrpecheckopts'], null=False)),
+            ('nagioscontactgroup', models.ForeignKey(orm[u'nagios.nagioscontactgroup'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['nagiosnrpecheckopts_id', 'nagioscontactgroup_id'])
 
         # Adding M2M table for field sonda on 'NagiosNrpeCheckOpts'
         m2m_table_name = db.shorten_name(u'sondas_nagiosnrpecheckopts_sonda')
@@ -66,23 +78,41 @@ class Migration(SchemaMigration):
 
     def backwards(self, orm):
         # Deleting model 'NagiosNrpeCheckOpts'
-        db.delete_table(u'sondas_nagiosnrpecheckopts')
+        try:
+            db.delete_table(u'sondas_nagiosnrpecheckopts')
+        except:
+            pass
+        # Removing M2M table for field contact_groups on 'NagiosNrpeCheckOpts'
+        #try:
+        #    db.delete_table(db.shorten_name(u'sondas_nagiosnrpecheckopts_contact_groups'))
+        #except:
+        #    pass
 
         # Removing M2M table for field sonda on 'NagiosNrpeCheckOpts'
-        db.delete_table(db.shorten_name(u'sondas_nagiosnrpecheckopts_sonda'))
-
+        try:
+            db.delete_table(db.shorten_name(u'sondas_nagiosnrpecheckopts_sonda'))
+        except:
+            pass
         # Deleting model 'Sonda'
-        db.delete_table(u'sondas_sonda')
-
+        try:
+            db.delete_table(u'sondas_sonda')
+        except:
+            pass
         # Deleting model 'SondaTask'
-        db.delete_table(u'sondas_sondatask')
-
+        try:
+            db.delete_table(u'sondas_sondatask')
+        except:
+            pass
         # Deleting model 'SondaTasksLog'
-        db.delete_table(u'sondas_sondataskslog')
-
+        try:
+            db.delete_table(u'sondas_sondataskslog')
+        except:
+            pass
         # Deleting model 'SondaTaskStatus'
-        db.delete_table(u'sondas_sondataskstatus')
-
+        try:
+            db.delete_table(u'sondas_sondataskstatus')
+        except:
+            pass
 
     models = {
         u'hardware.hwbase': {
@@ -191,11 +221,11 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
         u'nagios.nagioscheck': {
-            'Meta': {'object_name': 'NagiosCheck'},
+            'Meta': {'ordering': "['name']", 'object_name': 'NagiosCheck'},
             'command': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'default_contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
             'default_params': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '400'}),
-            'hwmodels': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['hardware_model.HwModel']", 'null': 'True', 'through': u"orm['nagios.NagiosHardwarePolicyCheckOpts']", 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'machines': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['inventory.Machine']", 'null': 'True', 'through': u"orm['nagios.NagiosMachineCheckOpts']", 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
@@ -210,32 +240,28 @@ class Migration(SchemaMigration):
             'ngcontact': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             u'responsible_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['monitoring.Responsible']", 'unique': 'True', 'primary_key': 'True'})
         },
-        u'nagios.nagioshardwarepolicycheckopts': {
-            'Meta': {'object_name': 'NagiosHardwarePolicyCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            'excluded_os': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['inventory.OperatingSystem']", 'null': 'True', 'blank': 'True'}),
-            'hwmodel': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware_model.HwModel']"}),
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'})
-        },
         u'nagios.nagiosmachinecheckopts': {
-            'Meta': {'object_name': 'NagiosMachineCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            'machine': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.Machine']"}),
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'})
-        },
-        u'nagios.nagiosopts': {
-            'Meta': {'object_name': 'NagiosOpts'},
+            'Meta': {'object_name': 'NagiosMachineCheckOpts'},
             'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
             'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'machine': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.Machine']"}),
             'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'})
         },
         u'nagios.nagiosservicecheckopts': {
-            'Meta': {'object_name': 'NagiosServiceCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'}),
+            'Meta': {'object_name': 'NagiosServiceCheckOpts'},
+            'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
+            'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'service': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.Service']"})
         },
         u'nagios.nagiosunrackablenetworkeddevicecheckopts': {
-            'Meta': {'object_name': 'NagiosUnrackableNetworkedDeviceCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'}),
+            'Meta': {'object_name': 'NagiosUnrackableNetworkedDeviceCheckOpts'},
+            'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
+            'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'unrackable_networked_device': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware.UnrackableNetworkedDevice']"})
         },
         u'nagios.service': {
@@ -287,8 +313,11 @@ class Migration(SchemaMigration):
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'})
         },
         u'sondas.nagiosnrpecheckopts': {
-            'Meta': {'object_name': 'NagiosNrpeCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'}),
+            'Meta': {'object_name': 'NagiosNrpeCheckOpts'},
+            'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
+            'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'service': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.Service']"}),
             'sonda': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['sondas.Sonda']", 'symmetrical': 'False'})
         },
