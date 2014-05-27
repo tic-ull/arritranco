@@ -51,6 +51,7 @@ class ChasisAdmin(RackableAdmin):
 class ServerAdmin(HwAdmin):
     list_display = HwAdmin.list_display + SERVER_LIST_DISPLAY
     inlines = [HardDiskInline, ]
+    raw_id_fields = ('management_ip',)
 
 
 class RackAdmin(admin.ModelAdmin):
