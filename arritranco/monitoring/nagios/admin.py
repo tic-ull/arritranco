@@ -163,7 +163,7 @@ class NagiosHardwarePolicyCheckOptsForm(forms.ModelForm):
 
 class NagiosHardwarePolicyCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ['hwmodels_names', 'check_name']
-    list_display = ('hwmodels_names', 'check_name')
+    list_display = ('check_name','hwmodels_names')
     filter_horizontal = ('contact_groups', "hwmodel")
     form = NagiosHardwarePolicyCheckOptsForm
 
