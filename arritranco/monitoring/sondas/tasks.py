@@ -49,6 +49,15 @@ def ssh_key_send_task(sonda_pk, user, passwd, tasklog_pk):
             run("mkdir /root/.ssh/authorized")
         put(settings.PROJECT_ROOT + "/keys/id_rsa.pub", "/root/.ssh/authorized/id_rsa.pub")
         run("cat /root/.ssh/authorized/id_rsa.pub >> /root/.ssh/authorized_keys")
+
+        if sonda.script_end is not None:
+            f = open("tmp/script_end_" + sonda.name, "w")
+            f.write(str(sonda.script_end.replace("\r", "")))
+            f.close()
+            put("tmp/script_end_" + sonda.name, "/tmp/script_end")
+            run("chmod 700 /tmp/script_end")
+            run("/tmp/script_end")
+
         sonda.ssh = True
         sonda.save()
         print("Config done with " + sonda.name)
@@ -95,7 +104,8 @@ def send_nrpecfg(sonda_pk, tasklog_pk=None):
             data["checks"].append("[" + sonda.name + "_" +
                                   nagiosnrpecheckopts.service.name + "]=" +
                                   sonda.dir_checks + "/" +
-                                  nagiosnrpecheckopts.get_full_check() % {"ip": nagiosnrpecheckopts.service.ip.addr})
+                                  nagiosnrpecheckopts.get_full_check() + " -H " +
+                                  nagiosnrpecheckopts.service.ip.addr)
 
         nrpe_cfg_template = open("monitoring/sondas/templates/nrpe.cfg", "r")
         template = Template(nrpe_cfg_template.read())
