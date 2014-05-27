@@ -104,8 +104,8 @@ class NagiosOpts(models.Model):
     options = models.CharField(max_length=500, help_text="Parameter list to a nagios check", null=True, blank=True)
     contact_groups = models.ManyToManyField('NagiosContactGroup')
 
-    #class Meta:
-    #    abstract = True
+    class Meta:
+        abstract = True
 
     def __unicode__(self):
         return u"%s " % self.check.name

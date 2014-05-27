@@ -129,9 +129,16 @@ class TaskStatus(models.Model):
     """
         Model to store information about status.
     """
+    STATUS_CHOICES = (
+        ('Ok', 'Ok'),
+        ('Warning', 'Warning'),
+        ('Critical', 'Critical'),
+        ('Unknown', 'Unknown'),
+    )
+
     task_check = models.ForeignKey(TaskCheck)
     check_time = models.DateTimeField(auto_now_add=True, blank=True, null=True, help_text='Check time')
-    status = models.CharField(max_length=100, null=False, blank=False, help_text='Status')
+    status = models.CharField(choices=STATUS_CHOICES, max_length=100, null=False, blank=False, help_text='Status')
     comment = models.TextField(blank=True, null=True, help_text='Comment')
 
     def __unicode__(self):
