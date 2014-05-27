@@ -22,6 +22,12 @@ class NagiosNrpeCheckOpts(NagiosOpts):
     def check_name(self):
         return str(self.check.name)
 
+    def get_full_check(self):
+        if self.options is None or self.options == "":
+            return self.check.command + self.check.default_params
+        else:
+            return self.check.command + self.options
+
 
 class Sonda(models.Model):
     name = models.CharField(max_length=200, unique=True)

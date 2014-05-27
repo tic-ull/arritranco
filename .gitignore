@@ -20,4 +20,6 @@ keys/
 fbt_no_taskcheck.csv
 devdb
 *.sql
+tmp/
+keys/
 *~
