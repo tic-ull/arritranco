@@ -8,111 +8,212 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'NagiosNrpeCheckOpts'
-        db.create_table(u'sondas_nagiosnrpecheckopts', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('check', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['nagios.NagiosCheck'])),
-            ('options', self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True)),
-            ('service', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['nagios.Service'])),
-        ))
-        db.send_create_signal(u'sondas', ['NagiosNrpeCheckOpts'])
+        # Deleting model 'NagiosOpts'
+        #db.delete_table(u'nagios_nagiosopts')
 
-        # Adding M2M table for field contact_groups on 'NagiosNrpeCheckOpts'
-        m2m_table_name = db.shorten_name(u'sondas_nagiosnrpecheckopts_contact_groups')
+        # Removing M2M table for field contact_groups on 'NagiosOpts'
+        #db.delete_table(db.shorten_name(u'nagios_nagiosopts_contact_groups'))
+
+        #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        #               HARDWARE POLICY
+        #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        db.rename_column(u'nagios_nagioshardwarepolicycheckopts', u'nagiosopts_ptr_id', u'id')
+
+        # Adding field 'NagiosHardwarePolicyCheckOpts.check'
+        db.add_column(u'nagios_nagioshardwarepolicycheckopts', 'check',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['nagios.NagiosCheck']),
+                      keep_default=False)
+
+        # Adding field 'NagiosHardwarePolicyCheckOpts.options'
+        db.add_column(u'nagios_nagioshardwarepolicycheckopts', 'options',
+                      self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding M2M table for field contact_groups on 'NagiosHardwarePolicyCheckOpts'
+        m2m_table_name = db.shorten_name(u'nagios_nagioshardwarepolicycheckopts_contact_groups')
         db.create_table(m2m_table_name, (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('nagiosnrpecheckopts', models.ForeignKey(orm[u'sondas.nagiosnrpecheckopts'], null=False)),
+            ('nagioshardwarepolicycheckopts', models.ForeignKey(orm[u'nagios.nagioshardwarepolicycheckopts'], null=False)),
             ('nagioscontactgroup', models.ForeignKey(orm[u'nagios.nagioscontactgroup'], null=False))
         ))
-        db.create_unique(m2m_table_name, ['nagiosnrpecheckopts_id', 'nagioscontactgroup_id'])
+        db.create_unique(m2m_table_name, ['nagioshardwarepolicycheckopts_id', 'nagioscontactgroup_id'])
+        #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        #           UNRACKABLE NETWORKED DEVICE
+        #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        db.rename_column(u'nagios_nagiosunrackablenetworkeddevicecheckopts', u'nagiosopts_ptr_id', u'id')
 
-        # Adding M2M table for field sonda on 'NagiosNrpeCheckOpts'
-        m2m_table_name = db.shorten_name(u'sondas_nagiosnrpecheckopts_sonda')
+        # Adding field 'NagiosUnrackableNetworkedDeviceCheckOpts.check'
+        db.add_column(u'nagios_nagiosunrackablenetworkeddevicecheckopts', 'check',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['nagios.NagiosCheck']),
+                      keep_default=False)
+
+        # Adding field 'NagiosUnrackableNetworkedDeviceCheckOpts.options'
+        db.add_column(u'nagios_nagiosunrackablenetworkeddevicecheckopts', 'options',
+                      self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding M2M table for field contact_groups on 'NagiosUnrackableNetworkedDeviceCheckOpts'
+        m2m_table_name = db.shorten_name(u'nagios_nagiosunrackablenetworkeddevicecheckopts_contact_groups')
         db.create_table(m2m_table_name, (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('nagiosnrpecheckopts', models.ForeignKey(orm[u'sondas.nagiosnrpecheckopts'], null=False)),
-            ('sonda', models.ForeignKey(orm[u'sondas.sonda'], null=False))
+            ('nagiosunrackablenetworkeddevicecheckopts', models.ForeignKey(orm[u'nagios.nagiosunrackablenetworkeddevicecheckopts'], null=False)),
+            ('nagioscontactgroup', models.ForeignKey(orm[u'nagios.nagioscontactgroup'], null=False))
         ))
-        db.create_unique(m2m_table_name, ['nagiosnrpecheckopts_id', 'sonda_id'])
+        db.create_unique(m2m_table_name, ['nagiosunrackablenetworkeddevicecheckopts_id', 'nagioscontactgroup_id'])
 
-        # Adding model 'Sonda'
-        db.create_table(u'sondas_sonda', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=200)),
-            ('unrackable_networked_device', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['hardware.UnrackableNetworkedDevice'])),
-            ('ssh', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('dir_checks', self.gf('django.db.models.fields.CharField')(default='/usr/lib/nagios/plugins', max_length=500)),
-            ('servidor_nagios', self.gf('django.db.models.fields.CharField')(default='193.145.118.253', max_length=400)),
-            ('nrpe_service_name', self.gf('django.db.models.fields.CharField')(default='nagios-nrpe-server', max_length=400)),
-            ('script_inicio', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('script_end', self.gf('django.db.models.fields.TextField')(blank=True)),
-        ))
-        db.send_create_signal(u'sondas', ['Sonda'])
+        #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        #                   MACHINE
+        #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-        # Adding model 'SondaTask'
-        db.create_table(u'sondas_sondatask', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=200)),
-            ('description', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal(u'sondas', ['SondaTask'])
+        db.rename_column(u'nagios_nagiosmachinecheckopts', u'nagiosopts_ptr_id', u'id')
+        # Deleting field 'NagiosMachineCheckOpts.nagiosopts_ptr'
 
-        # Adding model 'SondaTasksLog'
-        db.create_table(u'sondas_sondataskslog', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('sonda', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['sondas.Sonda'])),
-            ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['sondas.SondaTask'])),
-        ))
-        db.send_create_signal(u'sondas', ['SondaTasksLog'])
+        # Adding field 'NagiosMachineCheckOpts.check'
+        db.add_column(u'nagios_nagiosmachinecheckopts', 'check',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['nagios.NagiosCheck']),
+                      keep_default=False)
 
-        # Adding model 'SondaTaskStatus'
-        db.create_table(u'sondas_sondataskstatus', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('tasklog', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['sondas.SondaTasksLog'])),
-            ('status', self.gf('django.db.models.fields.IntegerField')()),
-            ('message', self.gf('django.db.models.fields.TextField')()),
-            ('timestamp', self.gf('django.db.models.fields.DateTimeField')()),
+        # Adding field 'NagiosMachineCheckOpts.options'
+        db.add_column(u'nagios_nagiosmachinecheckopts', 'options',
+                      self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding M2M table for field contact_groups on 'NagiosMachineCheckOpts'
+        m2m_table_name = db.shorten_name(u'nagios_nagiosmachinecheckopts_contact_groups')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('nagiosmachinecheckopts', models.ForeignKey(orm[u'nagios.nagiosmachinecheckopts'], null=False)),
+            ('nagioscontactgroup', models.ForeignKey(orm[u'nagios.nagioscontactgroup'], null=False))
         ))
-        db.send_create_signal(u'sondas', ['SondaTaskStatus'])
+        db.create_unique(m2m_table_name, ['nagiosmachinecheckopts_id', 'nagioscontactgroup_id'])
+
+        #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        #                   SERVICE
+        #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        db.rename_column(u'nagios_nagiosservicecheckopts', u'nagiosopts_ptr_id', u'id')
+
+        # Adding field 'NagiosServiceCheckOpts.check'
+        db.add_column(u'nagios_nagiosservicecheckopts', 'check',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['nagios.NagiosCheck']),
+                      keep_default=False)
+
+        # Adding field 'NagiosServiceCheckOpts.options'
+        db.add_column(u'nagios_nagiosservicecheckopts', 'options',
+                      self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding M2M table for field contact_groups on 'NagiosServiceCheckOpts'
+        m2m_table_name = db.shorten_name(u'nagios_nagiosservicecheckopts_contact_groups')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('nagiosservicecheckopts', models.ForeignKey(orm[u'nagios.nagiosservicecheckopts'], null=False)),
+            ('nagioscontactgroup', models.ForeignKey(orm[u'nagios.nagioscontactgroup'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['nagiosservicecheckopts_id', 'nagioscontactgroup_id'])
 
 
     def backwards(self, orm):
-        # Deleting model 'NagiosNrpeCheckOpts'
-        try:
-            db.delete_table(u'sondas_nagiosnrpecheckopts')
-        except:
-            pass
-        # Removing M2M table for field contact_groups on 'NagiosNrpeCheckOpts'
-        #try:
-        #    db.delete_table(db.shorten_name(u'sondas_nagiosnrpecheckopts_contact_groups'))
-        #except:
-        #    pass
+        # Adding model 'NagiosOpts'
+        db.create_table(u'nagios_nagiosopts', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('options', self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True)),
+            ('check', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['nagios.NagiosCheck'])),
+        ))
+        db.send_create_signal(u'nagios', ['NagiosOpts'])
 
-        # Removing M2M table for field sonda on 'NagiosNrpeCheckOpts'
-        try:
-            db.delete_table(db.shorten_name(u'sondas_nagiosnrpecheckopts_sonda'))
-        except:
-            pass
-        # Deleting model 'Sonda'
-        try:
-            db.delete_table(u'sondas_sonda')
-        except:
-            pass
-        # Deleting model 'SondaTask'
-        try:
-            db.delete_table(u'sondas_sondatask')
-        except:
-            pass
-        # Deleting model 'SondaTasksLog'
-        try:
-            db.delete_table(u'sondas_sondataskslog')
-        except:
-            pass
-        # Deleting model 'SondaTaskStatus'
-        try:
-            db.delete_table(u'sondas_sondataskstatus')
-        except:
-            pass
+        # Adding M2M table for field contact_groups on 'NagiosOpts'
+        m2m_table_name = db.shorten_name(u'nagios_nagiosopts_contact_groups')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('nagiosopts', models.ForeignKey(orm[u'nagios.nagiosopts'], null=False)),
+            ('nagioscontactgroup', models.ForeignKey(orm[u'nagios.nagioscontactgroup'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['nagiosopts_id', 'nagioscontactgroup_id'])
+
+
+        # User chose to not deal with backwards NULL issues for 'NagiosHardwarePolicyCheckOpts.nagiosopts_ptr'
+        raise RuntimeError("Cannot reverse this migration. 'NagiosHardwarePolicyCheckOpts.nagiosopts_ptr' and its values cannot be restored.")
+        
+        # The following code is provided here to aid in writing a correct migration        # Adding field 'NagiosHardwarePolicyCheckOpts.nagiosopts_ptr'
+        db.add_column(u'nagios_nagioshardwarepolicycheckopts', u'nagiosopts_ptr',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['nagios.NagiosOpts'], unique=True, primary_key=True),
+                      keep_default=False)
+
+        # Deleting field 'NagiosHardwarePolicyCheckOpts.id'
+        db.delete_column(u'nagios_nagioshardwarepolicycheckopts', u'id')
+
+        # Deleting field 'NagiosHardwarePolicyCheckOpts.check'
+        db.delete_column(u'nagios_nagioshardwarepolicycheckopts', 'check_id')
+
+        # Deleting field 'NagiosHardwarePolicyCheckOpts.options'
+        db.delete_column(u'nagios_nagioshardwarepolicycheckopts', 'options')
+
+        # Removing M2M table for field contact_groups on 'NagiosHardwarePolicyCheckOpts'
+        db.delete_table(db.shorten_name(u'nagios_nagioshardwarepolicycheckopts_contact_groups'))
+
+
+        # User chose to not deal with backwards NULL issues for 'NagiosUnrackableNetworkedDeviceCheckOpts.nagiosopts_ptr'
+        raise RuntimeError("Cannot reverse this migration. 'NagiosUnrackableNetworkedDeviceCheckOpts.nagiosopts_ptr' and its values cannot be restored.")
+        
+        # The following code is provided here to aid in writing a correct migration        # Adding field 'NagiosUnrackableNetworkedDeviceCheckOpts.nagiosopts_ptr'
+        db.add_column(u'nagios_nagiosunrackablenetworkeddevicecheckopts', u'nagiosopts_ptr',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['nagios.NagiosOpts'], unique=True, primary_key=True),
+                      keep_default=False)
+
+        # Deleting field 'NagiosUnrackableNetworkedDeviceCheckOpts.id'
+        db.delete_column(u'nagios_nagiosunrackablenetworkeddevicecheckopts', u'id')
+
+        # Deleting field 'NagiosUnrackableNetworkedDeviceCheckOpts.check'
+        db.delete_column(u'nagios_nagiosunrackablenetworkeddevicecheckopts', 'check_id')
+
+        # Deleting field 'NagiosUnrackableNetworkedDeviceCheckOpts.options'
+        db.delete_column(u'nagios_nagiosunrackablenetworkeddevicecheckopts', 'options')
+
+        # Removing M2M table for field contact_groups on 'NagiosUnrackableNetworkedDeviceCheckOpts'
+        db.delete_table(db.shorten_name(u'nagios_nagiosunrackablenetworkeddevicecheckopts_contact_groups'))
+
+
+        # User chose to not deal with backwards NULL issues for 'NagiosMachineCheckOpts.nagiosopts_ptr'
+        raise RuntimeError("Cannot reverse this migration. 'NagiosMachineCheckOpts.nagiosopts_ptr' and its values cannot be restored.")
+        
+        # The following code is provided here to aid in writing a correct migration        # Adding field 'NagiosMachineCheckOpts.nagiosopts_ptr'
+        db.add_column(u'nagios_nagiosmachinecheckopts', u'nagiosopts_ptr',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['nagios.NagiosOpts'], unique=True, primary_key=True),
+                      keep_default=False)
+
+        # Deleting field 'NagiosMachineCheckOpts.id'
+        db.delete_column(u'nagios_nagiosmachinecheckopts', u'id')
+
+        # Deleting field 'NagiosMachineCheckOpts.check'
+        db.delete_column(u'nagios_nagiosmachinecheckopts', 'check_id')
+
+        # Deleting field 'NagiosMachineCheckOpts.options'
+        db.delete_column(u'nagios_nagiosmachinecheckopts', 'options')
+
+        # Removing M2M table for field contact_groups on 'NagiosMachineCheckOpts'
+        db.delete_table(db.shorten_name(u'nagios_nagiosmachinecheckopts_contact_groups'))
+
+
+        # User chose to not deal with backwards NULL issues for 'NagiosServiceCheckOpts.nagiosopts_ptr'
+        raise RuntimeError("Cannot reverse this migration. 'NagiosServiceCheckOpts.nagiosopts_ptr' and its values cannot be restored.")
+        
+        # The following code is provided here to aid in writing a correct migration        # Adding field 'NagiosServiceCheckOpts.nagiosopts_ptr'
+        db.add_column(u'nagios_nagiosservicecheckopts', u'nagiosopts_ptr',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['nagios.NagiosOpts'], unique=True, primary_key=True),
+                      keep_default=False)
+
+        # Deleting field 'NagiosServiceCheckOpts.id'
+        db.delete_column(u'nagios_nagiosservicecheckopts', u'id')
+
+        # Deleting field 'NagiosServiceCheckOpts.check'
+        db.delete_column(u'nagios_nagiosservicecheckopts', 'check_id')
+
+        # Deleting field 'NagiosServiceCheckOpts.options'
+        db.delete_column(u'nagios_nagiosservicecheckopts', 'options')
+
+        # Removing M2M table for field contact_groups on 'NagiosServiceCheckOpts'
+        db.delete_table(db.shorten_name(u'nagios_nagiosservicecheckopts_contact_groups'))
+
 
     models = {
         u'hardware.hwbase': {
@@ -240,6 +341,20 @@ class Migration(SchemaMigration):
             'ngcontact': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             u'responsible_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['monitoring.Responsible']", 'unique': 'True', 'primary_key': 'True'})
         },
+        u'nagios.nagioshardwarepolicycheckopts': {
+            'Meta': {'object_name': 'NagiosHardwarePolicyCheckOpts'},
+            'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
+            'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            'excluded_os': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['inventory.OperatingSystem']", 'null': 'True', 'blank': 'True'}),
+            'hwmodel': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['hardware_model.HwModel']", 'symmetrical': 'False'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'})
+        },
+        u'nagios.nagiosmachinecheckdefaults': {
+            'Meta': {'object_name': 'NagiosMachineCheckDefaults'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'nagioscheck': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"})
+        },
         u'nagios.nagiosmachinecheckopts': {
             'Meta': {'object_name': 'NagiosMachineCheckOpts'},
             'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
@@ -247,6 +362,12 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'machine': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.Machine']"}),
             'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'})
+        },
+        u'nagios.nagiosnetworkparent': {
+            'Meta': {'object_name': 'NagiosNetworkParent'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'network': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Network']"}),
+            'parent': ('django.db.models.fields.CharField', [], {'max_length': '500'})
         },
         u'nagios.nagiosservicecheckopts': {
             'Meta': {'object_name': 'NagiosServiceCheckOpts'},
@@ -332,27 +453,7 @@ class Migration(SchemaMigration):
             'servidor_nagios': ('django.db.models.fields.CharField', [], {'default': "'193.145.118.253'", 'max_length': '400'}),
             'ssh': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'unrackable_networked_device': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware.UnrackableNetworkedDevice']"})
-        },
-        u'sondas.sondatask': {
-            'Meta': {'object_name': 'SondaTask'},
-            'description': ('django.db.models.fields.TextField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '200'})
-        },
-        u'sondas.sondataskslog': {
-            'Meta': {'object_name': 'SondaTasksLog'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'sonda': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['sondas.Sonda']"}),
-            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['sondas.SondaTask']"})
-        },
-        u'sondas.sondataskstatus': {
-            'Meta': {'object_name': 'SondaTaskStatus'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'message': ('django.db.models.fields.TextField', [], {}),
-            'status': ('django.db.models.fields.IntegerField', [], {}),
-            'tasklog': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['sondas.SondaTasksLog']"}),
-            'timestamp': ('django.db.models.fields.DateTimeField', [], {})
         }
     }
 
-    complete_apps = ['sondas']
+    complete_apps = ['nagios']

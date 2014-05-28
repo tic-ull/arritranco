@@ -154,7 +154,8 @@ class NagiosUserdeviceCheckOptsAdmin(admin.ModelAdmin):
 
 class NagiosHardwarePolicyCheckOptsForm(forms.ModelForm):
     options = forms.CharField(
-        help_text="In this string you can put %(management_ip)s or %(fqdn)s and it will be interpolated")
+        help_text="In this string you can put %(management_ip)s or %(fqdn)s and it will be interpolated",
+        required=False)
 
     class Meta:
         model = NagiosHardwarePolicyCheckOpts

@@ -1,118 +1,64 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import SchemaMigration
+from south.v2 import DataMigration
 from django.db import models
+import json
+import os
+from arritranco import settings
 
 
-class Migration(SchemaMigration):
+class Migration(DataMigration):
 
     def forwards(self, orm):
-        # Adding model 'NagiosNrpeCheckOpts'
-        db.create_table(u'sondas_nagiosnrpecheckopts', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('check', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['nagios.NagiosCheck'])),
-            ('options', self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True)),
-            ('service', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['nagios.Service'])),
-        ))
-        db.send_create_signal(u'sondas', ['NagiosNrpeCheckOpts'])
+        "Write your forwards methods here."
+        # Note: Don't use "from appname.models import ModelName". 
+        # Use orm.ModelName to refer to models in this application,
+        # and orm['appname.ModelName'] for models in other applications.
+        json_data = open(os.path.join(settings.PROJECT_ROOT, 'Ncheckops_data.json'))
+        data = json.load(json_data)
 
-        # Adding M2M table for field contact_groups on 'NagiosNrpeCheckOpts'
-        m2m_table_name = db.shorten_name(u'sondas_nagiosnrpecheckopts_contact_groups')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('nagiosnrpecheckopts', models.ForeignKey(orm[u'sondas.nagiosnrpecheckopts'], null=False)),
-            ('nagioscontactgroup', models.ForeignKey(orm[u'nagios.nagioscontactgroup'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['nagiosnrpecheckopts_id', 'nagioscontactgroup_id'])
+        machineChecks = orm.NagiosMachineCheckOpts.objects.all()
+        serviceChecks = orm.NagiosServiceCheckOpts.objects.all()
+        deviceChecks = orm.NagiosUnrackableNetworkedDeviceCheckOpts.objects.all()
+        hardwareChecks = orm.NagiosHardwarePolicyCheckOpts.objects.all()
+        for checkOpt in data:
+            machineCheck = machineChecks.filter(pk=checkOpt["pk"])
+            serviceCheck = serviceChecks.filter(pk=checkOpt["pk"])
+            deviceCheck = deviceChecks.filter(pk=checkOpt["pk"])
+            hardwareCheck = hardwareChecks.filter(pk=checkOpt["pk"])
+            Check = None
 
-        # Adding M2M table for field sonda on 'NagiosNrpeCheckOpts'
-        m2m_table_name = db.shorten_name(u'sondas_nagiosnrpecheckopts_sonda')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('nagiosnrpecheckopts', models.ForeignKey(orm[u'sondas.nagiosnrpecheckopts'], null=False)),
-            ('sonda', models.ForeignKey(orm[u'sondas.sonda'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['nagiosnrpecheckopts_id', 'sonda_id'])
+            if machineCheck:
+                Check = machineCheck[0]
+            if serviceCheck:
+                Check = serviceCheck[0]
+            if deviceCheck:
+                Check = deviceCheck[0]
+            if hardwareCheck:
+                Check = hardwareCheck[0]
 
-        # Adding model 'Sonda'
-        db.create_table(u'sondas_sonda', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=200)),
-            ('unrackable_networked_device', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['hardware.UnrackableNetworkedDevice'])),
-            ('ssh', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('dir_checks', self.gf('django.db.models.fields.CharField')(default='/usr/lib/nagios/plugins', max_length=500)),
-            ('servidor_nagios', self.gf('django.db.models.fields.CharField')(default='193.145.118.253', max_length=400)),
-            ('nrpe_service_name', self.gf('django.db.models.fields.CharField')(default='nagios-nrpe-server', max_length=400)),
-            ('script_inicio', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('script_end', self.gf('django.db.models.fields.TextField')(blank=True)),
-        ))
-        db.send_create_signal(u'sondas', ['Sonda'])
+            if Check:
+                Check.options = checkOpt["fields"]["options"]
+                Check.check = orm.NagiosCheck.objects.get(pk=checkOpt["fields"]["check"])
+                for cg in checkOpt["fields"]["contact_groups"]:
+                    Check.contact_groups.add(orm.NagiosContactGroup.objects.get(pk=cg))
 
-        # Adding model 'SondaTask'
-        db.create_table(u'sondas_sondatask', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=200)),
-            ('description', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal(u'sondas', ['SondaTask'])
+                Check.save()
+            else:
+                print("Check no encontrado en hijos :")
+                print(checkOpt)
+                print("\n")
 
-        # Adding model 'SondaTasksLog'
-        db.create_table(u'sondas_sondataskslog', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('sonda', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['sondas.Sonda'])),
-            ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['sondas.SondaTask'])),
-        ))
-        db.send_create_signal(u'sondas', ['SondaTasksLog'])
 
-        # Adding model 'SondaTaskStatus'
-        db.create_table(u'sondas_sondataskstatus', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('tasklog', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['sondas.SondaTasksLog'])),
-            ('status', self.gf('django.db.models.fields.IntegerField')()),
-            ('message', self.gf('django.db.models.fields.TextField')()),
-            ('timestamp', self.gf('django.db.models.fields.DateTimeField')()),
-        ))
-        db.send_create_signal(u'sondas', ['SondaTaskStatus'])
+        # Deleting model 'NagiosOpts'
+        db.delete_table(u'nagios_nagiosopts')
 
+        # Removing M2M table for field contact_groups on 'NagiosOpts'
+        db.delete_table(db.shorten_name(u'nagios_nagiosopts_contact_groups'))
 
     def backwards(self, orm):
-        # Deleting model 'NagiosNrpeCheckOpts'
-        try:
-            db.delete_table(u'sondas_nagiosnrpecheckopts')
-        except:
-            pass
-        # Removing M2M table for field contact_groups on 'NagiosNrpeCheckOpts'
-        #try:
-        #    db.delete_table(db.shorten_name(u'sondas_nagiosnrpecheckopts_contact_groups'))
-        #except:
-        #    pass
-
-        # Removing M2M table for field sonda on 'NagiosNrpeCheckOpts'
-        try:
-            db.delete_table(db.shorten_name(u'sondas_nagiosnrpecheckopts_sonda'))
-        except:
-            pass
-        # Deleting model 'Sonda'
-        try:
-            db.delete_table(u'sondas_sonda')
-        except:
-            pass
-        # Deleting model 'SondaTask'
-        try:
-            db.delete_table(u'sondas_sondatask')
-        except:
-            pass
-        # Deleting model 'SondaTasksLog'
-        try:
-            db.delete_table(u'sondas_sondataskslog')
-        except:
-            pass
-        # Deleting model 'SondaTaskStatus'
-        try:
-            db.delete_table(u'sondas_sondataskstatus')
-        except:
-            pass
+        "Write your backwards methods here."
 
     models = {
         u'hardware.hwbase': {
@@ -240,6 +186,20 @@ class Migration(SchemaMigration):
             'ngcontact': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             u'responsible_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['monitoring.Responsible']", 'unique': 'True', 'primary_key': 'True'})
         },
+        u'nagios.nagioshardwarepolicycheckopts': {
+            'Meta': {'object_name': 'NagiosHardwarePolicyCheckOpts'},
+            'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
+            'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            'excluded_os': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['inventory.OperatingSystem']", 'null': 'True', 'blank': 'True'}),
+            'hwmodel': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['hardware_model.HwModel']", 'symmetrical': 'False'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'})
+        },
+        u'nagios.nagiosmachinecheckdefaults': {
+            'Meta': {'object_name': 'NagiosMachineCheckDefaults'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'nagioscheck': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"})
+        },
         u'nagios.nagiosmachinecheckopts': {
             'Meta': {'object_name': 'NagiosMachineCheckOpts'},
             'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
@@ -247,6 +207,12 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'machine': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.Machine']"}),
             'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'})
+        },
+        u'nagios.nagiosnetworkparent': {
+            'Meta': {'object_name': 'NagiosNetworkParent'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'network': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Network']"}),
+            'parent': ('django.db.models.fields.CharField', [], {'max_length': '500'})
         },
         u'nagios.nagiosservicecheckopts': {
             'Meta': {'object_name': 'NagiosServiceCheckOpts'},
@@ -332,27 +298,8 @@ class Migration(SchemaMigration):
             'servidor_nagios': ('django.db.models.fields.CharField', [], {'default': "'193.145.118.253'", 'max_length': '400'}),
             'ssh': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'unrackable_networked_device': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware.UnrackableNetworkedDevice']"})
-        },
-        u'sondas.sondatask': {
-            'Meta': {'object_name': 'SondaTask'},
-            'description': ('django.db.models.fields.TextField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '200'})
-        },
-        u'sondas.sondataskslog': {
-            'Meta': {'object_name': 'SondaTasksLog'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'sonda': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['sondas.Sonda']"}),
-            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['sondas.SondaTask']"})
-        },
-        u'sondas.sondataskstatus': {
-            'Meta': {'object_name': 'SondaTaskStatus'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'message': ('django.db.models.fields.TextField', [], {}),
-            'status': ('django.db.models.fields.IntegerField', [], {}),
-            'tasklog': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['sondas.SondaTasksLog']"}),
-            'timestamp': ('django.db.models.fields.DateTimeField', [], {})
         }
     }
 
-    complete_apps = ['sondas']
+    complete_apps = ['nagios']
+    symmetrical = True

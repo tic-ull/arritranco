@@ -139,7 +139,7 @@ def hardware(request):
     checks = []
     for HardwarePolicy in NagiosHardwarePolicyCheckOpts.objects.all():
         for hwmodel in HardwarePolicy.hwmodel.all():
-            for machine in PhysicalMachine.objects.filter(server__model__id=hwmodel.id).exclude(
+            for machine in PhysicalMachine.objects.filter(server__model__id=hwmodel.id,up=True).exclude(
                     os__in=HardwarePolicy.excluded_os.all()):
 
                 if HardwarePolicy.get_full_check().__contains__("management_ip"):
@@ -151,7 +151,7 @@ def hardware(request):
                                       )
 
                 else:
-                    checks.append({"machine": machine.fqdn,
+                    checks.append({"host_name": machine.fqdn,
                                    "hwpolicy": HardwarePolicy,
                                    "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
                                    }

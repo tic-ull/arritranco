@@ -58,6 +58,7 @@ class ManagementIPFilter(SimpleListFilter):
             return queryset.filter(id__in=machines)
 
 
+
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('fqdn', 'up', 'os', 'start_up', 'update_priority', 'epo_level', 'network_names')
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
@@ -240,6 +241,7 @@ class MachineAdmin(admin.ModelAdmin):
 class PysicalMachineAdmin(MachineAdmin):
     list_display = ('fqdn', 'server_link', 'ip_link', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
     list_filter = ('up', 'os', 'update_priority', 'epo_level', ManagementIPFilter)
+    search_fields = ('fqdn', 'server__model__name', 'os__name')
 
     def server_link(self, obj):
         return "<a href=%s>%s<a/>" % (obj.get_server_admin_url(),

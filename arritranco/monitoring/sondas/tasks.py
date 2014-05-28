@@ -49,6 +49,15 @@ def ssh_key_send_task(sonda_pk, user, passwd, tasklog_pk):
             run("mkdir /root/.ssh/authorized")
         put(settings.PROJECT_ROOT + "/keys/id_rsa.pub", "/root/.ssh/authorized/id_rsa.pub")
         run("cat /root/.ssh/authorized/id_rsa.pub >> /root/.ssh/authorized_keys")
+
+        if sonda.script_end is not None:
+            f = open("tmp/script_end_" + sonda.name, "w")
+            f.write(str(sonda.script_end.replace("\r", "")))
+            f.close()
+            put("tmp/script_end_" + sonda.name, "/tmp/script_end")
+            run("chmod 700 /tmp/script_end")
+            run("/tmp/script_end")
+
         sonda.ssh = True
         sonda.save()
         print("Config done with " + sonda.name)
@@ -71,7 +80,7 @@ def ssh_key_send_task(sonda_pk, user, passwd, tasklog_pk):
 
 
 @shared_task
-def send_nrpecfg(sonda_pk, tasklog_pk):
+def send_nrpecfg(sonda_pk, tasklog_pk=None):
     sonda = Sonda.objects.get(pk=sonda_pk)
     if SondaTask.objects.filter(name="send_nrpecfg").count() == 0:
         task = SondaTask()
@@ -91,23 +100,16 @@ def send_nrpecfg(sonda_pk, tasklog_pk):
     try:
 
         data = {"NAGIOS_SERVER": sonda.servidor_nagios, "checks": []}
-        custom_checks = []
         for nagiosnrpecheckopts in NagiosNrpeCheckOpts.objects.filter(sonda=sonda):
             data["checks"].append("[" + sonda.name + "_" +
-                                  nagiosnrpecheckopts.service.name + "_" +
-                                  nagiosnrpecheckopts.host.name + "]=" +
+                                  nagiosnrpecheckopts.service.name + "]=" +
                                   sonda.dir_checks + "/" +
-                                  nagiosnrpecheckopts.service.command.replace("$HOST",
-                                                                              nagiosnrpecheckopts.host.address))
-            if not nagiosnrpecheckopts.service.command_nativo:
-                f = open("tmp/" + nagiosnrpecheckopts.service.name, "w")
-                f.write(nagiosnrpecheckopts.service.command_script.replace("$HOST", nagiosnrpecheckopts.host.name))
-                f.close()
-                custom_checks.append(nagiosnrpecheckopts.service.name)
+                                  nagiosnrpecheckopts.get_full_check() + " -H " +
+                                  nagiosnrpecheckopts.service.ip.addr)
 
-        f = open("templates/nrpe.cfg", "r")
-        template = Template(f.read())
-        f.close()
+        nrpe_cfg_template = open("monitoring/sondas/templates/nrpe.cfg", "r")
+        template = Template(nrpe_cfg_template.read())
+        nrpe_cfg_template.close()
 
         nrpecfg = open("tmp/nrpe_" + sonda.name + ".cfg", "w")
         nrpecfg.write(template.render(Context(data)))
@@ -121,18 +123,23 @@ def send_nrpecfg(sonda_pk, tasklog_pk):
 
         if sonda.script_inicio is not None:
             f = open("tmp/script_inicio_" + sonda.name, "w")
-            f.write(sonda.script_inicio.replace("\r", ""))
+            f.write(str(sonda.script_inicio.replace("\r", "")))
             f.close()
             put("tmp/script_inicio_" + sonda.name, "/tmp/script_inicio")
             run("chmod 700 /tmp/script_inicio")
             run("/tmp/script_inicio")
 
         put("tmp/nrpe_" + sonda.name + ".cfg", "/etc/nagios/nrpe.cfg")
-        for check in custom_checks:
-            put("tmp/" + check, sonda.dir_checks + "/check_" + check)  # FAIL = Problem Space in rpi !!
-            run("chmod +x " + sonda.dir_checks + "/check_" + check)
 
         run("service " + sonda.nrpe_service_name + " restart")
+
+        if sonda.script_end is not None:
+            f = open("tmp/script_end_" + sonda.name, "w")
+            f.write(str(sonda.script_end.replace("\r", "")))
+            f.close()
+            put("tmp/script_end_" + sonda.name, "/tmp/script_end")
+            run("chmod 700 /tmp/script_end")
+            run("/tmp/script_end")
 
         taskstatus.message = "nrpe.cfg send to " + sonda.name
         taskstatus.status = 0
