@@ -252,3 +252,55 @@ class BackupFile(models.Model):
         verbose_name_plural = _(u'Backup files')
         verbose_name = _(u'Backup file')
 
+
+class FileBackupTaskTemplate(models.Model):
+    """
+        File backup task Template
+    """
+    FILE_BACKUP = 1
+    DATABASE_BACKUP = 2
+    SYSTEM_BACKUP = 3
+
+    BACKUP_TYPE_CHOICES = (
+        (FILE_BACKUP, _(u'File')),
+        (DATABASE_BACKUP, _(u'Database')),
+        (SYSTEM_BACKUP, _(u'System')),
+    )
+
+    name = models.CharField(max_length=400)
+
+    checker_fqdn = models.CharField(max_length=255, choices=settings.FILE_BACKUP_CHECKERS,
+                                    verbose_name=_(u"Checker fqdn"),
+                                    help_text=_(u"Machine fqdn where this backups shoud be checked."))
+    directory = models.CharField(max_length=255,
+                                 help_text=_(u'Directory where files shoud be.'))
+    days_in_hard_drive = models.IntegerField(blank=False, null=False, default=180,
+                                             help_text=_(u'Number of days that this backup shoud be on disk at most.'))
+    max_backup_month = models.IntegerField(blank=False, null=False, default=7,
+                                           help_text=_(u'Number of backups that shoud to be on disk after a month.'))
+    duration = models.IntegerField(_(u"Duration in minutes"), blank=True, null=True)
+    extra_options = models.TextField(help_text=
+                                     _(u'Extra options for backup jobs, for now support data=dbengine:dbname '),
+                                     blank=True, null=True)
+    bckp_type = models.IntegerField(blank=True, null=True, choices=BACKUP_TYPE_CHOICES, default=SYSTEM_BACKUP)
+
+    os = models.ManyToManyField("inventory.OperatingSystem")
+
+    def __unicode__(self):
+        return self.name
+
+
+class FileBackupProductTemplate(models.Model):
+    file_backup_task_template = models.ForeignKey(FileBackupTaskTemplate, related_name='file_backup')
+    file_pattern = models.ForeignKey(FileNamePattern)
+    start_seq = models.IntegerField(blank=True, null=True,
+                                    help_text=_(
+                                        u'If there is more than one file_pattern, the initial value of the sequence'))
+    end_seq = models.IntegerField(blank=True, null=True,
+                                  help_text=_(
+                                      u'If there is more than one file_pattern, the last value of the sequence'))
+    variable_percentage = models.DecimalField(default=20, max_digits=2, decimal_places=0, null=True, blank=True,
+                                              help_text=_(u"% size that you expect to change between two backups"))
+
+    def __unicode__(self):
+        return u"%si -> %s" % (self.file_backup_task_template, self.file_pattern)
