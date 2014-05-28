@@ -139,11 +139,12 @@ def hardware(request):
     checks = []
     for HardwarePolicy in NagiosHardwarePolicyCheckOpts.objects.all():
         for hwmodel in HardwarePolicy.hwmodel.all():
-            for machine in PhysicalMachine.objects.filter(server__model__id=hwmodel.id,up=True).exclude(
+            for machine in PhysicalMachine.objects.filter(server__model__id=hwmodel.id, up=True).exclude(
                     os__in=HardwarePolicy.excluded_os.all()):
 
                 if HardwarePolicy.get_full_check().__contains__("management_ip"):
-                    if machine.server.management_ip is not None and machine.server.management_ip.addr != "":
+                    if machine.get_management_ip() is not None \
+                            and not HardwarePolicy.excluded_ips.filter(addr=machine.get_management_ip()):
                         checks.append({"host_name": machine.fqdn,
                                        "hwpolicy": HardwarePolicy,
                                        "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip.addr}
@@ -151,19 +152,22 @@ def hardware(request):
                                       )
 
                 else:
-                    checks.append({"host_name": machine.fqdn,
-                                   "hwpolicy": HardwarePolicy,
-                                   "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
-                                   }
-                                  )
+                    if not HardwarePolicy.excluded_ips.\
+                            filter(addr__in=[ip.addr for ip in machine.get_all_ips()]):
+                        checks.append({"host_name": machine.fqdn,
+                                       "hwpolicy": HardwarePolicy,
+                                       "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
+                                       }
+                                      )
 
             for device in UnrackableNetworkedDevice.objects.filter(model=hwmodel):
-                checks.append({"host_name": device.name,
-                               "hwpolicy": HardwarePolicy,
-                               "command": HardwarePolicy.get_full_check() % {
-                                   "management_ip": device.main_ip.addr}
-                               }
-                              )
+                if not HardwarePolicy.excluded_ips.filter(addr=device.main_ip.addr):
+                    checks.append({"host_name": device.name,
+                                   "hwpolicy": HardwarePolicy,
+                                   "command": HardwarePolicy.get_full_check() % {
+                                       "management_ip": device.main_ip.addr}
+                                   }
+                                  )
 
     context = {"checks": checks}
 
@@ -185,8 +189,7 @@ def service(request):
                 if not [i for i in checks_service_machine if i["description"] == serviceCheck.check.description and i["name"] == machine.fqdn]:
                     checks_service_machine.append({"description": serviceCheck.check.description,
                                                    "name": machine.fqdn,
-                                                   "command": serviceCheck.check.command,
-                                                   "params": serviceCheck.params,
+                                                   "command": serviceCheck.get_full_check(),
                                                    "contact_groups": serviceCheck.contact_group_all_csv})
     context = {
         'checks_service': NagiosServiceCheckOpts.objects.all(),

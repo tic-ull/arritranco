@@ -257,6 +257,15 @@ class Machine(models.Model):
     def get_nagios_parents(self):
         return 'Router_ccti1'
 
+    def get_all_ips(self):
+        ips = [interface.ip for interface in self.interface_set.all()]
+        physicalMachine = PhysicalMachine.objects.filter(pk=self.pk)
+        if physicalMachine and physicalMachine[0].server.management_ip:
+            ips.append(physicalMachine[0].server.management_ip)
+        return ips
+
+
+
 
 def set_default_checks(sender, instance, **kwargs):
     from monitoring.nagios.models import NagiosMachineCheckDefaults, NagiosMachineCheckOpts

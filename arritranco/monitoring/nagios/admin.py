@@ -154,7 +154,7 @@ class NagiosUserdeviceCheckOptsAdmin(admin.ModelAdmin):
 
 class NagiosHardwarePolicyCheckOptsForm(forms.ModelForm):
     options = forms.CharField(
-        help_text="In this string you can put %(management_ip)s or %(fqdn)s and it will be interpolated",
+        help_text=_(u"In this string you can put %(management_ip)s or %(fqdn)s and it will be interpolated"),
         required=False)
 
     class Meta:
@@ -164,7 +164,7 @@ class NagiosHardwarePolicyCheckOptsForm(forms.ModelForm):
 class NagiosHardwarePolicyCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ['hwmodels_names', 'check_name']
     list_display = ('check_name','hwmodels_names')
-    filter_horizontal = ('contact_groups', "hwmodel")
+    filter_horizontal = ('contact_groups', "hwmodel", "excluded_ips", "excluded_os")
     form = NagiosHardwarePolicyCheckOptsForm
 
 

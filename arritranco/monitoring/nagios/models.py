@@ -13,6 +13,7 @@ from hardware_model.models import HwModel
 from django.core.exceptions import ValidationError
 
 
+
 NAGIOS_OK = 0
 NAGIOS_WARNING = 1
 NAGIOS_CRITICAL = 2
@@ -150,6 +151,24 @@ class NagiosMachineCheckOpts(NagiosOpts):
                                                  machine=self.machine).exclude(pk=self.pk):
             raise ValidationError('Error check in machine repited')
 
+    def get_full_check(self):
+        command = None
+        if self.options is None or self.options == "":
+            command = self.check.command + self.check.default_params
+        else:
+            command = self.check.command + self.options
+
+        from inventory.models import PhysicalMachine
+
+        physicalMachine = PhysicalMachine.objects.filter(pk=self.pk)
+
+        if physicalMachine:
+            return command % {"fqdn": self.machine.fqdn,
+                              "management_ip": physicalMachine[0].server.management_ip}
+        else:
+            return command % {"fqdn": self.machine.fqdn,
+                              "management_ip": ""}
+
 
 class NagiosServiceCheckOpts(NagiosOpts):
     service = models.ForeignKey(Service)
@@ -197,7 +216,8 @@ class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):
 
 class NagiosHardwarePolicyCheckOpts(NagiosOpts):
     hwmodel = models.ManyToManyField(HwModel)
-    excluded_os = models.ManyToManyField("inventory.OperatingSystem", null=True, blank=True, help_text="Excluded Os")
+    excluded_os = models.ManyToManyField("inventory.OperatingSystem", null=True, blank=True, help_text=_(u"Excluded Os"))
+    excluded_ips = models.ManyToManyField("network.IP", null=True, blank=True, help_text=_(u"Excluded IPs"))
 
     class Meta:
         verbose_name = _(u'Hardware Policy Check')
