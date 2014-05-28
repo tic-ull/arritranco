@@ -162,8 +162,22 @@ class IP(models.Model):
         else:
             return self.network.ip
 
+    def get_devices_str(self):
+        devicesStr = ""
+        for interface in self.interface_set.all():
+            devicesStr += interface.machine.fqdn + " "
+        for devices in self.unrackablenetworkeddevice_set.all():
+            devicesStr += devices.name + " "
+        for server in self.server_set.all():
+            devicesStr += str(server) + " "
+        for service in self.service_set.all():
+            devicesStr += str(service) + " "
+        for switch in self.switch_set.all():
+            devicesStr += str(switch) + " "
+        return ",".join(devicesStr.split(" "))
+
     def __unicode__(self):
-        return self.addr
+        return self.addr + " " + self.get_devices_str()
 
 
 class ManagementInfo(models.Model):
