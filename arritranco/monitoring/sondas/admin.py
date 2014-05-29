@@ -21,6 +21,7 @@ class SondaAdmin(admin.ModelAdmin):
     list_display = ('name', )
     actions = ['ssh_key', 'action_send_nrpecfg']
     readonly_fields = ["ssh", ]
+    prepopulated_fields = {"slug": ("name",)}
 
     class SshForm(forms.Form):
         _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
