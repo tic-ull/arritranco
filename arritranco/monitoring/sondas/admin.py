@@ -13,6 +13,7 @@ from arritranco import settings
 class NagiosNrpeCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ['sonda_name', 'service_name', 'check_name']
     list_display = ('sonda_name', 'service_name', 'check_name')
+    filter_horizontal = ("sonda", 'contact_groups', )
 
 
 class SondaAdmin(admin.ModelAdmin):

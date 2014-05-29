@@ -120,6 +120,8 @@ TEMPLATE_DIRS = (
     PROJECT_ROOT + '/templates',
 )
 
+NAGIOS_SERVER_IP = "127.0.0.1"
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',

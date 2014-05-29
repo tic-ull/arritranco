@@ -101,7 +101,7 @@ def send_nrpecfg(sonda_pk, tasklog_pk=None):
 
         data = {"NAGIOS_SERVER": sonda.servidor_nagios, "checks": []}
         for nagiosnrpecheckopts in NagiosNrpeCheckOpts.objects.filter(sonda=sonda):
-            data["checks"].append("[" + sonda.name + "_" +
+            data["checks"].append("[" + sonda.slug + "_" +
                                   nagiosnrpecheckopts.service.name + "]=" +
                                   sonda.dir_checks + "/" +
                                   nagiosnrpecheckopts.get_full_check() + " -H " +
