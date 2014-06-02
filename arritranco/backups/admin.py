@@ -5,7 +5,7 @@ Created on 25/12/2010
 '''
 from django.contrib import admin
 from models import FileBackupTask, FileNamePattern, FileBackupProduct, BackupFile
-from models import BackupTask, R1BackupTask, TSMBackupTask
+from models import BackupTask, R1BackupTask, TSMBackupTask, FileBackupProductTemplate, FileBackupTaskTemplate
 
 
 class FileBackupProductAdmin(admin.ModelAdmin):
@@ -14,6 +14,11 @@ class FileBackupProductAdmin(admin.ModelAdmin):
 
 class FileBackupProductInline(admin.TabularInline):
     model = FileBackupProduct
+    extra = 4
+
+
+class FileBackupProductTemplateInline(admin.TabularInline):
+    model = FileBackupProductTemplate
     extra = 4
 
 
@@ -47,8 +52,17 @@ class TSMBackupTaskAdmin(admin.ModelAdmin):
     search_fields = ['machine__fqdn', 'tsm_server', 'description']
 
 
+class FileBackupTaskTemplateAdmin(admin.ModelAdmin):
+    list_display = ('bckp_type', 'checker_fqdn', 'directory', 'days_in_hard_drive', 'max_backup_month')
+    list_filter = ('bckp_type', 'checker_fqdn')
+    search_fields = ['machine__fqdn', 'directory', 'checker_fqdn', 'description']
+    inlines = [FileBackupProductTemplateInline, ]
+    filter_horizontal = ["os", ]
+
+
 admin.site.register(FileBackupTask, FileBackupTaskAdmin)
 admin.site.register(TSMBackupTask, TSMBackupTaskAdmin)
 admin.site.register(FileNamePattern, FileNamePatternAdmin)
 admin.site.register(R1BackupTask)
 admin.site.register(BackupFile, BackupFileAdmin)
+admin.site.register(FileBackupTaskTemplate, FileBackupTaskTemplateAdmin)

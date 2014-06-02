@@ -4,6 +4,7 @@ Created on 25/03/2011
 
 @author: esauro
 '''
+import random
 
 from django import forms
 from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType, Interface
@@ -13,12 +14,13 @@ from django.template import RequestContext
 from django.contrib import admin, messages
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.admin import SimpleListFilter
-from django.forms import ModelForm
+from django.forms import ModelForm, Form
 from django.conf import settings
 
 # This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
 from monitoring.nagios.admin import NagiosMachineCheckOptsInline
-from backups.models import FileBackupTask, BackupTask
+from backups.models import FileBackupTask, BackupTask, FileBackupTaskTemplate, FileBackupProductTemplate, \
+    FileBackupProduct
 import datetime
 
 import logging
@@ -58,18 +60,17 @@ class ManagementIPFilter(SimpleListFilter):
             return queryset.filter(id__in=machines)
 
 
-
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('fqdn', 'up', 'os', 'start_up', 'update_priority', 'epo_level', 'network_names')
     list_filter = ('up', 'os', 'update_priority', 'epo_level')
     date_hierarchy = 'start_up'
     search_fields = ('fqdn', 'os__name')
     inlines = [InterfacesInline, NagiosMachineCheckOptsInline, ]
-    actions = ['copy_machine', 'update_machine', 'set_default_checks', 'aply_system_backupfile']
+    actions = ['copy_machine', 'update_machine', 'set_default_checks', 'apply_backupfile']
 
     def set_default_checks(self, request, queryset):
         """Admin action to set default checks"""
-        from monitoring.nagios.models import NagiosMachineCheckDefaults, NagiosMachineCheckOpts,\
+        from monitoring.nagios.models import NagiosMachineCheckDefaults, NagiosMachineCheckOpts, \
             NagiosContactGroup, NagiosCheck
 
         contact = NagiosContactGroup.objects.get(name=settings.DEFAULT_NAGIOS_CG)
@@ -168,25 +169,59 @@ class MachineAdmin(admin.ModelAdmin):
 
     update_machine.short_description = _(u'Machine up to date')
 
-    class SystemBackupFileForm(ModelForm):
-        class Meta:
-            model = FileBackupTask
-            fields = ['description', 'active', 'days_in_hard_drive', 'checker_fqdn',
-                      'max_backup_month', 'duration', 'extra_options', 'bckp_type']
+    class BackupFileForm(Form):
+        _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+        filebackup = forms.ModelChoiceField(FileBackupTaskTemplate.objects.all())
 
-    def aply_system_backupfile(self, request, queryset):
-        """Admin action to copy de basics of a machine."""
+    def apply_backupfile(self, request, queryset):
+        """Admin action to aply a system backup by default."""
         form = None
         if 'apply' in request.POST:
+            machineDates = request.session["machineDate"]
+            filebackuptemplate = FileBackupTaskTemplate.objects.get(pk=request.POST["filebackup"])
+            for machineDate in machineDates:
+                machine = Machine.objects.get(fqdn=machineDate["machine"])
+                if machine.os in filebackuptemplate.os.all() and machine.up:
+                    filebackup = FileBackupTask()
+                    filebackup.active = True
+                    filebackup.bckp_type = filebackuptemplate.bckp_type
+                    filebackup.checker_fqdn = filebackuptemplate.checker_fqdn
+                    filebackup.days_in_hard_drive = filebackuptemplate.days_in_hard_drive
+                    filebackup.description = filebackuptemplate.name + " para " + machine.fqdn
+                    filebackup.directory = filebackuptemplate.directory % {"fqdn": machineDate["machine"]}
+                    dt = datetime.datetime.combine(datetime.date.today(), datetime.time(0, 0)) + datetime.timedelta(minutes=filebackuptemplate.duration)
+                    filebackup.duration = dt.time()
+                    filebackup.hour = machineDate["hour"]
+                    filebackup.monthday = machineDate["mothday"]
+                    filebackup.minute = random.randint(0, 59)
+                    filebackup.extra_options = filebackuptemplate.extra_options
+                    filebackup.machine = machine
+                    filebackup.max_backup_month = filebackuptemplate.max_backup_month
+                    filebackup.weekday = "*"
+                    filebackup.save()
+                    for filebackupproducttemplate in FileBackupProductTemplate.objects.filter(file_backup_task_template=filebackuptemplate):
+                        fileBackupProduct = FileBackupProduct()
+                        fileBackupProduct.end_seq = filebackupproducttemplate.end_seq
+                        fileBackupProduct.file_backup_task = filebackup
+                        fileBackupProduct.file_pattern = filebackupproducttemplate.file_pattern
+                        fileBackupProduct.start_seq = filebackupproducttemplate.start_seq
+                        fileBackupProduct.variable_percentage = fileBackupProduct.variable_percentage
+                        fileBackupProduct.save()
+                else:
+                    messages.error(request, _(u"No se puedo aplicar backup en %s") % machine.fqdn)
+
             messages.info(request, _(u'The action has been applied'))
+
             return HttpResponseRedirect(request.get_full_path())
         if not form:  # first call render the form to ask for diferent parametters
-            #date = [{"nbackups":x,"hours":[nbackpus ...]} ...]
+            #date = {mothdate:{"nbackups":x,"hours":[nbackpus ...]} ...}
             date = {}
             for mothday in xrange(1, 27):
                 hours = {}
                 for hour in xrange(0, 7):
-                    hours[hour] = FileBackupTask.objects.filter(monthday=mothday, hour=hour).count()
+                    hours[hour] = FileBackupTask.objects.filter(monthday=mothday,
+                                                                hour=hour).count() + FileBackupTask.objects.filter(
+                        monthday=mothday, hour="0" + str(hour)).count()
 
                 date[mothday] = {"nbackups": FileBackupTask.objects.filter(monthday=mothday).count(),
                                  "hours": hours}
@@ -196,36 +231,46 @@ class MachineAdmin(admin.ModelAdmin):
             machineDate = []
 
             for machine in queryset:
-                minNBackupsDay = min([i["nbackups"] for i in date])
-                day = [i for i in xrange(1, 27) if FileBackupTask.objects.filter(monthday=i).count() == minNBackupsDay][0]
+
+                minNBackupsDay = min([date[mothday]["nbackups"] for mothday in xrange(1, 27)])
+                day = -1
+                for i in xrange(1, 27):
+                    if date[i]["nbackups"] == minNBackupsDay:
+                        day = i
+                        break
+                #FIXME
+                # con muchas maquinas aveces da 0 cuando ha de dar 1
                 minNBackupsHour = min([i for i in date[day]["hours"]])
-                hour = [i for i in xrange(0, 7) if FileBackupTask.objects.filter(monthday=day, hour=i).count() == minNBackupsHour][0]
+                hour = -1
+                for i in xrange(0, 7):
+                    if minNBackupsHour == date[day]["hours"][i]:
+                        hour = i
+                        break
 
                 machineDate.append({"machine": machine.fqdn, "mothday": day, "hour": hour})
+
                 date[day]["nbackups"] += 1
                 date[day]["hours"][hour] += 1
                 pass
 
-            form = self.SystemBackupFileForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME),
-                                                      'description': "",
-                                                      'active': True,
-                                                      'days_in_hard_drive': "",
-                                                      'checker_fqdn': "",
-                                                      'max_backup_month': "",
-                                                      'duration': "",
-                                                      'extra_options': "",
-                                                      'bckp_type': BackupTask.SYSTEM_BACKUP
-                                                     })
+            form = self.BackupFileForm(initial={
+                '_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME),
+            })
+
+            request.session["machineDate"] = machineDate
+
             return render_to_response('admin/inventory/machine/systembackup.html',
                                       {"form": form,
-                                       "action": "systembackupfile"},
-                                       context_instance=RequestContext(request))
+                                       "action": "apply_backupfile",
+                                       "machineDate": machineDate},
+                                      context_instance=RequestContext(request))
 
-    aply_system_backupfile.short_description = _(u'Aply system backup')
+    apply_backupfile.short_description = _(u'Apply backup file template')
 
 
 class PysicalMachineAdmin(MachineAdmin):
-    list_display = ('fqdn', 'server_link', 'ip_link', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
+    list_display = (
+        'fqdn', 'server_link', 'ip_link', 'get_warranty_expires', 'up', 'os', 'start_up', 'update_priority', 'epo_level')
     list_filter = ('up', 'os', 'update_priority', 'epo_level', ManagementIPFilter)
     search_fields = ('fqdn', 'server__model__name', 'os__name')
 
@@ -258,9 +303,6 @@ class InterfaceAdmin(admin.ModelAdmin):
 class OperatingSystemAdmin(admin.ModelAdmin):
     list_display = ('name', 'type', )
     list_filter = ('type', )
-
-
-
 
 
 admin.site.register(PhysicalMachine, PysicalMachineAdmin)
