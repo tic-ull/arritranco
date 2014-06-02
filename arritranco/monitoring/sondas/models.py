@@ -1,6 +1,7 @@
 from django.db import models
 from monitoring.nagios.models import NagiosOpts
 from hardware.models import UnrackableNetworkedDevice
+from arritranco.settings import NAGIOS_SERVER_IP
 
 
 class NagiosNrpeCheckOpts(NagiosOpts):
@@ -35,10 +36,11 @@ class Sonda(models.Model):
     ssh = models.BooleanField(default=False)
     dir_checks = models.CharField(default="/usr/lib/nagios/plugins", max_length=500,
                                   verbose_name="Directorio de plugings nagios")
-    servidor_nagios = models.CharField(default="193.145.118.253", max_length=400)
+    servidor_nagios = models.CharField(default=NAGIOS_SERVER_IP, max_length=400)
     nrpe_service_name = models.CharField(default="nagios-nrpe-server", max_length=400)
     script_inicio = models.TextField(blank=True)
     script_end = models.TextField(blank=True)
+    slug = models.SlugField(unique=True)
 
     def __unicode__(self):
         return u"%s" % self.name

@@ -13,6 +13,7 @@ from arritranco import settings
 class NagiosNrpeCheckOptsAdmin(admin.ModelAdmin):
     search_fields = ['sonda_name', 'service_name', 'check_name']
     list_display = ('sonda_name', 'service_name', 'check_name')
+    filter_horizontal = ("sonda", 'contact_groups', )
 
 
 class SondaAdmin(admin.ModelAdmin):
@@ -20,6 +21,7 @@ class SondaAdmin(admin.ModelAdmin):
     list_display = ('name', )
     actions = ['ssh_key', 'action_send_nrpecfg']
     readonly_fields = ["ssh", ]
+    prepopulated_fields = {"slug": ("name",)}
 
     class SshForm(forms.Form):
         _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)

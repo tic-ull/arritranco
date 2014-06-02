@@ -228,7 +228,7 @@ class NagiosHardwarePolicyCheckOpts(NagiosOpts):
         return u"%s on %s" % (self.check.name, hwNames)
 
     def hwmodels_names(self):
-        return ",".join([i.name for i in self.hwmodel.all()])
+        return "<br />".join([i.name for i in self.hwmodel.all()])
 
     def check_name(self):
         return str(self.check.name)
@@ -239,6 +239,7 @@ class NagiosHardwarePolicyCheckOpts(NagiosOpts):
             for hwmodel in self.hwmodel.all():
                 if HwPolicy.hwmodel.filter(pk=hwmodel.pk):
                     raise ValidationError('Error check in hardware %s repited' % hwmodel.name)
+    hwmodels_names.allow_tags = True
 
 
 class NagiosContactGroup(Responsible):

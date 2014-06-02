@@ -102,7 +102,7 @@ class UnrackableNetworkedDevice(Unrackable, NetworkedDevice):
     wall_socket = models.CharField(max_length=255)
     switch = models.ForeignKey("network.Switch")
     place_in_building = models.TextField()
-    comments = models.TextField()
+    comments = models.TextField(blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
 
