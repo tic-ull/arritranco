@@ -78,7 +78,7 @@ class TaskStatusInline(admin.StackedInline):
 
 class TaskLogAdmin(admin.ModelAdmin):
     search_fields = ['task',  'sonda']
-    list_display = ('task',  'sonda')
+    list_display = ('task', "last_time", "last_status",  'sonda')
     actions = ['resend_shh_key', 'resend_nrpecfg']
     inlines = [TaskStatusInline, ]
     readonly_fields = ('task', 'sonda')

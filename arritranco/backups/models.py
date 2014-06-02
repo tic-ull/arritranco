@@ -273,7 +273,7 @@ class FileBackupTaskTemplate(models.Model):
                                     verbose_name=_(u"Checker fqdn"),
                                     help_text=_(u"Machine fqdn where this backups shoud be checked."))
     directory = models.CharField(max_length=255,
-                                 help_text=_(u'Directory where files shoud be.'))
+                                 help_text=_(u'Directory where files shoud be. Here u can interpolate %(fqdn)s'))
     days_in_hard_drive = models.IntegerField(blank=False, null=False, default=180,
                                              help_text=_(u'Number of days that this backup shoud be on disk at most.'))
     max_backup_month = models.IntegerField(blank=False, null=False, default=7,

@@ -180,31 +180,35 @@ class MachineAdmin(admin.ModelAdmin):
             machineDates = request.session["machineDate"]
             filebackuptemplate = FileBackupTaskTemplate.objects.get(pk=request.POST["filebackup"])
             for machineDate in machineDates:
-                filebackup = FileBackupTask()
-                filebackup.active = True
-                filebackup.bckp_type = filebackuptemplate.bckp_type
-                filebackup.checker_fqdn = filebackuptemplate.checker_fqdn
-                filebackup.days_in_hard_drive = filebackuptemplate.days_in_hard_drive
-                filebackup.description = ""
-                filebackup.directory = filebackuptemplate.directory
-                dt = datetime.datetime.combine(datetime.date.today(), datetime.time(0, 0)) + datetime.timedelta(hours=filebackuptemplate.duration)
-                filebackup.duration = dt.time()
-                filebackup.hour = machineDate["hour"]
-                filebackup.monthday = machineDate["mothday"]
-                filebackup.minute = random.randint(0, 59)
-                filebackup.extra_options = filebackuptemplate.extra_options
-                filebackup.machine = Machine.objects.get(fqdn=machineDate["machine"])
-                filebackup.max_backup_month = filebackuptemplate.max_backup_month
-                filebackup.weekday = "*"
-                filebackup.save()
-                for filebackupproducttemplate in FileBackupProductTemplate.objects.filter(file_backup_task_template=filebackuptemplate):
-                    fileBackupProduct = FileBackupProduct()
-                    fileBackupProduct.end_seq = filebackupproducttemplate.end_seq
-                    fileBackupProduct.file_backup_task = filebackup
-                    fileBackupProduct.file_pattern = filebackupproducttemplate.file_pattern
-                    fileBackupProduct.start_seq = filebackupproducttemplate.start_seq
-                    fileBackupProduct.variable_percentage = fileBackupProduct.variable_percentage
-                    fileBackupProduct.save()
+                machine = Machine.objects.get(fqdn=machineDate["machine"])
+                if machine.os in filebackuptemplate.os.all() and machine.up:
+                    filebackup = FileBackupTask()
+                    filebackup.active = True
+                    filebackup.bckp_type = filebackuptemplate.bckp_type
+                    filebackup.checker_fqdn = filebackuptemplate.checker_fqdn
+                    filebackup.days_in_hard_drive = filebackuptemplate.days_in_hard_drive
+                    filebackup.description = filebackuptemplate.name + " para " + machine.fqdn
+                    filebackup.directory = filebackuptemplate.directory % {"fqdn": machineDate["machine"]}
+                    dt = datetime.datetime.combine(datetime.date.today(), datetime.time(0, 0)) + datetime.timedelta(minutes=filebackuptemplate.duration)
+                    filebackup.duration = dt.time()
+                    filebackup.hour = machineDate["hour"]
+                    filebackup.monthday = machineDate["mothday"]
+                    filebackup.minute = random.randint(0, 59)
+                    filebackup.extra_options = filebackuptemplate.extra_options
+                    filebackup.machine = machine
+                    filebackup.max_backup_month = filebackuptemplate.max_backup_month
+                    filebackup.weekday = "*"
+                    filebackup.save()
+                    for filebackupproducttemplate in FileBackupProductTemplate.objects.filter(file_backup_task_template=filebackuptemplate):
+                        fileBackupProduct = FileBackupProduct()
+                        fileBackupProduct.end_seq = filebackupproducttemplate.end_seq
+                        fileBackupProduct.file_backup_task = filebackup
+                        fileBackupProduct.file_pattern = filebackupproducttemplate.file_pattern
+                        fileBackupProduct.start_seq = filebackupproducttemplate.start_seq
+                        fileBackupProduct.variable_percentage = fileBackupProduct.variable_percentage
+                        fileBackupProduct.save()
+                else:
+                    messages.error(request, _(u"No se puedo aplicar backup en ") % machine.fqdn)
 
             messages.info(request, _(u'The action has been applied'))
 

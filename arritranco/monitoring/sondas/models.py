@@ -61,6 +61,18 @@ class SondaTasksLog(models.Model):
     def __unicode__(self):
         return self.task.name + " " + self.sonda.name
 
+    def last_time(self):
+        if self.sondataskstatus_set.all():
+            return self.sondataskstatus_set.all().order_by('-timestamp')[0].timestamp
+        else:
+            return ""
+
+    def last_status(self):
+        if self.sondataskstatus_set.all():
+            return SondaTaskStatus.STATUS_CHOICES[self.sondataskstatus_set.all().order_by('-timestamp')[0].status]
+        else:
+            return ""
+
 
 class SondaTaskStatus(models.Model):
     STATUS_CHOICES = (
