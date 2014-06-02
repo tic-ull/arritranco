@@ -208,7 +208,7 @@ class MachineAdmin(admin.ModelAdmin):
                         fileBackupProduct.variable_percentage = fileBackupProduct.variable_percentage
                         fileBackupProduct.save()
                 else:
-                    messages.error(request, _(u"No se puedo aplicar backup en ") % machine.fqdn)
+                    messages.error(request, _(u"No se puedo aplicar backup en %s") % machine.fqdn)
 
             messages.info(request, _(u'The action has been applied'))
 
