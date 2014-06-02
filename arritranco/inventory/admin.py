@@ -4,6 +4,7 @@ Created on 25/03/2011
 
 @author: esauro
 '''
+import random
 
 from django import forms
 from models import Machine, PhysicalMachine, VirtualMachine, OperatingSystem, OperatingSystemType, Interface
@@ -13,12 +14,13 @@ from django.template import RequestContext
 from django.contrib import admin, messages
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.admin import SimpleListFilter
-from django.forms import ModelForm
+from django.forms import ModelForm, Form
 from django.conf import settings
 
 # This is a little bit tricky, because nagios app is importing machine model as well, but works ;)
 from monitoring.nagios.admin import NagiosMachineCheckOptsInline
-from backups.models import FileBackupTask, BackupTask, FileBackupTaskTemplate
+from backups.models import FileBackupTask, BackupTask, FileBackupTaskTemplate, FileBackupProductTemplate, \
+    FileBackupProduct
 import datetime
 
 import logging
@@ -167,14 +169,43 @@ class MachineAdmin(admin.ModelAdmin):
 
     update_machine.short_description = _(u'Machine up to date')
 
-    class BackupFileForm(ModelForm):
+    class BackupFileForm(Form):
+        _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
         filebackup = forms.ModelChoiceField(FileBackupTaskTemplate.objects.all())
 
     def apply_backupfile(self, request, queryset):
         """Admin action to aply a system backup by default."""
         form = None
         if 'apply' in request.POST:
-            
+            machineDates = request.session["machineDate"]
+            filebackuptemplate = FileBackupTaskTemplate.objects.get(pk=request.POST["filebackup"])
+            for machineDate in machineDates:
+                filebackup = FileBackupTask()
+                filebackup.active = True
+                filebackup.bckp_type = filebackuptemplate.bckp_type
+                filebackup.checker_fqdn = filebackuptemplate.checker_fqdn
+                filebackup.days_in_hard_drive = filebackuptemplate.days_in_hard_drive
+                filebackup.description = ""
+                filebackup.directory = filebackuptemplate.directory
+                dt = datetime.datetime.combine(datetime.date.today(), datetime.time(0, 0)) + datetime.timedelta(hours=filebackuptemplate.duration)
+                filebackup.duration = dt.time()
+                filebackup.hour = machineDate["hour"]
+                filebackup.monthday = machineDate["mothday"]
+                filebackup.minute = random.randint(0, 59)
+                filebackup.extra_options = filebackuptemplate.extra_options
+                filebackup.machine = Machine.objects.get(fqdn=machineDate["machine"])
+                filebackup.max_backup_month = filebackuptemplate.max_backup_month
+                filebackup.weekday = "*"
+                filebackup.save()
+                for filebackupproducttemplate in FileBackupProductTemplate.objects.filter(file_backup_task_template=filebackuptemplate):
+                    fileBackupProduct = FileBackupProduct()
+                    fileBackupProduct.end_seq = filebackupproducttemplate.end_seq
+                    fileBackupProduct.file_backup_task = filebackup
+                    fileBackupProduct.file_pattern = filebackupproducttemplate.file_pattern
+                    fileBackupProduct.start_seq = filebackupproducttemplate.start_seq
+                    fileBackupProduct.variable_percentage = fileBackupProduct.variable_percentage
+                    fileBackupProduct.save()
+
             messages.info(request, _(u'The action has been applied'))
 
             return HttpResponseRedirect(request.get_full_path())
@@ -218,13 +249,15 @@ class MachineAdmin(admin.ModelAdmin):
                 date[day]["hours"][hour] += 1
                 pass
 
-            form = self.SystemBackupFileForm(initial={
+            form = self.BackupFileForm(initial={
                 '_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME),
             })
 
+            request.session["machineDate"] = machineDate
+
             return render_to_response('admin/inventory/machine/systembackup.html',
                                       {"form": form,
-                                       "action": "systembackupfile",
+                                       "action": "apply_backupfile",
                                        "machineDate": machineDate},
                                       context_instance=RequestContext(request))
 
