@@ -13,3 +13,4 @@ celery
 fabric
 psycopg2
 amqp
+pillow
