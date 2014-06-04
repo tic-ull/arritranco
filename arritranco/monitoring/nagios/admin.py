@@ -11,9 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.admin import SimpleListFilter
 
-from models import NagiosCheck, NagiosMachineCheckOpts, NagiosContactGroup, NagiosNetworkParent, \
-    NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, Service, NagiosHardwarePolicyCheckOpts,\
-    NagiosMachineCheckDefaults
+from models import *
 from inventory.models import Machine
 # Try to import the default nagios contact group
 try:
@@ -61,6 +59,9 @@ class NagiosMachineCheckDefaultsAdmin(admin.ModelAdmin):
     list_display = ('nagioscheck',)
     pass
 
+class NagiosCheckTemplateAdmin(admin.ModelAdmin):
+    list_display =  ('name',)
+    readonly_fields = ('slug',)
 
 class NagiosCheckAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
@@ -178,6 +179,7 @@ class ServiceAdmin(admin.ModelAdmin):
 
 admin.site.register(NagiosMachineCheckOpts, NagiosMachineCheckOptsAdmin)
 admin.site.register(NagiosCheck, NagiosCheckAdmin)
+admin.site.register(NagiosCheckTemplate, NagiosCheckTemplateAdmin)
 admin.site.register(NagiosContactGroup, NagiosContactGroupAdmin)
 admin.site.register(NagiosNetworkParent, NagiosNetworkParentAdmin)
 admin.site.register(NagiosServiceCheckOpts, NagiosServiceCheckOptsAdmin)

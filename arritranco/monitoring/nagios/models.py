@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.conf import settings
 from scheduler.models import TaskStatus
+from django.template.defaultfilters import slugify
 from nsca import NSCA
 from django.utils.translation import ugettext_lazy as _
 from network.models import Network, IP
@@ -30,7 +31,50 @@ HUMAN_TO_NAGIOS = {
 }
 
 
+class NagiosCheckTemplate(models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255)
+    active_checks_enabled = models.BooleanField(default=True)       # Active service checks are enabled
+    passive_checks_enabled = models.BooleanField(default=True)       # Passive service checks are enabled/accepted
+    parallelize_check = models.BooleanField(default=True)       # Active service checks should be parallelized (disabling this can lead to major performance problems)
+    obsess_over_service = models.BooleanField(default=True)       # We should obsess over this service (if necessary)
+    check_freshness = models.BooleanField(default=False)       # Default is to NOT check service 'freshness'
+    notifications_enabled = models.BooleanField(default=True)       # Service notifications are enabled
+    event_handler_enabled = models.BooleanField(default=True)       # Service event handler is enabled
+    flap_detection_enabled = models.BooleanField(default=True)       # Flap detection is enabled
+    failure_prediction_enabled = models.BooleanField(default=True)       # Failure prediction is enabled
+    process_perf_data = models.BooleanField(default=True)       # Process performance data
+    retain_status_information = models.BooleanField(default=True)       # Retain status information across program restarts
+    retain_nonstatus_information = models.BooleanField(default=True)       # Retain non-status information across program restarts
+    is_volatile = models.BooleanField(default=False)
+    check_period = models.CharField(max_length=55, default=u'24x7')
+    check_interval = models.PositiveSmallIntegerField(default=5)
+    retry_interval = models.PositiveSmallIntegerField(default=1)
+    notification_interval = models.PositiveSmallIntegerField(default=720) # Re-notification each 12 hours
+    first_notification_delay = models.PositiveSmallIntegerField(blank=True, null=True)
+    max_check_attempts = models.PositiveSmallIntegerField(default=3)
+    notification_period = models.CharField(max_length=55, default=u'24x7')
+    notification_options = models.CharField(max_length=10, default=u'w,u,c,r')
+    register = models.PositiveSmallIntegerField(default=0,editable=False)
+
+    def save(self, *args, **kwargs):
+        """ We ensure slugfield is correctly loaded."""
+        self.slug = slugify(self.name)
+        super(NagiosCheckTemplate, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return u"%s" % self.name
+
+    class Meta:
+        verbose_name = _(u'Check Template')
+        verbose_name_plural = _(u'Check Templates')
+
 class Service(models.Model):
+    """ A service that could be potentially checked by nagios.
+
+    Not a nagios service but a web,ftp,ssh service on your infrastructure.
+    """
+
     name = models.CharField(max_length=255)
     ip = models.ForeignKey(IP)
     machines = models.ManyToManyField("inventory.Machine")
@@ -59,6 +103,7 @@ class NagiosCheck(models.Model):
     name = models.CharField(max_length=255)
     command = models.CharField(max_length=255)
     default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
+    template = models.ForeignKey(NagiosCheckTemplate,null=True)
     machines = models.ManyToManyField("inventory.Machine", through='NagiosMachineCheckOpts', blank=True, null=True)
     services = models.ManyToManyField(Service, through='NagiosServiceCheckOpts', blank=True, null=True)
     nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True,
