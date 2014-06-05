@@ -257,6 +257,6 @@ REST_FRAMEWORK = {
 }
 
 try:
-    from settings_local import *
+    from arritranco.settings_local import *
 except ImportError:
     pass

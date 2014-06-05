@@ -60,7 +60,7 @@ class NagiosMachineCheckDefaultsAdmin(admin.ModelAdmin):
     pass
 
 class NagiosCheckTemplateAdmin(admin.ModelAdmin):
-    list_display =  ('name',)
+    list_display =  ('name','slug')
     readonly_fields = ('slug',)
 
 class NagiosCheckAdmin(admin.ModelAdmin):

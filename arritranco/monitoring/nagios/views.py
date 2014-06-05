@@ -1,5 +1,6 @@
 from inventory.models import OperatingSystem
 from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask, BackupTask
+from django.forms.models import model_to_dict
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 import logging
@@ -8,17 +9,32 @@ logger = logging.getLogger(__name__)
 
 from nsca import NSCA
 from models import Service, NagiosCheck, NagiosMachineCheckOpts, NagiosNetworkParent, HUMAN_TO_NAGIOS, \
-    NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, NagiosHardwarePolicyCheckOpts
+    NagiosServiceCheckOpts, NagiosUnrackableNetworkedDeviceCheckOpts, NagiosHardwarePolicyCheckOpts, NagiosCheckTemplate
 from scheduler.models import TaskStatus, TaskCheck
 from templatetags.nagios_filters import nagios_safe
 from inventory.models import Machine, PhysicalMachine
 from hardware.models import UnrackableNetworkedDevice
 
 
+def check_templates(request):
+    """Return check_templates a.k.a service templates on Nagios conffile."""
+    template = 'nagios/check_templates.cfg'
+    models_dicts = [model_to_dict(x) for x in NagiosCheckTemplate.objects.all()]
+    for m in models_dicts:
+        m.pop('id',None)
+        m['name'] = m['slug']
+        m.pop('slug',None)
+    context = { 'check_templates': models_dicts }
+
+    if 'file' in request.GET:
+        response = render_to_response(template, context, mimetype="text/plain")
+        response['Content-Disposition'] = 'attachment; filename=%s' % request.GET['file']
+    else:
+        response = render_to_response(template, context, mimetype="text/plain")
+    return response
+
 def hosts(request):
-    '''
-        Nagios hosts config file.
-    '''
+    """Nagios hosts config file."""
     template = 'nagios/hosts.cfg'
 
     context = {'machines': [],
@@ -40,9 +56,7 @@ def hosts(request):
 
 
 def hosts_ext_info(request):
-    '''
-        Nagios extinfo config file
-    '''
+    """ Nagios extinfo config file """
     l = []
     # FIXME:
     for os in OperatingSystem.objects.filter(type__name__in=['Linux', 'Windows', 'Solaris']):
@@ -61,6 +75,7 @@ def hosts_ext_info(request):
 
 
 def get_checks(request, name):
+    """Returns config file with asigned 'name' checks."""
     template = 'nagios/check.cfg'
     context = {
         'checks_machine': NagiosMachineCheckOpts.objects.filter(check=NagiosCheck.objects.filter(name=name),
@@ -77,9 +92,7 @@ def get_checks(request, name):
 
 
 def backup_checks(request):
-    '''
-        Backup checks
-    '''
+    """ Backup checks """
     template = 'nagios/backup_checks.cfg'
     context = {
         'backup_file_tasks': FileBackupTask.objects.filter(machine__up=True).filter(active=True).order_by(
@@ -95,6 +108,7 @@ def backup_checks(request):
 
 
 def refresh_nagios_status(request):
+    """Syncs last task status on database to Nagios using NSCA."""
     logger.debug('Refreshing nagios status')
     nsca = NSCA()
     for bt in BackupTask.objects.filter(active=True, machine__up=True):

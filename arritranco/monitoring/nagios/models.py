@@ -39,6 +39,7 @@ class NagiosCheckTemplate(models.Model):
     parallelize_check = models.BooleanField(default=True)       # Active service checks should be parallelized (disabling this can lead to major performance problems)
     obsess_over_service = models.BooleanField(default=True)       # We should obsess over this service (if necessary)
     check_freshness = models.BooleanField(default=False)       # Default is to NOT check service 'freshness'
+    freshness_threshold = models.PositiveIntegerField(default=0)
     notifications_enabled = models.BooleanField(default=True)       # Service notifications are enabled
     event_handler_enabled = models.BooleanField(default=True)       # Service event handler is enabled
     flap_detection_enabled = models.BooleanField(default=True)       # Flap detection is enabled
@@ -47,6 +48,7 @@ class NagiosCheckTemplate(models.Model):
     retain_status_information = models.BooleanField(default=True)       # Retain status information across program restarts
     retain_nonstatus_information = models.BooleanField(default=True)       # Retain non-status information across program restarts
     is_volatile = models.BooleanField(default=False)
+    check_command = models.CharField(max_length=255, default=u'return-unknown')
     check_period = models.CharField(max_length=55, default=u'24x7')
     check_interval = models.PositiveSmallIntegerField(default=5)
     retry_interval = models.PositiveSmallIntegerField(default=1)
@@ -103,7 +105,7 @@ class NagiosCheck(models.Model):
     name = models.CharField(max_length=255)
     command = models.CharField(max_length=255)
     default_params = models.TextField(help_text="Default params for this check", blank=True, null=True)
-    template = models.ForeignKey(NagiosCheckTemplate,null=True)
+    template = models.ForeignKey(NagiosCheckTemplate) # First created template should be the default
     machines = models.ManyToManyField("inventory.Machine", through='NagiosMachineCheckOpts', blank=True, null=True)
     services = models.ManyToManyField(Service, through='NagiosServiceCheckOpts', blank=True, null=True)
     nrpe = models.ManyToManyField(Service, through='sondas.NagiosNrpeCheckOpts', blank=True, null=True,
