@@ -31,8 +31,7 @@ class TaskCheckStatusFilter(SimpleListFilter):
         """
 
         if self.value():
-            checks = [x.id for x in queryset.filter(taskstatus__status=self.value(), taskstatus__isnull=False) if
-                      x.last_status == self.value()]
+            checks = [x.id for x in queryset.filter(last_status__status=self.value())]
             return queryset.filter(id__in=checks)
 
 
