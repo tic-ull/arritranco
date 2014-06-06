@@ -80,6 +80,8 @@ class NagiosCheckTemplate(models.Model):
         for key,value in dict.items():
             if value == '':
                 dict.pop(key)
+            if type(value) == bool:
+                dict[key] = int(value)
         return dict
 
 class Service(models.Model):
