@@ -37,7 +37,6 @@ class NagiosCheckTemplate(models.Model):
     slug = models.SlugField(max_length=255)
     active_checks_enabled = models.BooleanField(default=True)       # Active service checks are enabled
     passive_checks_enabled = models.BooleanField(default=True)       # Passive service checks are enabled/accepted
-    parallelize_check = models.BooleanField(default=True)       # Active service checks should be parallelized (disabling this can lead to major performance problems)
     obsess_over_service = models.BooleanField(default=True)       # We should obsess over this service (if necessary)
     check_freshness = models.BooleanField(default=False)       # Default is to NOT check service 'freshness'
     freshness_threshold = models.PositiveIntegerField(default=0)
@@ -53,8 +52,8 @@ class NagiosCheckTemplate(models.Model):
     check_period = models.CharField(max_length=55, default=u'24x7')
     check_interval = models.PositiveSmallIntegerField(default=5)
     retry_interval = models.PositiveSmallIntegerField(default=1)
-    notification_interval = models.PositiveSmallIntegerField(default=720) # Re-notification each 12 hours
-    first_notification_delay = models.PositiveSmallIntegerField(default=0, blank=True)
+    notification_interval = models.PositiveSmallIntegerField(default=720)  # Re-notification each 12 hours
+    first_notification_delay = models.PositiveSmallIntegerField(default=0, null=True, blank=True)
     max_check_attempts = models.PositiveSmallIntegerField(default=3)
     notification_period = models.CharField(max_length=55, default=u'24x7')
     notification_options = models.CharField(max_length=10, default=u'w,u,c,r')
@@ -78,7 +77,7 @@ class NagiosCheckTemplate(models.Model):
         dict['name'] = dict['slug']
         dict.pop('slug', None)
         for key,value in dict.items():
-            if value == '':
+            if value == '' or value == None:
                 dict.pop(key)
             if type(value) == bool:
                 dict[key] = int(value)
