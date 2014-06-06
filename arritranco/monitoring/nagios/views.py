@@ -201,7 +201,8 @@ def service(request):
         for machine in serviceCheck.service.machines.all():
             if machine.up and not NagiosMachineCheckOpts.objects.filter(machine=machine, check=serviceCheck.check):
                 if not [i for i in checks_service_machine if i["description"] == serviceCheck.check.description and i["name"] == machine.fqdn]:
-                    checks_service_machine.append({"description": serviceCheck.check.description,
+                    checks_service_machine.append({"check":serviceCheck.check,
+                                                   "description": serviceCheck.check.description,
                                                    "name": machine.fqdn,
                                                    "command": serviceCheck.get_full_check(),
                                                    "contact_groups": serviceCheck.contact_group_all_csv})
