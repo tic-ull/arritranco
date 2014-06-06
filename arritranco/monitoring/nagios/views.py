@@ -1,6 +1,6 @@
 from inventory.models import OperatingSystem
 from backups.models import FileBackupTask, R1BackupTask, TSMBackupTask, BackupTask
-from django.forms.models import model_to_dict
+
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 import logging
@@ -19,11 +19,8 @@ from hardware.models import UnrackableNetworkedDevice
 def check_templates(request):
     """Return check_templates a.k.a service templates on Nagios conffile."""
     template = 'nagios/check_templates.cfg'
-    models_dicts = [model_to_dict(x) for x in NagiosCheckTemplate.objects.all()]
-    for m in models_dicts:
-        m.pop('id',None)
-        m['name'] = m['slug']
-        m.pop('slug',None)
+    models_dicts = [x.to_dict() for x in NagiosCheckTemplate.objects.all()]
+
     context = { 'check_templates': models_dicts }
 
     if 'file' in request.GET:
@@ -159,7 +156,8 @@ def hardware(request):
                 if HardwarePolicy.get_full_check().__contains__("management_ip"):
                     if machine.get_management_ip() is not None \
                             and not HardwarePolicy.excluded_ips.filter(addr=machine.get_management_ip()):
-                        checks.append({"host_name": machine.fqdn,
+                        checks.append({"check": HardwarePolicy.check,
+                                       "host_name": machine.fqdn,
                                        "hwpolicy": HardwarePolicy,
                                        "command": HardwarePolicy.get_full_check() % {"management_ip": machine.server.management_ip.addr}
                                        }
@@ -168,7 +166,8 @@ def hardware(request):
                 else:
                     if not HardwarePolicy.excluded_ips.\
                             filter(addr__in=[ip.addr for ip in machine.get_all_ips()]):
-                        checks.append({"host_name": machine.fqdn,
+                        checks.append({"check": HardwarePolicy.check,
+                                       "host_name": machine.fqdn,
                                        "hwpolicy": HardwarePolicy,
                                        "command": HardwarePolicy.get_full_check() % {"fqdn": machine.fqdn}
                                        }
@@ -176,7 +175,8 @@ def hardware(request):
 
             for device in UnrackableNetworkedDevice.objects.filter(model=hwmodel):
                 if not HardwarePolicy.excluded_ips.filter(addr=device.main_ip.addr):
-                    checks.append({"host_name": device.name,
+                    checks.append({"check": HardwarePolicy.check,
+                                   "host_name": device.name,
                                    "hwpolicy": HardwarePolicy,
                                    "command": HardwarePolicy.get_full_check() % {
                                        "management_ip": device.main_ip.addr}

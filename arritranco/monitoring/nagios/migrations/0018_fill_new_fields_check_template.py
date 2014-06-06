@@ -14,6 +14,8 @@ class Migration(DataMigration):
         passive_check_template = orm.NagiosCheckTemplate.objects.get(slug='passive-service')
         passive_check_template.check_freshness = True
         passive_check_template.freshness_threshold = 93600
+        passive_check_template.max_check_attempts = 1
+        passive_check_template.flap_detection_enabled = False
         passive_check_template.save()
 
     def backwards(self, orm):
@@ -21,6 +23,8 @@ class Migration(DataMigration):
         passive_check_template = orm.NagiosCheckTemplate.objects.get(slug='passive-service')
         passive_check_template.check_freshness = False
         passive_check_template.freshness_threshold = 0
+        passive_check_template.max_check_attempts = 3
+        passive_check_template.flap_detection_enabled = False
         passive_check_template.save()
 
     models = {

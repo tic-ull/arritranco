@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.db.models.signals import post_save
+from django.forms.models import model_to_dict
 from django.conf import settings
 from scheduler.models import TaskStatus
 from django.template.defaultfilters import slugify
@@ -48,28 +49,38 @@ class NagiosCheckTemplate(models.Model):
     retain_status_information = models.BooleanField(default=True)       # Retain status information across program restarts
     retain_nonstatus_information = models.BooleanField(default=True)       # Retain non-status information across program restarts
     is_volatile = models.BooleanField(default=False)
-    check_command = models.CharField(max_length=255, default=u'return-unknown')
+    check_command = models.CharField(max_length=255, null=True, blank=True)
     check_period = models.CharField(max_length=55, default=u'24x7')
     check_interval = models.PositiveSmallIntegerField(default=5)
     retry_interval = models.PositiveSmallIntegerField(default=1)
     notification_interval = models.PositiveSmallIntegerField(default=720) # Re-notification each 12 hours
-    first_notification_delay = models.PositiveSmallIntegerField(blank=True, null=True)
+    first_notification_delay = models.PositiveSmallIntegerField(default=0, blank=True)
     max_check_attempts = models.PositiveSmallIntegerField(default=3)
     notification_period = models.CharField(max_length=55, default=u'24x7')
     notification_options = models.CharField(max_length=10, default=u'w,u,c,r')
     register = models.PositiveSmallIntegerField(default=0,editable=False)
+
+    class Meta:
+        verbose_name = _(u'Check Template')
+        verbose_name_plural = _(u'Check Templates')
+
+    def __unicode__(self):
+        return u"%s" % self.name
 
     def save(self, *args, **kwargs):
         """ We ensure slugfield is correctly loaded."""
         self.slug = slugify(self.name)
         super(NagiosCheckTemplate, self).save(*args, **kwargs)
 
-    def __unicode__(self):
-        return u"%s" % self.name
-
-    class Meta:
-        verbose_name = _(u'Check Template')
-        verbose_name_plural = _(u'Check Templates')
+    def to_dict(self):
+        dict = model_to_dict(self)
+        dict.pop('id', None)
+        dict['name'] = dict['slug']
+        dict.pop('slug', None)
+        for key,value in dict.items():
+            if value == '':
+                dict.pop(key)
+        return dict
 
 class Service(models.Model):
     """ A service that could be potentially checked by nagios.
