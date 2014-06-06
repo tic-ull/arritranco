@@ -11,6 +11,8 @@ class Migration(DataMigration):
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
+        orm.NagiosCheckTemplate.objects.all().update(first_notification_delay=0)
+        orm.NagiosCheckTemplate.objects.exclude(slug='passive-service').update(check_command='')
         passive_check_template = orm.NagiosCheckTemplate.objects.get(slug='passive-service')
         passive_check_template.check_freshness = True
         passive_check_template.freshness_threshold = 93600
