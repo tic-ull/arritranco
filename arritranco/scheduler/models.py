@@ -5,11 +5,13 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from validators import validate_day_of_month, validate_day_of_week, validate_hour, validate_minute, validate_month
 
+import logging
 import datetime
 from cron import *
 from croniter import croniter
 from django.db.models.signals import post_save
 
+logger = logging.getLogger(__name__)
 
 class TaskManager(models.Manager):
     def todo(self, start_time=None, end_time=None):
@@ -146,6 +148,7 @@ class TaskStatus(models.Model):
 
 
 def update_status(sender, instance, **kwargs):
+    logger.info("llamando update status taskstatus: %s" % instance)
     instance.task_check.last_status = instance.task_check.get_status()
     instance.task_check.save()
 
