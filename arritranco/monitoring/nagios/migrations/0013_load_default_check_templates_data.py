@@ -22,7 +22,6 @@ class Migration(DataMigration):
         passive_service_template = orm.NagiosCheckTemplate(name='Passive service')
         passive_service_template.passive_checks_enabled = True
         passive_service_template.active_checks_enabled = False
-        passive_service_template.max_check_attempts = 1
         passive_service_template.slug = slugify(passive_service_template.name)
         passive_service_template.save()
 
