@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'NagiosCheckTemplate.freshness_threshold'
         db.add_column(u'nagios_nagioschecktemplate', 'freshness_threshold',
-                      self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0),
+                      self.gf('django.db.models.fields.PositiveIntegerField')(default=0),
                       keep_default=False)
 
         # Adding field 'NagiosCheckTemplate.check_command'
@@ -160,7 +160,7 @@ class Migration(SchemaMigration):
             'failure_prediction_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'first_notification_delay': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'flap_detection_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'freshness_threshold': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
+            'freshness_threshold': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_volatile': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'max_check_attempts': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '3'}),

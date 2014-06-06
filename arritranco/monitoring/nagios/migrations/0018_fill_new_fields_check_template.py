@@ -7,26 +7,21 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        from django.template.defaultfilters import slugify
         "Write your forwards methods here."
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
-        generic_service_template = orm.NagiosCheckTemplate(name='Generic service')
-        generic_service_template.slug = slugify(generic_service_template.name)
-        generic_service_template.save()
-        active_service_template = orm.NagiosCheckTemplate(name='Active service')
-        active_service_template.passive_checks_enabled = False
-        active_service_template.slug = slugify(active_service_template.name)
-        active_service_template.save()
-        passive_service_template = orm.NagiosCheckTemplate(name='Passive service')
-        passive_service_template.passive_checks_enabled = True
-        passive_service_template.slug = slugify(passive_service_template.name)
-        passive_service_template.save()
+        passive_check_template = orm.NagiosCheckTemplate.objects.get(slug='passive-service')
+        passive_check_template.check_freshness = True
+        passive_check_template.freshness_threshold = 93600
+        passive_check_template.save()
 
     def backwards(self, orm):
         "Write your backwards methods here."
-        orm.NagiosCheckTemplate.objects.all().delete()
+        passive_check_template = orm.NagiosCheckTemplate.objects.get(slug='passive-service')
+        passive_check_template.check_freshness = False
+        passive_check_template.freshness_threshold = 0
+        passive_check_template.save()
 
     models = {
         u'hardware.hwbase': {
@@ -147,11 +142,13 @@ class Migration(DataMigration):
             'os': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['inventory.OperatingSystemType']", 'symmetrical': 'False'}),
             'services': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['nagios.Service']", 'null': 'True', 'through': u"orm['nagios.NagiosServiceCheckOpts']", 'blank': 'True'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
+            'template': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheckTemplate']"}),
             'unrackable_networked_devices': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['hardware.UnrackableNetworkedDevice']", 'null': 'True', 'through': u"orm['nagios.NagiosUnrackableNetworkedDeviceCheckOpts']", 'blank': 'True'})
         },
         u'nagios.nagioschecktemplate': {
             'Meta': {'object_name': 'NagiosCheckTemplate'},
             'active_checks_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'check_command': ('django.db.models.fields.CharField', [], {'default': "u'return-unknown'", 'max_length': '255'}),
             'check_freshness': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'check_interval': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '5'}),
             'check_period': ('django.db.models.fields.CharField', [], {'default': "u'24x7'", 'max_length': '55'}),
@@ -159,6 +156,7 @@ class Migration(DataMigration):
             'failure_prediction_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'first_notification_delay': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'flap_detection_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'freshness_threshold': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_volatile': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'max_check_attempts': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '3'}),
