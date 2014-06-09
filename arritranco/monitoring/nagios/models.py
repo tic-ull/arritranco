@@ -14,7 +14,9 @@ from hardware.models import UnrackableNetworkedDevice
 from hardware_model.models import HwModel
 from django.core.exceptions import ValidationError
 
+import logging
 
+logger = logging.getLogger(__name__)
 
 NAGIOS_OK = 0
 NAGIOS_WARNING = 1
@@ -359,6 +361,8 @@ def propagate_status(sender, **kwargs):
 def assign_default_checks(sender, **kwargs):
     if kwargs['created']:
         machine = kwargs['instance']
+        message = _(u"Creating default checks for %s")
+        logger.info(message % machine.fqdn)
         for checkdefault in NagiosMachineCheckDefaults.objects.all():
             if machine.os.type in checkdefault.nagioscheck.os.all():
                 if checkdefault.nagioscheck.slug == "nut":

@@ -264,29 +264,6 @@ class Machine(models.Model):
             ips.append(physicalMachine[0].server.management_ip)
         return ips
 
-
-
-
-def set_default_checks(sender, instance, **kwargs):
-    from monitoring.nagios.models import NagiosMachineCheckDefaults, NagiosMachineCheckOpts
-
-    for checkdefault in NagiosMachineCheckDefaults.objects.all():
-        if not instance.nagiosmachinecheckopts_set.filter(check=checkdefault.nagioscheck) and \
-                        instance.os.type in checkdefault.nagioscheck.os.all():
-            machineCheckOpts = NagiosMachineCheckOpts()
-            machineCheckOpts.check = checkdefault.nagioscheck
-            machineCheckOpts.machine = instance
-            machineCheckOpts.save()
-            for contact_group in checkdefault.nagioscheck.default_contact_groups.all():
-                machineCheckOpts.contact_groups.add(contact_group)
-            machineCheckOpts.save()
-
-
-
-
-post_save.connect(set_default_checks, sender=Machine, dispatch_uid="set_default_checks")
-
-
 class Interface(models.Model):
     """ Model to represent a machine network interface """
     machine = models.ForeignKey(Machine)
