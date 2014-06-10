@@ -17,13 +17,30 @@ class ActiveMachinesView(TemplateView):
     template_name = "admin/inventory/machine/active-machines.html"
 
     def get_context_data(self, room_slug=None, rack_slug=None):
-        qs = Machine.objects.filter(up=True)
+        qs = Machine.objects.filter(up=True)\
+            .prefetch_related('physicalmachine')\
+            .prefetch_related('physicalmachine__server__rackserver')\
+            .prefetch_related('physicalmachine__server__rackserver__rack')\
+            .prefetch_related('physicalmachine__server__rackserver__rack__room')\
+            .prefetch_related('physicalmachine__server__bladeserver')\
+            .prefetch_related('physicalmachine__server__bladeserver__chassis')\
+            .prefetch_related('physicalmachine__server__bladeserver__chassis__rack__room')\
+            .prefetch_related('virtualmachine')\
+            .prefetch_related('interface_set')\
+            .prefetch_related('os__type')\
+            .select_related('os')
         return {'machines': qs, }
 
 
 class UpdateListView(ListView):
     template_name = "admin/inventory/machine/update_list.html"
-    queryset = Machine.objects.filter(up=True, os__type__slug='Linux').order_by('update_priority', 'up_to_date_date')
+    queryset = Machine.objects.filter(up=True, os__type__slug='Linux')\
+        .prefetch_related('physicalmachine')\
+        .prefetch_related('virtualmachine')\
+        .prefetch_related('interface_set')\
+        .prefetch_related('os__type')\
+        .select_related('os')\
+        .order_by('update_priority', 'up_to_date_date')
 
     def get_context_data(self, **kwargs):
         one_month_ago = datetime.date.today() - datetime.timedelta(days=30)

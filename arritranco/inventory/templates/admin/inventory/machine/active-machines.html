@@ -50,10 +50,10 @@
             <td>{{ m.os }}</td>
             <td>
                 {% if m.os.type.name == 'Linux' %}
-                    <a href="ssh://adminsis@{{ m.fqdn }}/{{ m.fqdn }}">{{ m.get_service_ip }}</a>
+                    <a href="ssh://adminsis@{{ m.fqdn }}/{{ m.fqdn }}">{{ m.get_service_ip.addr }}</a>
                 {% endif %}
                 {% if m.os.type.name == 'Windows' %}
-                    <a href="rdesktop://adminsis@{{ m.fqdn }}/{{ m.fqdn }}">{{ m.get_service_ip }}</a>
+                    <a href="rdesktop://adminsis@{{ m.fqdn }}/{{ m.fqdn }}">{{ m.get_service_ip.addr }}</a>
                 {% endif %}
             </td>
             <td>{{ m.get_epo_level_display }}</td>
@@ -72,7 +72,7 @@
                 {% endif %}
             </td>
             <td>{% if m.physicalmachine %}
-                    <a href="http://{{ m.physicalmachine.server.management_ip }}">{{ m.physicalmachine.server.management_ip }}</a>
+                    <a href="http://{{ m.physicalmachine.server.management_ip.addr }}">{{ m.physicalmachine.server.management_ip.addr }}</a>
                 {% endif %}
             </td>
             <td>{% if m.physicalmachine %}

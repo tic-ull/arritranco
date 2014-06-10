@@ -160,12 +160,13 @@ class Machine(models.Model):
 
     def get_service_ip(self):
         """ Returns the ip of the interface with DEFAULT_SVC_IFACE_NAME name """
+        service_ip = ''
         try:
             service_interface = self.interface_set.get(name=DEFAULT_SVC_IFACE_NAME)
-            service_ip = service_interface.ip
+            #service_ip = service_interface.ip
         except ObjectDoesNotExist:
             service_ip = '127.0.0.1'
-        return service_ip
+        return service_interface.ip if service_ip == '' else service_ip
 
     @staticmethod
     def get_by_addr(addr, filter_up=False):
