@@ -132,17 +132,16 @@ class Machine(models.Model):
 
     def resolveip(self):
         """ Return DNS ip for the fqdn if it is resoluble """
+        ip = ''
         try:
             ip = socket.gethostbyname(self.fqdn)
-            myip = IP()
-            myip.addr = ip
-            myip.save()
         except socket.gaierror:
             # The fqdn is not in the DNS
-            myip = None
+            return None
         except Exception as e:
             logger.exception("Unknown error resolving DNS name for '%s': %s" % (self.fqdn, e))
-            myip = None
+            return None
+        myip, created = IP.objects.get_or_create(addr=ip)
 
         return myip
 
@@ -246,13 +245,13 @@ class Machine(models.Model):
            
            - This function assumes that the fqdn name is resoluble.
         """
-        iface = Interface(
-            machine=self,
-            ip=self.resolveip(),
-            hwaddr='00:00:00:00:00:00',
-            name=DEFAULT_SVC_IFACE_NAME,
-            visible=True,
-        )
+        iface = Interface()
+        iface.machine=self
+        iface.ip=self.resolveip()
+        iface.hwaddr='00:00:00:00:00:00'
+        iface.name=DEFAULT_SVC_IFACE_NAME
+        iface.visible=True
+
         return iface
 
     def get_nagios_parents(self):
