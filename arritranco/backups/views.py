@@ -97,7 +97,7 @@ def add_backup_file(request, machine=False, windows=False):
         filesize = request.GET['filesize']
     fbp = FileBackupTask.get_fbp(machine, filename)
     if not fbp:
-        msg = "There is no pattern for this file: %s" % filename
+        msg = "There is no pattern for this file: %s on machine %s" % (filename, machine)
         logger.error(msg)
         return HttpResponse(msg)
     next_run = fbp.file_backup_task.next_run(filedate)
