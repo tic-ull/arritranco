@@ -25,7 +25,7 @@ class FileBackupProductTemplateInline(admin.TabularInline):
 class FileBackupTaskAdmin(admin.ModelAdmin):
     list_display = ('machine', 'active', 'bckp_type', 'description', 'checker_fqdn', 'directory',
                     'days_in_hard_drive', 'max_backup_month')
-    list_filter = ('bckp_type', 'checker_fqdn')
+    list_filter = ('active', 'bckp_type', 'checker_fqdn')
     list_editable = ('bckp_type', )
     search_fields = ['machine__fqdn', 'directory', 'checker_fqdn', 'description']
     inlines = [FileBackupProductInline, ]
