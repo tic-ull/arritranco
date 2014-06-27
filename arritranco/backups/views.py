@@ -60,8 +60,8 @@ def add_backup_file(request, machine=False, windows=False):
         if not machine:
             logger.error('There is no machine for address: %s' % request.META['REMOTE_ADDR'])
             raise Http404(MACHINE_NOT_FOUND_ERROR)
-    else:
-        machine = request.GET.get('machine')
+    elif not machine:
+        machine = Machine.get_by_addr(request.GET.get('machine'), filter_up=True)
 
     if not request.GET.has_key('filename'):
         logger.error('No filename in request')

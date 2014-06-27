@@ -14,5 +14,5 @@ urlpatterns = patterns('',
                        url(r'^addWindowsBackupFile$', add_backup_file, {'windows': True}, name="addWindowsBackupFile"),
                        url(r'^registerFileFromChecker$', register_file_from_checker, name="register_file_from_checker"),
                        url(r'^addCompressedBackupFile$', add_compressed_backup_file, name="addCompressedBackupFile"),
-                       url(r'^(?P<pk>[^/]+)/$', BackupTaskView.as_view()),
+                       url(r'^(?P<pk>\d+)/$', BackupTaskView.as_view()),
 )
