@@ -55,11 +55,13 @@ def add_backup_file(request, machine=False, windows=False):
     # We have to know from what host we are being called.
     logger.debug('Adding backup file')
 
-    if not machine:
+    if not 'machine' in request.GET.keys():
         machine = Machine.get_by_addr(request.META['REMOTE_ADDR'], filter_up=True)
         if not machine:
             logger.error('There is no machine for address: %s' % request.META['REMOTE_ADDR'])
             raise Http404(MACHINE_NOT_FOUND_ERROR)
+    elif not machine:
+        machine = Machine.get_by_addr(request.GET.get('machine'), filter_up=True)
 
     if not request.GET.has_key('filename'):
         logger.error('No filename in request')
