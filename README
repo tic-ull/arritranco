@@ -1,7 +1,7 @@
 Arritranco:
 ===========
 
-Arritranco aims to be an inventory IT tool.
+Arritranco aims to be a Django based inventory IT tool.
 
 It should integrate with monitoring systems such as nagios and cacti, and offer an easy to use API.
 
