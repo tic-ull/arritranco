@@ -58,7 +58,7 @@ class BackupTask(Task):
 
 class VCBBackupTask(BackupTask):
     """
-        VCB backup task
+    VCB backup task
     """
     tsm_server = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
                                   help_text=_(u"Machine fqdn where this backups shoud be checked."))
@@ -66,7 +66,7 @@ class VCBBackupTask(BackupTask):
 
 class TSMBackupTask(BackupTask):
     """
-        TSM backup task
+    TSM backup task
     """
     tsm_server = models.CharField(max_length=255, verbose_name=_(u"TSM Server name"),
                                   help_text=_(u"TSM Server name."))
@@ -74,21 +74,28 @@ class TSMBackupTask(BackupTask):
 
 class R1BackupTask(BackupTask):
     """
-        R1Soft backup task
+    R1Soft backup task
     """
     r1_server = models.CharField(max_length=255, verbose_name=_(u"Checker fqdn"),
                                  help_text=_(u"Machine fqdn where this backups shoud be checked."))
 
+def validate_path(dirname):
+    """
+    Validate paths not ends with '/'
+    """
+    if dirname != os.path.normpath(dirname):
+        raise ValidationError(_(u'%s is not a normalized path (end with slash?)' % dirname))
 
 class FileBackupTask(BackupTask):
     """
-        File backup task
+    File backup task
     """
     checker_fqdn = models.CharField(max_length=255, choices=settings.FILE_BACKUP_CHECKERS,
                                     verbose_name=_(u"Checker fqdn"),
                                     help_text=_(u"Machine fqdn where this backups shoud be checked."))
     directory = models.CharField(max_length=255,
-                                 help_text=_(u'Directory where files shoud be.'))
+                                 help_text=_(u'Directory where files shoud be.'),
+                                 validators=[validate_path])
     days_in_hard_drive = models.IntegerField(blank=False, null=False, default=180,
                                              help_text=_(u'Number of days that this backup shoud be on disk at most.'))
     max_backup_month = models.IntegerField(blank=False, null=False, default=7,
@@ -108,7 +115,7 @@ class FileBackupTask(BackupTask):
 
 class FileNamePattern(models.Model):
     """
-        File name patterns.
+    File name patterns.
     """
     pattern = models.CharField('Nombre del archivo', max_length=255, blank=True, null=True,
                                help_text=_(u'File name pattern, you can use regexp and date patterns here.'))
@@ -164,7 +171,10 @@ class FileNamePattern(models.Model):
 
 
 class FileBackupProduct(models.Model):
-    file_backup_task = models.ForeignKey(FileBackupTask, related_name = 'file_backup')
+    """
+    Products a FileBackupTask should generate when accomplished.
+    """
+    file_backup_task = models.ForeignKey(FileBackupTask, related_name='file_backup')
     file_pattern = models.ForeignKey(FileNamePattern)
     start_seq = models.IntegerField(blank=True, null=True,
         help_text=_(u'If there is more than one file_pattern, the initial value of the sequence'))
@@ -178,6 +188,9 @@ class FileBackupProduct(models.Model):
 
 
 class BackupFile(models.Model):
+    """
+    A backup file that has been created as a result of a task, is registered on the database.
+    """
     file_backup_product = models.ForeignKey(FileBackupProduct)
     task_check = models.ForeignKey(TaskCheck, null=True, blank=True)
 
@@ -255,7 +268,7 @@ class BackupFile(models.Model):
 
 class FileBackupTaskTemplate(models.Model):
     """
-        File backup task Template
+    Template to define common scenarios. And "auto-generate" FBT through admin action using this information.
     """
     FILE_BACKUP = 1
     DATABASE_BACKUP = 2
@@ -291,6 +304,9 @@ class FileBackupTaskTemplate(models.Model):
 
 
 class FileBackupProductTemplate(models.Model):
+    """
+    Define BackupProducts on templates.
+    """
     file_backup_task_template = models.ForeignKey(FileBackupTaskTemplate, related_name='file_backup')
     file_pattern = models.ForeignKey(FileNamePattern)
     start_seq = models.IntegerField(blank=True, null=True,
