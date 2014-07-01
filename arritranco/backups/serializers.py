@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from backups.models import BackupFile, BackupTask, FileBackupProduct, FileBackupTask, TSMBackupTask, R1BackupTask
 from django.conf import settings
@@ -34,7 +35,7 @@ class BackupFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BackupFile
-        fields = ('id', 'path')
+        fields = ('id', 'path', 'original_file_size', 'deletion_date')
 
     def get_full_path(self, obj):
         return os.path.join(obj.file_backup_product.file_backup_task.directory, obj.original_file_name)
@@ -75,6 +76,7 @@ class FileBackupTaskSerializer(serializers.ModelSerializer):
     last_run = serializers.DateTimeField(source='last_run')
     previous_run = serializers.SerializerMethodField('get_previous_run')
     next_run = serializers.DateTimeField('next_run')
+    previous_run_files = serializers.SerializerMethodField('get_previous_run_files')
 
     class Meta:
         model = FileBackupTask
@@ -94,6 +96,21 @@ class FileBackupTaskSerializer(serializers.ModelSerializer):
 
     def get_previous_run(self, obj):
         return obj.last_run(obj.last_run())
+
+    def get_previous_run_files(self, obj):
+        prev_run = obj.last_run(obj.last_run())
+
+        try:
+            tc = obj.taskcheck_set.get(task_time=prev_run)
+            files = tc.backupfile_set.all()
+            if files:
+                return [BackupFileSerializer(x).data for x in files]
+            else:
+                return ''
+        except ObjectDoesNotExist:
+            return ''
+
+
 
 
 class BackupTaskSerializer(serializers.ModelSerializer):
