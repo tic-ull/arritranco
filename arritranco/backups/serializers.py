@@ -35,7 +35,7 @@ class BackupFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BackupFile
-        fields = ('id', 'path', 'original_file_size', 'deletion_date')
+        fields = ('id', 'path', 'original_file_size', 'deletion_date', 'compressed_file_size')
 
     def get_full_path(self, obj):
         return os.path.join(obj.file_backup_product.file_backup_task.directory, obj.original_file_name)
