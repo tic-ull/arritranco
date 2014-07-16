@@ -88,7 +88,6 @@ class FileBackupTaskSerializer(serializers.ModelSerializer):
                    'weekday',
                    'active',
                    'duration',
-                   'extra_options',
                    'bckp_type',
                    'days_in_hard_drive',
                    'max_backup_month',

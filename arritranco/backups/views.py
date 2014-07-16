@@ -18,6 +18,7 @@ import math
 import os
 import logging
 import time
+from tasks import verify_backupfile, delete_backupfile, compress_backupfile
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,8 @@ class BackupFileCheckerView(APIView):
         f = {}
         if 'checker' in request.GET:
             f = {'checker_fqdn': request.GET['checker']}
+        if 'id' in request.GET:
+            f = {'id': request.GET['id']}
         for fbt in FileBackupTask.objects.filter(active=True, machine__up=True, **f):
             last_run = fbt.last_run()
             try:
@@ -49,6 +52,27 @@ class BackupFileCheckerView(APIView):
 
         return Response(list_of_tasks, status=httpstatus.HTTP_200_OK)
 
+
+def verify_backup_on_checker(filename,fbp, bid):
+    """Verify and compress a filebackup."""
+
+    fbt = fbp.file_backup_task
+    checker = fbt.checker_fqdn
+    fqdn = fbt.machine.fqdn
+    id = str(fbt.id)
+
+    if fbt.extra_options == "":
+        directory = "/backup/" + fqdn + "/dumps/"
+    else:
+        aux = fbt.extra_options.replace('data=','').split(':')
+        directory = "/backup/" + fqdn + "/" + aux[0] + "/" + aux[1] + "/"
+    try:
+        if FileBackupProduct.objects.filter(file_backup_task=fbt).count() == fbt.taskcheck_set.get(task_time=fbt.last_run()).backupfile_set.count():
+            verify_backupfile.apply_async((fqdn, id, directory), serializer="json", queue=checker )
+    except :
+            verify_backupfile.apply_async((fqdn, id, directory), serializer="json", queue=checker )
+
+    compress_backupfile.apply_async((filename,bid, directory), serializer="json", queue=checker )
 
 def add_backup_file(request, machine=None, windows=False):
     """Add a file to a backup task."""
@@ -131,6 +155,7 @@ def add_backup_file(request, machine=None, windows=False):
         logger.debug('BackupFile created %s' % bf)
     else:
         logger.debug('BackupFile already exists %s' % bf)
+    verify_backup_on_checker(filename,fbp, bf.id)
     return HttpResponse("Ok")
 
 

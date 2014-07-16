@@ -9,6 +9,17 @@ PROJECT_ROOT = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 
 BROKER_URL = 'amqp://localhost//'
 
+# INVENTORY/CHECKER settings
+
+CHECKER = 'localhost'
+INVENTORY = 'http://localhost'
+BACKUP_QUEUENAME = 'inventario'
+BACKUP_URLBASE = INVENTORY +'/rest/backup/backupfilechecker/?checker=' + CHECKER
+BACKUP_URLCOMPRESS = INVENTORY + '/rest/backup/addCompressedBackupFile?checker=' + CHECKER + '&'
+BACKUP_FILE_INFO_URL = INVENTORY + '/rest/backup/backupFileInfo'
+BACKUP_UPDATE_STATUS_URL = INVENTORY + '/rest/scheduler/tasks/%s/status'
+BACKUP_URLDELETE = INVENTORY + '/rest/backup/filesToDelete?checker=' + CHECKER + '&format=json'
+
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
 CELERY_ACCEPT_CONTENT = ['json']
