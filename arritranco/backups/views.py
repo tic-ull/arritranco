@@ -50,18 +50,20 @@ class BackupFileCheckerView(APIView):
         return Response(list_of_tasks, status=httpstatus.HTTP_200_OK)
 
 
-def add_backup_file(request, machine=False, windows=False):
+def add_backup_file(request, machine=None, windows=False):
     """Add a file to a backup task."""
-    # We have to know from what host we are being called.
     logger.debug('Adding backup file')
 
-    if not 'machine' in request.GET.keys():
-        machine = Machine.get_by_addr(request.META['REMOTE_ADDR'], filter_up=True)
+    if not machine:
+        # We have to know from what host we are being called.
+        if 'machine' in request.GET.keys():
+            machine = Machine.get_by_addr(request.GET.get('machine'), filter_up=True)
+        else:
+            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'], filter_up=True)
+
         if not machine:
             logger.error('There is no machine for address: %s' % request.META['REMOTE_ADDR'])
             raise Http404(MACHINE_NOT_FOUND_ERROR)
-    elif not machine:
-        machine = Machine.get_by_addr(request.GET.get('machine'), filter_up=True)
 
     if not request.GET.has_key('filename'):
         logger.error('No filename in request')
