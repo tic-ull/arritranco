@@ -103,7 +103,8 @@ def backup_checks(request):
         response = render_to_response(template, context, mimetype="text/plain")
     return response
 
-
+#FIXME: Refactor to look at last_run task. Otherwise it will silently fail if no task
+#was executed.
 def refresh_nagios_status(request):
     """Syncs last task status on database to Nagios using NSCA."""
     logger.debug('Refreshing nagios status')
