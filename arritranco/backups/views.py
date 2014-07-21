@@ -65,9 +65,9 @@ def verify_backup_on_checker(filename,fbp, bid):
         directory = "/backup/" + fqdn + "/dumps/"
     else:
         aux = fbt.extra_options.replace('data=','').split(':')
-        directory = "/backup/" + fqdn + "/" + aux[0] + "/" + aux[1] + "/"
+        directory = "/backup/" + fqdn + "/dumps-" + aux[0] + "/" + aux[1] + "/"
     try:
-        if FileBackupProduct.objects.filter(file_backup_task=fbt).count() == fbt.taskcheck_set.get(task_time=fbt.last_run()).backupfile_set.count():
+        if FileBackupProduct.objects.filter(file_backup_task=fbt).count() <= fbt.taskcheck_set.get(task_time=fbt.last_run()).backupfile_set.count():
             verify_backupfile.apply_async((fqdn, id, directory), serializer="json", queue=checker )
     except :
             verify_backupfile.apply_async((fqdn, id, directory), serializer="json", queue=checker )
