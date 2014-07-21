@@ -72,7 +72,7 @@ class FileBackupTaskSerializer(serializers.ModelSerializer):
     description = serializers.CharField()
     directory = serializers.CharField()
     files = FileBackupProductSerializer(source='file_backup', many=True)
-    id = serializers.Field()
+    id = serializers.CharField(source='id')
     last_run = serializers.DateTimeField(source='last_run')
     previous_run = serializers.SerializerMethodField('get_previous_run')
     next_run = serializers.DateTimeField('next_run')
