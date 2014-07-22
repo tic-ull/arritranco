@@ -66,13 +66,8 @@ def verify_backup_on_checker(filename,fbp, bid):
     else:
         aux = fbt.extra_options.replace('data=','').split(':')
         directory = "/backup/" + fqdn + "/dumps-" + aux[0] + "/" + aux[1] + "/"
-    try:
-        if FileBackupProduct.objects.filter(file_backup_task=fbt).count() <= fbt.taskcheck_set.get(task_time=fbt.last_run()).backupfile_set.count():
-            verify_backupfile.apply_async((fqdn, id, directory), serializer="json", queue=checker )
-    except :
-            verify_backupfile.apply_async((fqdn, id, directory), serializer="json", queue=checker )
 
-    compress_backupfile.apply_async((filename,bid, directory), serializer="json", queue=checker )
+    compress_backupfile.apply_async((filename,bid, directory, fqdn, id), serializer="json", queue=checker )
 
 def add_backup_file(request, machine=None, windows=False):
     """Add a file to a backup task."""

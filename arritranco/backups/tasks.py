@@ -19,9 +19,10 @@ def verify_backupfile(fqdn, id, directory):
     verifybackup_Checker(fqdn, id, directory)
 
 @app.task()
-def compress_backupfile(filename,backup_id,directory):
+def compress_backupfile(filename,backup_id,directory,fqdn, id):
     """ compress backupfile """
     compress_Checker(backup_id,directory + filename)
+    verifybackup_Checker(fqdn, id, directory)
 
 @app.task()
 def delete_backupfile(filename,fqdn):
