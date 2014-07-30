@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 import datetime
 
 import logging
+from inventory.models import PhysicalMachine
 
 logger = logging.getLogger(__name__)
 
@@ -98,9 +99,3 @@ class EPOListView(ListView):
         if len(self.args):
             return filter_by_room(qs, self.args[0])
         return qs
-
-    def get_context_data(self, object_list):
-        return {
-            'object_list': object_list
-        }
-
