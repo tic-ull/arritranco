@@ -33,7 +33,7 @@ class Manufacturer(models.Model):
             Think about how to solve this problem.
         '''
         if self.name == 'Dell':
-            return 'http://support.euro.dell.com/support/topics/topic.aspx/emea/shared/support/my_systems_info/es/details?c=es&l=es&s=gen&ServiceTag=%s' % serial_number
+            return 'http://www.dell.com/support/home/au/en/audhs1/product-support/servicetag/%s/warranty' % serial_number
         else:
             return None
 
