@@ -171,6 +171,11 @@ class MachineAdmin(admin.ModelAdmin):
         machine = form.instance
         if machine.up and not machine.get_service_iface():
             svc_iface = machine.build_service_interface()
+
+            if not svc_iface or not svc_iface.ip:
+                logger.warning("We couldn't get IP address for %s: %s" % (machine, svc_iface))
+                return 
+
             try:
                 # Verify that an interface with the fqdn ip already exists, then rename it
                 fqdn_iface = machine.interface_set.get(ip=svc_iface.ip)
