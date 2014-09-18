@@ -101,7 +101,7 @@ class TaskCheck(models.Model):
     """
     task = models.ForeignKey(Task)
     task_time = models.DateTimeField(blank=True, null=True, help_text='Task time')
-    last_status = models.ForeignKey("scheduler.TaskStatus", help_text='Status', null=True, blank=True)
+    last_status = models.ForeignKey("scheduler.TaskStatus", help_text='Status', null=True, blank=True, editable=False)
 
     def __unicode__(self):
         status = ''
