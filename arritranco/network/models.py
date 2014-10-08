@@ -117,17 +117,17 @@ class IP(models.Model):
     network = models.ForeignKey(Network, null=True, blank=True, editable=False, related_name="network_from_ip")
 
     def locate_network(self):
+        """ Assigning the net to which this ip belongs to. """
         import ipaddress
 
         ip = ipaddress.IPv4Address(self.addr)
-        for n in Network.objects.all():
+        for n in Network.objects.all().order_by('size'):
             if ip in ipaddress.IPv4Network(n.ip):
                 self.network = n
                 logger.debug("Result of asignation is: %s" % self.network)
                 break
 
     def save(self, *args, **kwargs):
-        """ Assigning the net to which this ip belongs to. """
         logger.debug("Calling IP Save method IP: %s", self.addr)
         self.locate_network()
         super(IP, self).save(*args, **kwargs)
