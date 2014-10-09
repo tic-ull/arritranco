@@ -39,7 +39,108 @@ STATE_TO_HUMAN = {
     UNKNOWN:'Unknown',
 }
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s check_file_backups[%(levelname)s] %(module)s %(message)s'
+        },
+        'simple': {
+            'format': '%(message)s'
+        },
+        'brief': {
+            'format': '%(message)s'
+        },
+    },
+    'handlers': {
+        'syslog': {
+            'level': 'INFO',
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'verbose',
+            'address': '/dev/log',
+            'facility': SysLogHandler.LOG_LOCAL2,
+        },
+        'log_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/var/log/arritranco.log',
+            'formatter': 'verbose',
+            'backupCount': 50,
+            'maxBytes': 2 ** 20,
+        },
+    },
+    'loggers': {
+        '__main__': {
+            'handlers': ['log_file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+if sys.stdout.isatty():
+    LOGGING['handlers']['console'] = {
+        'class': 'logging.StreamHandler',
+        'formatter': 'simple',
+        'level': 'DEBUG',
+        'stream': 'ext://sys.stdout'
+    }
+    LOGGING['loggers']['__main__']['handlers'].append('console')
+def resolve(s):
+    """
+    Resolve strings to objects using standard import and attribute
+    syntax.
+    """
+    importer = __import__
+    name = s.split('.')
+    used = name.pop(0)
+    try:
+        found = importer(used)
+        for frag in name:
+            used += '.' + frag
+            try:
+                found = getattr(found, frag)
+            except AttributeError:
+                importer(used)
+                found = getattr(found, frag)
+        return found
+    except ImportError:
+        e, tb = sys.exc_info()[1:]
+        v = ValueError('Cannot resolve %r: %s' % (s, e))
+        v.__cause__, v.__traceback__ = e, tb
+        raise v
+
+
+formatters = {}
+for f in LOGGING['formatters'].keys():
+    formatters[f] = logging.Formatter(LOGGING['formatters'][f]['format'])
+
+handlers = {}
+for h in LOGGING['handlers'].keys():
+    config = {}
+    for k, v in LOGGING['handlers'][h].items():
+        config[k] = v
+    factory = resolve(config.pop('class'))
+    formatter = config.pop('formatter')
+    if formatter:
+        config['format'] = formatters[LOGGING['handlers'][h]['formatter']]
+    config.pop('level')
+    config.pop('format')
+    if 'stream' in config:
+        stream = config.pop('stream')
+        config['strm'] = resolve(stream.split('/')[-1])
+    handlers[h] = factory(**config)
+    handlers[h].setLevel(logging._levelNames[LOGGING['handlers'][h]['level']])
+    handlers[h].setFormatter(formatters[LOGGING['handlers'][h]['formatter']])
+for l in LOGGING['loggers'].keys():
+    logger = logging.getLogger(l)
+    for h in LOGGING['loggers'][l]['handlers']:
+        logger.addHandler(handlers[h])
+
 logger = logging.getLogger(__name__)
+
 
 class MD5File(file):
     def __init__(self, fname, mode='r'):
@@ -75,7 +176,7 @@ def compress(id, filename):
     logger.info(u"Abriendo para escritura: %s" % compressedfilename)
     _f_out = MD5File(compressedfilename, 'wb')
     f_out = gzip.GzipFile(fileobj=_f_out, compresslevel=9)
-    logger.infoi(u"Comprimiendo y calculando md5: %s" % filename)
+    logger.info(u"Comprimiendo y calculando md5: %s" % filename)
 
     while True:
         line = f_in.read(1024)
@@ -91,9 +192,10 @@ def compress(id, filename):
     logger.info(u"Fin de la compresion de: %s" % filename)
     original_md5 = md5sum.hexdigest()
     notify_compressed_file (id, compressedfilename, original_md5 = original_md5, compressed_md5 = compressed_md5)
-    return md5sum
+    return original_md5
 
 def notify_compressed_file (id, filename, original_md5 = None, compressed_md5 = None, url = None):
+    logger.info("Notificando: (%s), %s, %s, %s" % (filename,original_md5,compressed_md5,url))
     try:
         filesize = os.stat(filename).st_size
         filedate = os.stat(filename).st_ctime
@@ -349,12 +451,15 @@ def verifybackup_Checker(fqdn, id, directory):
                  data = {
                      'check_time': datetime.datetime.now(),
                      'status': STATE_TO_HUMAN[out[0]],
-                     'comment': out[1]
+                     'comment': out[1].encode('utf-8')
                  }
                  logger.info("   * Estado: %s (%s)", data['status'], data['comment'].replace('\n', ''))
                  try:
                      url = settings.BACKUP_UPDATE_STATUS_URL % fbp.id
                      logger.info("    * Enviando el estado al inventario %s (%s)" % (url, data))
+                     handler=urllib2.HTTPHandler(debuglevel=1)
+                     opener = urllib2.build_opener(handler)
+                     urllib2.install_opener(opener)
                      request = urllib2.Request(url, urllib.urlencode(data), {'Accept': 'application/json'})
                      res = urllib2.urlopen(request)
                  except Exception, e:
@@ -362,7 +467,6 @@ def verifybackup_Checker(fqdn, id, directory):
                      raise e
 
                  logger.info('      * Ok: %s', res.read())
-#                 logger.info "%s\t%s\t%s\t%s" % (host, fbp.description, out[0], out[1])
                  logger.info("%s %s: %s %s" % (host, fbp.description, STATE_TO_HUMAN[out[0]], out[1]))
         else:
             logger.info("wrong filecheckid")

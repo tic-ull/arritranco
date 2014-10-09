@@ -11,21 +11,28 @@ from arritranco.celery import app
 if socket.gethostname() == settings.CHECKER:
     """ im the worker """
     queue = []
-    queue.append(Queue(socket.gethostname(), routing_key=socket.gethostname()))
+    queue.append(Queue(settings.CHECKER, routing_key=settings.CHECKER))
     app.conf.CELERY_QUEUES = queue
 
 @app.task(ignore_result=True)
 def verify_backupfile(fqdn, id, directory):
     """ verify the backupfiletask """
-    verifybackup_Checker(fqdn, id, directory)
+    return True
 
+<<<<<<< HEAD
+@app.task()
+def compress_backupfile(filename,backup_id,directory,fqdn,id):
+=======
 @app.task(ignore_result=True)
 def compress_backupfile(filename,backup_id,directory,fqdn, id):
+>>>>>>> 402dd460d88f5d860e9e42b82bdf5c3ca673df17
     """ compress backupfile """
     compress_Checker(backup_id,directory + filename)
     verifybackup_Checker(fqdn, id, directory)
+    return True
 
 @app.task(ignore_result=True)
 def delete_backupfile(filename,fqdn):
     """ delete backupfile """
     deletefile_Checker(filename)
+    return True
