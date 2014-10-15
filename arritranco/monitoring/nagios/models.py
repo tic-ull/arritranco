@@ -93,7 +93,7 @@ class Service(models.Model):
 
     name = models.CharField(max_length=255)
     ip = models.ForeignKey(IP)
-    machines = models.ManyToManyField("inventory.Machine")
+    machines = models.ManyToManyField("inventory.Machine", blank=True)
     date = models.DateField()
 
     def __unicode__(self):
