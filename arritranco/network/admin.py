@@ -36,6 +36,7 @@ class NetworkAdmin(admin.ModelAdmin):
 class IPAdmin(admin.ModelAdmin):
     list_display = ('addr', 'network_addr', )
     list_filter = (NetworkIPFilter,)
+    search_fields = ['addr',]
 
 
 admin.site.register(Switch, SwitchAdmin)

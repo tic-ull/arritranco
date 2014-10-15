@@ -46,35 +46,6 @@ SWITCH_LEVEL_BACKUP_INFO = {
     40: (BACKUP_METHOD_NULL, '', ''),
 }
 
-#class NetworkBaseModel(RackableModel):
-#    recommended_version = models.CharField(max_length = 255)
-#    ports = models.PositiveIntegerField(_(u'Default port number for this model'))
-#    backupmethod = models.IntegerField(choices = SWITCH_BACKUP_METHOD)
-#    backupusername = models.CharField(_(u'Backup username'), max_length = 255,
-#            help_text = _(u'Backup username (credentials used in the backup process)')
-#            )
-#    backuppassword = models.CharField(_(u'Backup password'), max_length = 255,
-#            help_text = _(u'Backup password (credentials used in the backup process)')
-#            )
-#    backupconfigfile = models.CharField(_(u'Backup configuration file'), max_length = 255,
-#            help_text = _(u'Configuration file to backup ("path/file")')
-#            )
-#    template = models.TextField()
-#    oid = models.CharField(max_length = 255,
-#            help_text = _(u'The string returned by this kind of hw when snmp queried about model')
-#            )
-
-
-def ip_to_int(ip):
-    """ Uses IPy to convert string ip to integer """
-    return IPy.IP(ip).ip
-
-
-def int_to_ip(num_ip):
-    """ Uses IPy to convert integer ip to string """
-    return IPy.IP(num_ip).strNormal()
-
-
 def clean_netip(value):
     """ Control the string format and that the valule provided is valid IP addr using IPy module """
     try:
@@ -122,7 +93,7 @@ class Network(models.Model):
         return IPy.IP(self.ip).netmask().strNormal()
 
     def _first_ip(self):
-        """ Returns str frist network host-ip """
+        """ Returns first network host-ip """
         return IPy.IP(self.ip)[1].strNormal()
 
     def _last_ip(self):
@@ -130,7 +101,7 @@ class Network(models.Model):
         return IPy.IP(self.ip)[-2].strNormal()
 
     def _first_ip_int(self):
-        """ Returns integer frist network host-ip """
+        """ Returns integer first network host-ip """
         return IPy.IP(self.ip)[1].int()
 
     def _last_ip_int(self):
@@ -145,14 +116,20 @@ class IP(models.Model):
     addr = models.IPAddressField(help_text=_(u'IP v4 address'), validators=[clean_ip], unique=True)
     network = models.ForeignKey(Network, null=True, blank=True, editable=False, related_name="network_from_ip")
 
-    def save(self, *args, **kwargs):
+    def locate_network(self):
         """ Assigning the net to which this ip belongs to. """
+        import ipaddress
+
+        ip = ipaddress.IPv4Address(self.addr)
+        for n in Network.objects.all().order_by('size'):
+            if ip in ipaddress.IPv4Network(n.ip):
+                self.network = n
+                logger.debug("Result of asignation is: %s" % self.network)
+                break
+
+    def save(self, *args, **kwargs):
         logger.debug("Calling IP Save method IP: %s", self.addr)
-        nets = Network.objects.filter(first_ip__lte=self.addr, last_ip__gte=self.addr).order_by('size')
-        if nets:
-            logger.debug("There is net and assign: %s" % nets[0])
-            self.network = nets[0]
-            logger.debug("Result of asignation is: %s" % self.network)
+        self.locate_network()
         super(IP, self).save(*args, **kwargs)
         logger.debug("Saved IP: %d - %s" % (self.id, self))
 
