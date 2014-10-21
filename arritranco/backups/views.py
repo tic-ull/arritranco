@@ -67,8 +67,12 @@ def verify_backup_on_checker(filename,fbp, bid):
         directory = "/backup/" + fqdn + "/dumps/"
     else:
         aux = fbt.extra_options.replace('data=','').split(':')
-        directory = "/backup/" + fqdn + "/dump-" + aux[0] + "/" + aux[1] + "/"
-    res = compress_backupfile.apply_async((filename,bid, directory, fqdn, id), serializer="json", queue=checker, ignore_result=True, countdown=30)
+        directory = "/backup/" + fqdn + "/dump-" + aux[0] + "/" + aux[1] + "/"S
+        if fbt.extra_options.find("data=oracle_export:") == 0:
+             directory = "/backup/" + fqdn + "/filebackup/"
+        if fbt.extra_options.find("data=oracle_rman:") == 0:
+             directory = "/backup/" + fqdn + "/rman/"
+    res = compress_backupfile.apply_async((filename,bid, directory, fqdn, id), serializer="json", queue=checker, ignore_result=True, countdown=120)
 
 def add_backup_file(request, machine=None, windows=False):
     """Add a file to a backup task."""
