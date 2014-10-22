@@ -69,10 +69,12 @@ def verify_backup_on_checker(filename,fbp, bid):
         aux = fbt.extra_options.replace('data=','').split(':')
         directory = "/backup/" + fqdn + "/dump-" + aux[0] + "/" + aux[1] + "/"
         if fbt.extra_options.find("data=oracle_export:") == 0:
-             db = fbt.extra_options.split(":")[1]
+             opts = fbt.extra_options.splitlines(True)[0]
+             db = opts.split(":")[1].rstrip()
              directory = "/backup/" + fqdn + "/filebackup/" + db + "/"
         if fbt.extra_options.find("data=oracle_rman:") == 0:
-             db = fbt.extra_options.split(":")[1]
+             opts = fbt.extra_options.splitlines(True)[0]
+             db = opts.split(":")[1].rstrip()
              directory = "/backup/" + fqdn + "/rman/" + db + "/"
     res = compress_backupfile.apply_async((filename,bid, directory, fqdn, id), serializer="json", queue=checker, ignore_result=True, countdown=120)
 
