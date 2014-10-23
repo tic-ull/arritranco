@@ -130,7 +130,7 @@ for h in LOGGING['handlers'].keys():
     config.pop('format')
     if 'stream' in config:
         stream = config.pop('stream')
-        config['strm'] = resolve(stream.split('/')[-1])
+        config['stream'] = resolve(stream.split('/')[-1])
     handlers[h] = factory(**config)
     handlers[h].setLevel(logging._levelNames[LOGGING['handlers'][h]['level']])
     handlers[h].setFormatter(formatters[LOGGING['handlers'][h]['formatter']])
