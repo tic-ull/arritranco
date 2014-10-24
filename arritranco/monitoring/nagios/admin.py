@@ -142,13 +142,13 @@ class NagiosNetworkParentAdmin(admin.ModelAdmin):
 
 
 class NagiosServiceCheckOptsAdmin(admin.ModelAdmin):
-    search_fields = ['service_name', 'check_name']
+    search_fields = ['service__name', 'check__name']
     list_display = ('service_name', 'check_name')
     filter_horizontal = ('contact_groups',)
 
 
 class NagiosUserdeviceCheckOptsAdmin(admin.ModelAdmin):
-    search_fields = ['unrackable_networked_device_name', 'check_name']
+    search_fields = ['unrackable_networked_device__name', 'check__name']
     list_display = ('unrackable_networked_device_name', 'check_name')
     filter_horizontal = ('contact_groups',)
 
@@ -163,7 +163,7 @@ class NagiosHardwarePolicyCheckOptsForm(forms.ModelForm):
 
 
 class NagiosHardwarePolicyCheckOptsAdmin(admin.ModelAdmin):
-    search_fields = ['hwmodels_names', 'check_name']
+    search_fields = ['hwmodel__name', 'check__name']
     list_display = ('check_name','hwmodels_names')
     filter_horizontal = ('contact_groups', "hwmodel", "excluded_ips", "excluded_os")
     form = NagiosHardwarePolicyCheckOptsForm
@@ -171,7 +171,7 @@ class NagiosHardwarePolicyCheckOptsAdmin(admin.ModelAdmin):
 
 class ServiceAdmin(admin.ModelAdmin):
     inlines = [NagiosServiceCheckOptsInline]
-    search_fields = ['name', 'machines_names', 'ip']
+    search_fields = ['name', 'machines__fqdn', 'ip__addr']
     list_display = ('name', 'machines_names', 'ip')
     filter_horizontal = ('machines',)
     raw_id_fields = ('ip',)
