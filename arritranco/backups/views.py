@@ -18,8 +18,7 @@ import math
 import os
 import logging
 import time
-from tasks import verify_backupfile, delete_backupfile, compress_backupfile
-from arritranco.celery import app
+from worker.tasks import verify_backupfile, delete_backupfile, compress_backupfile
 
 
 logger = logging.getLogger(__name__)
