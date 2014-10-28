@@ -8,6 +8,7 @@ from monitoring.nagios.models import HUMAN_TO_NAGIOS, NAGIOS_OK, NAGIOS_WARNING,
 from django.contrib.admin import SimpleListFilter
 from django.utils.translation import ugettext as _
 
+from django.utils.html import format_html
 
 class TaskCheckStatusFilter(SimpleListFilter):
     title = (u'Status')
@@ -44,7 +45,6 @@ class TaskStatusAdminForm(forms.ModelForm):
     #            )
     model = TaskStatus
 
-
 #        widgets = {
 #            'status': forms.widgets.Select(choices = STATUS_CHOICES),
 #        }
@@ -62,11 +62,10 @@ class TaskCheckAdmin(admin.ModelAdmin):
     list_display = ('task', 'task_time', 'num_status', 'get_status', 'info')
     list_filter = (TaskCheckStatusFilter,)
     inlines = [TaskStatusAdmin, ]
-    readonly_fields = ('task_time', )
+    readonly_fields = ('task_time', 'get_files')
     date_hierarchy = 'task_time'
-    #FIXME: Not all task are backup tasks, so adding __backuptask on search fields could be a bit risky
+    #FIXME: Not all task are backup tasks, so adding __backuptask in search fields could be a bit risky
     search_fields = ['task__description', 'task__backuptask__machine__fqdn']
-
 
     def info(self, obj):
         if 'backups' in settings.INSTALLED_APPS:
@@ -94,6 +93,15 @@ class TaskCheckAdmin(admin.ModelAdmin):
 
     get_status.short_description = u'Last check and status'
     get_status.allow_tags = True
+
+    def get_files(self, obj):
+        if obj.backupfile_set.all():
+            file_list_plain = '<li>'.join( [ str(i) for i in obj.backupfile_set.all() ] )
+            return format_html('<ul><li>' + file_list_plain + '</ul>')
+        else:
+            return None
+    get_files.short_description = u'Related files'
+    get_files.allow_tags = True
 
 
 class TaskAdmin(admin.ModelAdmin):
