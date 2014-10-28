@@ -67,7 +67,7 @@ def verify_backup_on_checker(filename,fbp, bid):
     else:
         aux = fbt.extra_options.replace('data=','').split(':')
         directory = "/backup/" + fqdn + "/dump-" + aux[0] + "/" + aux[1] + "/"
-        if fbt.extra_options.find("data=oracle_export:") == 0:
+        if fbt.extra_options.find("data=oracle_dump:") == 0:
              opts = fbt.extra_options.splitlines(True)[0]
              db = opts.split(":")[1].rstrip()
              directory = "/backup/" + fqdn + "/filebackup/" + db + "/"
