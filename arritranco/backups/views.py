@@ -18,13 +18,29 @@ import math
 import os
 import logging
 import time
-from tasks import verify_backupfile, delete_backupfile, compress_backupfile
-from arritranco.celery import app
+from worker.tasks import verify_backupfile, delete_backupfile, compress_backupfile
 
 
 logger = logging.getLogger(__name__)
 
 MACHINE_NOT_FOUND_ERROR = 'Machine object not found'
+
+class FileBackupsTasklist(APIView):
+    def get(self, request, format=None):
+        list_of_tasks = {}
+        tasks = []
+        f = {}
+        if 'checker' in request.GET:
+            f = {'checker_fqdn': request.GET['checker']}
+        if 'id' in request.GET:
+            f = {'id': request.GET['id']}
+
+        for fbt in FileBackupTask.objects.filter(active=True, machine__up=True, **f):
+            if fbt.machine.fqdn not in list_of_tasks:
+                list_of_tasks[fbt.machine.fqdn] = []
+            list_of_tasks[fbt.machine.fqdn].append(FileBackupTaskSerializer(fbt).data)
+
+        return Response(list_of_tasks, status=httpstatus.HTTP_200_OK)
 
 
 class BackupFileCheckerView(APIView):
@@ -68,7 +84,7 @@ def verify_backup_on_checker(filename,fbp, bid):
     else:
         aux = fbt.extra_options.replace('data=','').split(':')
         directory = "/backup/" + fqdn + "/dump-" + aux[0] + "/" + aux[1] + "/"
-        if fbt.extra_options.find("data=oracle_export:") == 0:
+        if fbt.extra_options.find("data=oracle_dump:") == 0:
              opts = fbt.extra_options.splitlines(True)[0]
              db = opts.split(":")[1].rstrip()
              directory = "/backup/" + fqdn + "/filebackup/" + db + "/"
