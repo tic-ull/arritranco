@@ -25,6 +25,23 @@ logger = logging.getLogger(__name__)
 
 MACHINE_NOT_FOUND_ERROR = 'Machine object not found'
 
+class FileBackupsTasklist(APIView):
+    def get(self, request, format=None):
+        list_of_tasks = {}
+        tasks = []
+        f = {}
+        if 'checker' in request.GET:
+            f = {'checker_fqdn': request.GET['checker']}
+        if 'id' in request.GET:
+            f = {'id': request.GET['id']}
+
+        for fbt in FileBackupTask.objects.filter(active=True, machine__up=True, **f):
+            if fbt.machine.fqdn not in list_of_tasks:
+                list_of_tasks[fbt.machine.fqdn] = []
+            list_of_tasks[fbt.machine.fqdn].append(FileBackupTaskSerializer(fbt).data)
+
+        return Response(list_of_tasks, status=httpstatus.HTTP_200_OK)
+
 
 class BackupFileCheckerView(APIView):
     """List all non Ok tasks  """
