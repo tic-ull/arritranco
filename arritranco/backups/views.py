@@ -90,10 +90,10 @@ def add_backup_file(request, machine=None, windows=False):
         if 'machine' in request.GET.keys():
             machine = Machine.get_by_addr(request.GET.get('machine'), filter_up=True)
         else:
-            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'], filter_up=True)
+            machine = Machine.get_by_addr(request.META['HTTP_X_FORWARDED_FOR'], filter_up=True)
 
         if not machine:
-            logger.error('There is no machine for address: %s' % request.META['REMOTE_ADDR'])
+            logger.error('There is no machine for address: %s' % request.META['HTTP_X_FORWARDED_FOR'])
             raise Http404(MACHINE_NOT_FOUND_ERROR)
 
     if not request.GET.has_key('filename'):
@@ -187,7 +187,7 @@ def add_compressed_backup_file(request):
     if 'checker' in request.GET:
         machine = Machine.get_by_addr(request.GET['checker'])
     else:
-        machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+        machine = Machine.get_by_addr(request.META['HTTP_X_FORWARDED_FOR'])
     if not machine:
         logger.error(MACHINE_NOT_FOUND_ERROR)
         raise Http404(MACHINE_NOT_FOUND_ERROR)
@@ -263,7 +263,7 @@ class FilesToCompressView(APIView):
         if 'checker' in request.GET:
             machine = Machine.get_by_addr(request.GET['checker'])
         else:
-            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+            machine = Machine.get_by_addr(request.META['HTTP_X_FORWARDED_FOR'])
         if not machine:
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
@@ -297,7 +297,7 @@ class FilesToDeleteView(APIView):
         if 'checker' in request.GET:
             machine = Machine.get_by_addr(request.GET['checker'])
         else:
-            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+            machine = Machine.get_by_addr(request.META['HTTP_X_FORWARDED_FOR'])
         if not machine:
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
@@ -333,7 +333,7 @@ class FilesToDeleteView(APIView):
         if 'checker' in request.GET:
             machine = Machine.get_by_addr(request.GET['checker'])
         else:
-            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+            machine = Machine.get_by_addr(request.META['HTTP_X_FORWARDED_FOR'])
         if not machine:
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
@@ -412,7 +412,7 @@ class GetBackupFileInfo(APIView):
         if 'checker' in request.GET:
             machine = Machine.get_by_addr(request.GET['checker'])
         else:
-            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+            machine = Machine.get_by_addr(request.META['HTTP_X_FORWARDED_FOR'])
         if not machine:
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
@@ -444,7 +444,7 @@ class TSMHostsView(APIView):
         if 'checker' in request.GET:
             machine = Machine.get_by_addr(request.GET['checker'])
         else:
-            machine = Machine.get_by_addr(request.META['REMOTE_ADDR'])
+            machine = Machine.get_by_addr(request.META['HTTP_X_FORWARDED_FOR'])
         if not machine:
             logger.error(MACHINE_NOT_FOUND_ERROR)
             raise Http404(MACHINE_NOT_FOUND_ERROR)
