@@ -1,6 +1,6 @@
 from django.db import models
 from network.models import Network, IP
-from hardware.models import RackServer, Rack
+from hardware.models import RackServer, Rack, BladeServer
 from location.models import Room
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
@@ -319,14 +319,19 @@ class PhysicalMachine(Machine):
 
     def get_location(self):
         """ returns location (physical) """
+        print "Get location"
         try:
-            server = RackServer.objects.filter(id=self.server.id)[0]
+            server = RackServer.objects.get(id=self.server.id)
             room = Room.objects.filter(id=server.rack.room.id)[0]
             location = {'fqdn': self.fqdn, 'rack': server.rack.name, 'room': room.name, 'base_unit': server.base_unit}
-
-            return location
-        except:
-            return None
+        except ObjectDoesNotExist:
+            try:
+                server = BladeServer.objects.get(id=self.server.id)
+                room = Room.objects.get(id=server.chassis.rack.room.id)
+                location = {'fqdn': self.fqdn, 'rack': server.chassis.rack.name, 'room': room.name, 'base_unit': server.chassis.base_unit}
+            except ObjectDoesNotExist:
+                return None
+        return location
 
     def get_management_ip(self):
         if self.server.management_ip is None or self.server.management_ip == "":
