@@ -107,7 +107,7 @@ class Machine(models.Model):
     fqdn = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     up = models.BooleanField('Up', default=False, help_text=_(u'Is this machine up?'))
-    os = models.ForeignKey(OperatingSystem, blank=True, null=True)
+    os = models.ForeignKey(OperatingSystem)
     start_up = models.DateField(_(u'start up'), blank=True, null=True)
     update_priority = models.IntegerField(_(u'Update priority'), choices=UPDATE_PRIORITY, default=30)
     up_to_date_date = models.DateField(_(u'update date'), blank=True, null=True)
