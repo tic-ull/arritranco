@@ -78,7 +78,8 @@ def verify_backup_on_checker(filename,fbp, bid):
     checker = fbt.checker_fqdn
     fqdn = fbt.machine.fqdn
     id = str(fbt.id)
-    res = verify_backupfile.apply_async((filename,bid, fqdn, id), serializer="json", queue=checker, ignore_result=True, countdown=120)
+    res = verify_backupfile.apply_async((filename,bid, fqdn, id), serializer="json", queue=checker, countdown=30, retry=True)
+    return res
 
 
 def add_backup_file(request, machine=None, windows=False):
@@ -162,7 +163,11 @@ def add_backup_file(request, machine=None, windows=False):
         logger.debug('BackupFile created %s' % bf)
     else:
         logger.debug('BackupFile already exists %s' % bf)
-    verify_backup_on_checker(filename,fbp, bf.id)
+    fbt = fbp.file_backup_task
+    checker = fbt.checker_fqdn
+    verify_id = verify_backup_on_checker(filename,fbp, bf.id)
+    logger.debug('Verificando con el id %s, el filename %s, con el checker = %s' % (verify_id, filename, checker))
+
     return HttpResponse("Ok")
 
 

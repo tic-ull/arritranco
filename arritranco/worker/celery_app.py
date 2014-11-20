@@ -4,6 +4,7 @@ from celery import Celery
 from django.conf import settings
 
 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'arritranco.settings')
 app = Celery('backup_task')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)

@@ -25,8 +25,8 @@ class BackupTask(Task):
 
     BACKUP_TYPE_CHOICES = (
         (FILE_BACKUP, _(u'File')),
-        (DATABASE_BACKUP, _(u'Database')),
-        (SYSTEM_BACKUP, _(u'System')),
+        (DATABASE_BACKUP, u'Database'),
+        (SYSTEM_BACKUP, u'System'),
     )
 
     machine = models.ForeignKey(Machine)
@@ -276,8 +276,8 @@ class FileBackupTaskTemplate(models.Model):
 
     BACKUP_TYPE_CHOICES = (
         (FILE_BACKUP, _(u'File')),
-        (DATABASE_BACKUP, _(u'Database')),
-        (SYSTEM_BACKUP, _(u'System')),
+        (DATABASE_BACKUP, u'Database'),
+        (SYSTEM_BACKUP, u'System'),
     )
 
     name = models.CharField(max_length=400)
