@@ -335,7 +335,7 @@ class NagiosNetworkParent(models.Model):
     def get_parents_for_host(host):
         nagios_parents = set()
         for iface in host.interface_set.all():
-            if iface.network:
+            if iface.ip.network:
                 for p in iface.ip.network.nagiosnetworkparent_set.all():
                     nagios_parents.add(p.parent)
         if not nagios_parents:
