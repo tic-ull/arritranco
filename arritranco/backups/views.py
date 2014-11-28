@@ -10,7 +10,7 @@ from rest_framework import status as httpstatus
 from serializers import *
 from django.conf import settings
 from models import FileBackupTask, FileBackupProduct, BackupFile, TSMBackupTask, BackupTask
-from scheduler.models import TaskCheck, TaskStatus
+from scheduler.models import TaskCheck, TaskStatus, Task
 from scheduler.views import Todo
 from inventory.models import Machine
 import datetime
@@ -41,6 +41,29 @@ class FileBackupsTasklist(APIView):
             list_of_tasks[fbt.machine.fqdn].append(FileBackupTaskSerializer(fbt).data)
 
         return Response(list_of_tasks, status=httpstatus.HTTP_200_OK)
+
+
+class CreateTaskChecksView(APIView):
+    """Create all TaskCheck """
+
+    def get(self, request, format=None):
+        list_of_tasks = {}
+        tasks = []
+        f = {}
+        if 'checker' in request.GET:
+            f = {'checker_fqdn': request.GET['checker']}
+        if 'id' in request.GET:
+            f = {'id': request.GET['id']}
+        for fbt in FileBackupTask.objects.filter(active=True, machine__up=True, **f):
+            last_run = fbt.last_run()
+            try:
+                tc = TaskCheck.objects.get(task=fbt, task_time=last_run)
+                continue
+            except TaskCheck.DoesNotExist:
+                pass
+            task = Task.objects.filter(pk=fbt.id)[0]
+            task.update_status(task.last_run(), "Warning","AUTO_GENERATE")
+        return Response({}, status=httpstatus.HTTP_200_OK)
 
 
 class BackupFileCheckerView(APIView):
@@ -78,8 +101,7 @@ def verify_backup_on_checker(filename,fbp, bid):
     checker = fbt.checker_fqdn
     fqdn = fbt.machine.fqdn
     id = str(fbt.id)
-    res = verify_backupfile.apply_async((filename,bid, fqdn, id), serializer="json", queue=checker, countdown=30, retry=True)
-    return res
+    res = verify_backupfile.apply_async((filename,bid, fqdn, id), serializer="json", queue=checker, ignore_result=True, countdown=120)
 
 
 def add_backup_file(request, machine=None, windows=False):
