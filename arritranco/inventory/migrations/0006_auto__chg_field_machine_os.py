@@ -10,12 +10,26 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
 
         # Changing field 'Machine.os'
+        os_type, created = orm.OperatingSystemType.objects.get_or_create(name='undefined', slug='undefined')
+        os_type.save()
+        if created:
+            print " + Created OSType: ", os_type
+        else:
+            print " - OSType %s already exists" % os_type.name
+        os, created = orm.OperatingSystem.objects.get_or_create(name = 'undefined', slug = 'undefined', type = os_type)
+        os.save()
+        if created:
+            print " + Created OS %s" % os.name
+        else:
+            print " - OS %s already exists" % os.name
+
         db.alter_column(u'inventory_machine', 'os_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['inventory.OperatingSystem']))
 
     def backwards(self, orm):
 
         # Changing field 'Machine.os'
         db.alter_column(u'inventory_machine', 'os_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['inventory.OperatingSystem'], null=True))
+
 
     models = {
         u'hardware.hwbase': {
