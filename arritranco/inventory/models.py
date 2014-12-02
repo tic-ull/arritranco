@@ -101,20 +101,12 @@ def clean_fqdn(value):
     except:
         raise ValidationError, _(u'The fqdn name u entered is not resoluble, please enter a valid one')
 
-def get_os_undef():
-    """ Get ID of undefined OperatingSystem """
-    os_undef = OperatingSystem.objects.filter(slug=u'undefined')
-    try:
-        return os_undef[0].id
-    except:
-        raise ValidationError, _(u'Can\'t find default (undefined) operating system')
-
 class Machine(models.Model):
     """Software Machine."""
     fqdn = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     up = models.BooleanField('Up', default=False, help_text=_(u'Is this machine up?'))
-    os = models.ForeignKey(OperatingSystem, default=get_os_undef())
+    os = models.ForeignKey(OperatingSystem)
     start_up = models.DateField(_(u'start up'), blank=True, null=True)
     update_priority = models.IntegerField(_(u'Update priority'), choices=UPDATE_PRIORITY, default=30)
     up_to_date_date = models.DateField(_(u'update date'), blank=True, null=True)
