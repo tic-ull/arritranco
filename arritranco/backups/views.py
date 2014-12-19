@@ -62,7 +62,7 @@ class CreateTaskChecksView(APIView):
             except TaskCheck.DoesNotExist:
                 pass
             task = Task.objects.filter(pk=fbt.id)[0]
-            task.update_status(task.last_run(), "Warning","AUTO_GENERATE")
+            task.update_status(task.last_run(), "Unknown","Task not executed")
         return Response({}, status=httpstatus.HTTP_200_OK)
 
 

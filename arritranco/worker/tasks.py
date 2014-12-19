@@ -11,4 +11,7 @@ def verify_backupfile(filename,backup_id,fqdn,id):
     """ verify backupfile """
     pass
 
+@app.task()
+def inventario_heartbeat():
+    pass
 
