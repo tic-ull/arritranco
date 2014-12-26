@@ -98,7 +98,7 @@ class FileBackupTask(BackupTask):
                                  validators=[validate_path])
     days_in_hard_drive = models.IntegerField(blank=False, null=False, default=180,
                                              help_text=_(u'Number of days that this backup shoud be on disk at most.'))
-    max_backup_month = models.IntegerField(blank=False, null=False, default=7,
+    max_backup_month = models.IntegerField(blank=False, null=False, default=1,
                                            help_text=_(u'Number of backups that shoud to be on disk after a month.'))
 
     objects = TaskManager()  # Include todo query from the task manager
