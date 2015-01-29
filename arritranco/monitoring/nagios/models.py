@@ -210,7 +210,7 @@ class NagiosMachineCheckOpts(NagiosOpts):
     def clean(self):
         if NagiosMachineCheckOpts.objects.filter(check=self.check,
                                                  machine=self.machine).exclude(pk=self.pk):
-            raise ValidationError('Error check in machine repited')
+            pass
 
     def get_full_check(self):
         command = None
