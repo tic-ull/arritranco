@@ -250,7 +250,7 @@ class NagiosServiceCheckOpts(NagiosOpts):
     def clean(self):
         if NagiosServiceCheckOpts.objects.filter(check=self.check,
                                                  service=self.service).exclude(pk=self.pk):
-            raise ValidationError('Error check in service repited')
+            pass
 
 
 class NagiosUnrackableNetworkedDeviceCheckOpts(NagiosOpts):

@@ -233,7 +233,7 @@ class BackupFile(models.Model):
         return self.file_backup_product.file_backup_task.directory
 
     def path(self):
-        return os.path.join(self.directory(), self.compressed_filen_name or self.original_file_name)
+        return os.path.join(self.directory(), self.compressed_file_name or self.original_file_name)
 
     def checker(self):
         return self.file_backup_product.file_backup_task.checker_fqdn
