@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from django.contrib import admin
+from django.contrib import admin, messages
 from models import Task, TaskCheck, TaskStatus
 from django.db import models
 from django import forms
@@ -66,6 +66,18 @@ class TaskCheckAdmin(admin.ModelAdmin):
     date_hierarchy = 'task_time'
     #FIXME: Not all task are backup tasks, so adding __backuptask in search fields could be a bit risky
     search_fields = ['task__description', 'task__backuptask__machine__fqdn']
+    actions = ['validate_task_checks',]
+
+    def validate_task_checks(self, request, queryset):
+        """Admin action to just set OK on taskcheck status."""
+        tasks_validated = 0
+        for task_check in queryset:
+            task_check.update_status('Ok', 'Batch OK')
+            tasks_validated += 1
+
+        messages.info(request, _(u'%d TaskChecks has been set to "OK" Status' % tasks_validated))
+
+    validate_task_checks.short_description = _(u'Validate selected task_checks(Set OK)')
 
     def info(self, obj):
         if 'backups' in settings.INSTALLED_APPS:
