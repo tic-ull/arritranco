@@ -71,8 +71,8 @@ class NagiosCheckAdmin(admin.ModelAdmin):
     list_filter = ('os', 'default_contact_groups')
 
 class NagiosMachineCheckOptsAdmin(admin.ModelAdmin):
-    list_display = ('check', 'machine', 'options', 'get_ngcontact_groups')
-    list_editable = ('options',)
+    list_display = ('check', 'machine', 'options', 'description', 'get_ngcontact_groups')
+    list_editable = ('options', 'description',)
     search_fields = ('check__name', 'machine__fqdn')
     list_filter = ('contact_groups', 'check', OsMachineCheckFilter)
     filter_horizontal = ('contact_groups',)
