@@ -96,6 +96,10 @@ class Service(models.Model):
     machines = models.ManyToManyField("inventory.Machine", blank=True)
     date = models.DateField()
 
+    class Meta:
+        verbose_name = _(u'Balanced / Proxyed service')
+        verbose_name_plural = _(u'Balanced / Proxyed services')
+
     def __unicode__(self):
         return u"%s" % self.name
 
@@ -137,6 +141,8 @@ class NagiosCheck(models.Model):
 
     class Meta():
         ordering = ["name"]
+        verbose_name = _(u'Check definition')
+        verbose_name_plural = _(u'Check definitions')
 
     def __unicode__(self):
         return u"%s" % self.name
@@ -156,8 +162,8 @@ class NagiosMachineCheckDefaults(models.Model):
     nagioscheck = models.ForeignKey(NagiosCheck)
 
     class Meta:
-        verbose_name = _(u'Machine Default Check')
-        verbose_name_plural = _(u'Machine Default Checks')
+        verbose_name = _(u'Machine default assinged check')
+        verbose_name_plural = _(u'Machine default assigned checks')
 
 
 class NagiosOpts(models.Model):
@@ -165,6 +171,7 @@ class NagiosOpts(models.Model):
     check = models.ForeignKey(NagiosCheck)
     options = models.CharField(max_length=500, help_text="Parameter list to a nagios check", null=True, blank=True)
     contact_groups = models.ManyToManyField('NagiosContactGroup')
+    description = models.CharField(max_length=400, default='', blank=True)
 
     class Meta:
         abstract = True
@@ -195,14 +202,19 @@ class NagiosOpts(models.Model):
         else:
             return self.check.command + self.options
 
+    def get_description(self):
+        if self.description is None or self.description == "":
+            return self.check.description
+        else:
+            return self.description
 
 class NagiosMachineCheckOpts(NagiosOpts):
     """ Check options for a NagiosCheck on a specific machine, oid's, ports etc.. """
     machine = models.ForeignKey("inventory.Machine")
 
     class Meta:
-        verbose_name = _(u'Machine Check')
-        verbose_name_plural = _(u'Machine Checks')
+        verbose_name = _(u'Machine assigned check')
+        verbose_name_plural = _(u'Machine assigned checks')
 
     def __unicode__(self):
         return u"%s on machine %s" % (self.check.name, self.machine.fqdn)
@@ -235,8 +247,8 @@ class NagiosServiceCheckOpts(NagiosOpts):
     service = models.ForeignKey(Service)
 
     class Meta:
-        verbose_name = _(u'Service Check')
-        verbose_name_plural = _(u'Service Checks')
+        verbose_name = _(u'Balanced / Proxyed assigned service Check')
+        verbose_name_plural = _(u'Balanced / Proxyed service checks')
 
     def __unicode__(self):
         return u"%s on %s" % (self.check.name, self.service.name)
