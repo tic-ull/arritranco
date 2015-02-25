@@ -16,10 +16,22 @@ class Migration(SchemaMigration):
 
         # Adding model 'NagiosSecurityDeviceCheckOpts'
         db.create_table(u'security_nagiossecuritydevicecheckopts', (
-            (u'nagiosopts_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['nagios.NagiosOpts'], unique=True, primary_key=True)),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('check', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['nagios.NagiosCheck'])),
+            ('options', self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True)),
+            ('description', self.gf('django.db.models.fields.CharField')(default='', max_length=400, blank=True)),
             ('securitydevice', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['security.SecurityDevice'])),
         ))
         db.send_create_signal(u'security', ['NagiosSecurityDeviceCheckOpts'])
+
+        # Adding M2M table for field contact_groups on 'NagiosSecurityDeviceCheckOpts'
+        m2m_table_name = db.shorten_name(u'security_nagiossecuritydevicecheckopts_contact_groups')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('nagiossecuritydevicecheckopts', models.ForeignKey(orm[u'security.nagiossecuritydevicecheckopts'], null=False)),
+            ('nagioscontactgroup', models.ForeignKey(orm[u'nagios.nagioscontactgroup'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['nagiossecuritydevicecheckopts_id', 'nagioscontactgroup_id'])
 
 
     def backwards(self, orm):
@@ -28,6 +40,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'NagiosSecurityDeviceCheckOpts'
         db.delete_table(u'security_nagiossecuritydevicecheckopts')
+
+        # Removing M2M table for field contact_groups on 'NagiosSecurityDeviceCheckOpts'
+        db.delete_table(db.shorten_name(u'security_nagiossecuritydevicecheckopts_contact_groups'))
 
 
     models = {
@@ -49,7 +64,7 @@ class Migration(SchemaMigration):
         },
         u'hardware.unrackablenetworkeddevice': {
             'Meta': {'object_name': 'UnrackableNetworkedDevice'},
-            'comments': ('django.db.models.fields.TextField', [], {}),
+            'comments': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'hwbase_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.HwBase']", 'unique': 'True', 'primary_key': 'True'}),
             'latitude': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'longitude': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
@@ -86,7 +101,7 @@ class Migration(SchemaMigration):
             'epo_level': ('django.db.models.fields.IntegerField', [], {'default': '5'}),
             'fqdn': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'os': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.OperatingSystem']", 'null': 'True', 'blank': 'True'}),
+            'os': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.OperatingSystem']"}),
             'start_up': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'up': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'up_to_date_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
@@ -137,11 +152,11 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
         u'nagios.nagioscheck': {
-            'Meta': {'object_name': 'NagiosCheck'},
+            'Meta': {'ordering': "['name']", 'object_name': 'NagiosCheck'},
             'command': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'default_contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
             'default_params': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '400'}),
-            'hwmodels': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['hardware_model.HwModel']", 'null': 'True', 'through': u"orm['nagios.NagiosHardwarePolicyCheckOpts']", 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'machines': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['inventory.Machine']", 'null': 'True', 'through': u"orm['nagios.NagiosMachineCheckOpts']", 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
@@ -149,39 +164,68 @@ class Migration(SchemaMigration):
             'os': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['inventory.OperatingSystemType']", 'symmetrical': 'False'}),
             'services': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['nagios.Service']", 'null': 'True', 'through': u"orm['nagios.NagiosServiceCheckOpts']", 'blank': 'True'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
+            'template': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheckTemplate']"}),
             'unrackable_networked_devices': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['hardware.UnrackableNetworkedDevice']", 'null': 'True', 'through': u"orm['nagios.NagiosUnrackableNetworkedDeviceCheckOpts']", 'blank': 'True'})
+        },
+        u'nagios.nagioschecktemplate': {
+            'Meta': {'object_name': 'NagiosCheckTemplate'},
+            'active_checks_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'check_command': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'check_freshness': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'check_interval': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '5'}),
+            'check_period': ('django.db.models.fields.CharField', [], {'default': "u'24x7'", 'max_length': '55'}),
+            'event_handler_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'failure_prediction_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'first_notification_delay': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
+            'flap_detection_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'freshness_threshold': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_volatile': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'max_check_attempts': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '3'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'notification_interval': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '720'}),
+            'notification_options': ('django.db.models.fields.CharField', [], {'default': "u'w,u,c,r'", 'max_length': '10'}),
+            'notification_period': ('django.db.models.fields.CharField', [], {'default': "u'24x7'", 'max_length': '55'}),
+            'notifications_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'obsess_over_service': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'passive_checks_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'process_perf_data': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'register': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
+            'retain_nonstatus_information': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'retain_status_information': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'retry_interval': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '1'}),
+            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '255'})
         },
         u'nagios.nagioscontactgroup': {
             'Meta': {'object_name': 'NagiosContactGroup', '_ormbases': [u'monitoring.Responsible']},
             'ngcontact': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             u'responsible_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['monitoring.Responsible']", 'unique': 'True', 'primary_key': 'True'})
         },
-        u'nagios.nagioshardwarepolicycheckopts': {
-            'Meta': {'object_name': 'NagiosHardwarePolicyCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            'excluded_os': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['inventory.OperatingSystem']", 'null': 'True', 'blank': 'True'}),
-            'hwmodel': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware_model.HwModel']"}),
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'})
-        },
         u'nagios.nagiosmachinecheckopts': {
-            'Meta': {'object_name': 'NagiosMachineCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            'machine': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.Machine']"}),
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'})
-        },
-        u'nagios.nagiosopts': {
-            'Meta': {'object_name': 'NagiosOpts'},
+            'Meta': {'object_name': 'NagiosMachineCheckOpts'},
             'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
             'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            'description': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '400', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'machine': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['inventory.Machine']"}),
             'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'})
         },
         u'nagios.nagiosservicecheckopts': {
-            'Meta': {'object_name': 'NagiosServiceCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'}),
+            'Meta': {'object_name': 'NagiosServiceCheckOpts'},
+            'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
+            'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            'description': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '400', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'service': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.Service']"})
         },
         u'nagios.nagiosunrackablenetworkeddevicecheckopts': {
-            'Meta': {'object_name': 'NagiosUnrackableNetworkedDeviceCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'}),
+            'Meta': {'object_name': 'NagiosUnrackableNetworkedDeviceCheckOpts'},
+            'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
+            'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            'description': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '400', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'unrackable_networked_device': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware.UnrackableNetworkedDevice']"})
         },
         u'nagios.service': {
@@ -189,7 +233,7 @@ class Migration(SchemaMigration):
             'date': ('django.db.models.fields.DateField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ip': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.IP']"}),
-            'machines': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['inventory.Machine']", 'symmetrical': 'False'}),
+            'machines': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['inventory.Machine']", 'symmetrical': 'False', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
         u'network.ip': {
@@ -233,8 +277,12 @@ class Migration(SchemaMigration):
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'})
         },
         u'security.nagiossecuritydevicecheckopts': {
-            'Meta': {'object_name': 'NagiosSecurityDeviceCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'}),
+            'Meta': {'object_name': 'NagiosSecurityDeviceCheckOpts'},
+            'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
+            'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            'description': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '400', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'securitydevice': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['security.SecurityDevice']"})
         },
         u'security.securitydevice': {
@@ -242,8 +290,12 @@ class Migration(SchemaMigration):
             u'unrackablenetworkeddevice_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['hardware.UnrackableNetworkedDevice']", 'unique': 'True', 'primary_key': 'True'})
         },
         u'sondas.nagiosnrpecheckopts': {
-            'Meta': {'object_name': 'NagiosNrpeCheckOpts', '_ormbases': [u'nagios.NagiosOpts']},
-            u'nagiosopts_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['nagios.NagiosOpts']", 'unique': 'True', 'primary_key': 'True'}),
+            'Meta': {'object_name': 'NagiosNrpeCheckOpts'},
+            'check': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.NagiosCheck']"}),
+            'contact_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['nagios.NagiosContactGroup']", 'symmetrical': 'False'}),
+            'description': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '400', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'options': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'service': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['nagios.Service']"}),
             'sonda': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['sondas.Sonda']", 'symmetrical': 'False'})
         },
@@ -255,7 +307,8 @@ class Migration(SchemaMigration):
             'nrpe_service_name': ('django.db.models.fields.CharField', [], {'default': "'nagios-nrpe-server'", 'max_length': '400'}),
             'script_end': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'script_inicio': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'servidor_nagios': ('django.db.models.fields.CharField', [], {'default': "'193.145.118.253'", 'max_length': '400'}),
+            'servidor_nagios': ('django.db.models.fields.CharField', [], {'default': "'127.0.0.1'", 'max_length': '400'}),
+            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '50'}),
             'ssh': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'unrackable_networked_device': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hardware.UnrackableNetworkedDevice']"})
         }
