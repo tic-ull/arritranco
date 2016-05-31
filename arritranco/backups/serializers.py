@@ -44,11 +44,14 @@ class BackupFileSerializer(serializers.ModelSerializer):
 class BackupFileToDeleteSerializer(serializers.ModelSerializer):
     """Serializer for te files to delete."""
     path = serializers.SerializerMethodField('get_full_path')
+    compressed_file_name = serializers.Field(source='compressed_file_name')
     pk = serializers.Field(source='id')
+    extra_options = serializers.Field(source='extra_options')
+    fqdn = serializers.Field(source='fqdn')
 
     class Meta:
         model = BackupFile
-        fields = ('pk', 'path')
+        fields = ('pk', 'path', 'extra_options', 'compressed_file_name','fqdn')
 
     def get_full_path(self, obj):
         return os.path.join(obj.file_backup_product.file_backup_task.directory,

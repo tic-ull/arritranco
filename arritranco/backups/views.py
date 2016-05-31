@@ -410,20 +410,24 @@ class FilesToDeleteView(APIView):
                         last -= step
                         #                else:
                         #                    break
-        files_to_delete = []
-        logger.debug("Start filling files_to_delete")
-        for tch in task_to_delete:
-            directory = tch.task.backuptask.filebackuptask.directory
-            logger.debug('Deleting files of task: [%d] %s %s', tch.id, tch, tch.task_time)
-            for bf in tch.backupfile_set.filter(deletion_date__isnull=True):
-                files_to_delete.append(BackupFileToDeleteSerializer(bf).data)
-                logger.debug('Adding: %s', bf.path)
-
-        logger.debug("End filling files_to_delete")
-
-        print ("time files to delete : " + str(time.time() - t0))
-
-        return Response(files_to_delete, httpstatus.HTTP_200_OK)
+         files_to_delete = []
+         logger.debug("Start filling files_to_delete")
+         for tch in task_to_delete:
+             directory = tch.task.backuptask.filebackuptask.directory
+             extra_options = tch.task.backuptask.filebackuptask.extra_options
+             fqdn = tch.task.backuptask.filebackuptask.machine
+             logger.debug('Deleting files of task: [%d] %s %s', tch.id, tch, tch.task_time)
+             for bf in tch.backupfile_set.filter(deletion_date__isnull=True):
+                 bf.extra_options = extra_options
+                 bf.fqdn = fqdn
+                 files_to_delete.append(BackupFileToDeleteSerializer(bf).data)
+                 logger.debug('Adding: %s', bf.path)
+ 
+         logger.debug("End filling files_to_delete")
+ 
+         print ("time files to delete : " + str(time.time() - t0))
+ 
+         return Response(files_to_delete, httpstatus.HTTP_200_OK)
 
 
 class GetBackupFileInfo(APIView):

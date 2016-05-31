@@ -25,7 +25,7 @@ BACKUP_URLDELETE = INVENTORY + '/rest/backup/filesToDelete?checker=' + CHECKER +
 CELERY_ACCEPT_CONTENT = ['json']
 
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
